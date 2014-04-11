@@ -1019,7 +1019,7 @@ if (!all(is_installed)) {
   resp = getResponse('Would you like to try now?', c('Yes', 'No'))
 
   if (tolower(resp) == 'yes') {
-    cat('Attempting install with your default setting...\n')
+    cat('Attempting install with your default settings...\n')
     install.packages(mm_deps[!is_installed])
     cat('Installation complete! Continuing...\n')
   } else {
