@@ -62,9 +62,17 @@ cd ~/change/to/path/of/your/choice
 git clone https://github.com/n3mo/massmine.git
 ```
 
-This will create a directory "massmine" in the folder ~/change/to/path/of/your/choice with several files inside.
+This will create a directory "massmine" in the folder ~/change/to/path/of/your/choice with the necessary files inside.
 
-To finish up, make the massmine script executable, and then run it:
+### Install From Source (Alternative Method To Git)
+
+As an alternative to git, you can simply download a [zip file](https://github.com/n3mo/massmine/zipball/master) or [tarball](https://github.com/n3mo/massmine/tarball/master) of the source code. Extract the compressed file to create a directory "massmine"
+
+### Completing The Installation
+
+Once you have installed the source code (using either method from above), you can setup MassMine by running it.
+
+To begin, make the massmine script executable, and then run it:
 
 ```sh
 cd ~/change/to/path/of/your/choice/massmine
@@ -72,6 +80,10 @@ chmod +x massmine
 ./massmine
 ```
 
-On its first run, MassMine will offer to create a user customization template file. The template file will be created in your home folder as `~/.mm_auth` (note that files that begin with "." will not show up in your file browser by default. You may need to turn on "hidden files" to see this.
+On its first run, MassMine will offer to create a user customization template file. The template file will be created in your home folder as `~/.mm_auth` (note that files that begin with "." will not show up in your file browser by default. You may need to turn on "hidden files" to see this).
 
-The template file `~/.mm_auth` contains instructions for how to edit it. You will find information for how to include your authorization credentials, etc. Once you have finished editing the customization file, you can rerun massmine at any time with
+The template file `~/.mm_auth` contains instructions for how to edit it. You will find information for how to include your authorization credentials, etc. Once you have finished editing the customization file, you can rerun massmine at any time to being using it:
+
+```sh
+~/path/to/massmine
+```
