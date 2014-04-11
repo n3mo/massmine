@@ -25,14 +25,16 @@ Specifically, MassMine:
 
 MassMine is designed to run on Linux and Mac OSX. Windows is currently not supported.
 
+### Dependencies
+
 MassMine requires the following dependencies. Each of these must be installed prior to running MassMine:
 
-1. R. The R statistical computing language is freely available for all major operating systems. It is typically quite easy to install. Instructions for doing so can be found on the [The R Project for Statistical Computing](http://www.r-project.org/)
-2. cURL. This is a command line utility for fetching web content. It is likely already installed on your system (both Linux and Mac OS X).
+1. **R**. The R statistical computing language is freely available for all major operating systems. It is typically quite easy to install. Instructions for doing so can be found on the [The R Project for Statistical Computing](http://www.r-project.org/). MassMine is developed to run on R version 3.0.x. It is likely to also run on newer version of R, but you may (or may not) run into trouble with older 2.x versions of R.
+2. **cURL**. This is a command line utility for fetching web content. It is likely already installed on your system (both Linux and Mac OS X).
 
-If you are using Linux, you may also need to install the cURL development libraries. If you're using Ubuntu (or similar), you can check for this as follows:
+If you are using Linux, you may also need to install the cURL development library. If you're using Ubuntu (or similar), you can check for this as follows:
 
-Check to see if they're installed already:
+Check to see if it's installed already:
 ```sh
 locate libcurl
 ```
@@ -42,3 +44,34 @@ If you see *libcurl.so* somewhere in the output of that command, you should be r
 ```sh
 sudo apt-get install libcurl4-openssl-dev
 ```
+
+### Install Using Git
+
+If you don't already have git installed, you can do so easily. On Ubuntu, you can install git through the Software Center, or via a terminal:
+
+```sh
+sudo apt-get install git
+```
+
+For Mac OS X, you can use the latest [git installer](http://sourceforge.net/projects/git-osx-installer/)
+
+Once git is installed, open a terminal and install with:
+
+```sh
+cd ~/change/to/path/of/your/choice
+git clone https://github.com/n3mo/massmine.git
+```
+
+This will create a directory "massmine" in the folder ~/change/to/path/of/your/choice with several files inside.
+
+To finish up, make the massmine script executable, and then run it:
+
+```sh
+cd ~/change/to/path/of/your/choice/massmine
+chmod +x massmine
+./massmine
+```
+
+On its first run, MassMine will offer to create a user customization template file. The template file will be created in your home folder as `~/.mm_auth` (note that files that begin with "." will not show up in your file browser by default. You may need to turn on "hidden files" to see this.
+
+The template file `~/.mm_auth` contains instructions for how to edit it. You will find information for how to include your authorization credentials, etc. Once you have finished editing the customization file, you can rerun massmine at any time with
