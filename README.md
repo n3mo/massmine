@@ -36,7 +36,7 @@ If you are using Linux, you may also need to install the cURL development librar
 
 Check to see if it's installed already:
 ```sh
-locate libcurl
+locate libcurl | grep libcurl.so
 ```
 
 If you see *libcurl.so* somewhere in the output of that command, you should be ready to go. If not, you can install the library with:
@@ -66,7 +66,7 @@ This will create a directory "massmine" in the folder ~/change/to/path/of/your/c
 
 ### Install From Source (Alternative Method To Git)
 
-As an alternative to git, you can simply download a [zip file](https://github.com/n3mo/massmine/zipball/master) or [tarball](https://github.com/n3mo/massmine/tarball/master) of the source code. Extract the compressed file to create a directory "massmine"
+As an alternative to git, you can simply download a [zip file](https://github.com/n3mo/massmine/zipball/master) or [tarball](https://github.com/n3mo/massmine/tarball/master) of the source code. Extract the compressed file to create a directory "massmine."
 
 ### Completing The Installation
 
@@ -82,7 +82,7 @@ chmod +x massmine
 
 On its first run, MassMine will offer to create a user customization template file. The template file will be created in your home folder as `~/.mm_auth` (note that files that begin with "." will not show up in your file browser by default. You may need to turn on "hidden files" to see this).
 
-The template file `~/.mm_auth` contains instructions for how to edit it. You will find information for how to include your authorization credentials, etc. Once you have finished editing the customization file, you can rerun massmine at any time to being using it:
+The template file `~/.mm_auth` contains instructions for how to edit it. You will find information for how to include your authorization credentials, etc. Once you have finished editing the customization file, you can rerun massmine at any time to begin using it:
 
 ```sh
 ~/path/to/massmine
