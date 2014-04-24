@@ -1040,4 +1040,13 @@ suppressPackageStartupMessages(
 ## Authenticate with Twitter
 twitCred = mmAuth()
 
+## TODO: If this is an automatic (non-interactive) session, execute
+## the user's custom configuration file
+if (!interactivep) {
+  cat('\n\nMassMine currently supports interactive mode only.\n',
+      'Instead of running massmine directly, start R and load\n',
+      'the interactive version with source("massmine") from the\n',
+      'directory containing the massmine application.\n\n')
+}
+
 ## End of file massmine
