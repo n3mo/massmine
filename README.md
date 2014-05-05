@@ -80,9 +80,9 @@ chmod +x massmine
 ./massmine
 ```
 
-On its first run, MassMine will offer to create a user customization template file. The template file will be created in your home folder as `~/.mm_auth` (note that files that begin with "." will not show up in your file browser by default. You may need to turn on "hidden files" to see this).
+On its first run, MassMine will offer to create a user customization template file. The template file will be created in your home folder as `~/.config/massmine/mm_config` (note that files that begin with "." will not show up in your file browser by default. You may need to turn on "hidden files" to see the directory "~/.config").
 
-The template file `~/.mm_auth` contains instructions for how to edit it. You will find information for how to include your authorization credentials, etc. Once you have finished editing the customization file, you can rerun massmine at any time to begin using it:
+The template file `~/.config/massmine/mm_config` contains instructions for how to edit it. You will find information for how to include your authorization credentials, etc. Once you have finished editing the customization file, you can rerun massmine at any time to begin using it:
 
 ```sh
 ~/path/to/massmine
