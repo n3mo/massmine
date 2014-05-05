@@ -31,25 +31,33 @@
 ## the user through setting up a mining routine.
 
 ## Current version of software
-mm_version = '0.1.0 (2014-04-04)'
+mm_version = '0.1.1 (2014-05-05)'
 
 ## This script behaves differently depending on whether it is called
 ## interactively or as a script
 interactivep = interactive()
+
+## All massmine configuration and authentication files are stored in a
+## single directory in ~/.config to avoid cluttering the user's home
+## directory with dot files. This file typically already exists on
+## *nix machines. If not, it is created on initial startup
+mm_root = '~/.config/massmine'
 
 ## MassMine allows for multiple twitter accounts, each with multiple
 ## applications (each application has its own authentication
 ## credentials). Authorization credentials are managed in the
 ## following file. MassMine checks for this file on startup, loading
 ## it's contents if it exists, or offering to create a template file
-## if it does not.
-auth_file = '~/.mm_auth'
+## if it does not. This file also controls the behavior of massmine,
+## particularly in automatic mode.
+config_file = file.path(mm_root, 'mm_config')
+
 ## MassMine saves twitter credentials across sessions. A file will be
 ## created at the following location with the OAuth information for
 ## your account. The next time you run massmine, you will not need to
 ## authenticate manually (unless you wish to switch to another twitter
 ## account)
-twit_file = '~/.mm_twitter_credentials'
+twit_file = file.path(mm_root, 'mm_twitter_credentials')
 
 ## Required packages. These dependencies must be installed at the
 ## system OR user level. MassMine checks for these before running,
@@ -62,7 +70,7 @@ mm_deps = c('ROAuth', 'twitteR', 'streamR', 'zoo', 'stringr')
 ####################################################################
 mmAuth <- function() {
   
-  if (file.exists(auth_file)) {
+  if (file.exists(config_file)) {
 
     ## If the user already has a twitter OAuth object on file, offer
     ## to use that
@@ -83,7 +91,7 @@ mmAuth <- function() {
       registerTwitterOAuth(twitCred)
     } else {
       ## If we made it here, the user wants to manually authenticate.
-      source(auth_file)
+      source(config_file)
 
       ## cat("\nPlease choose an application to authenticate:\n")
       ## for (i in 1:length(mm_apps)) {
@@ -168,14 +176,18 @@ mmAuth <- function() {
         '\n\n\n',
         '## End of file mm_auth'), sep='')
 
+      ## If the massmine root configuratin directory is missing,
+      ## create it first
+      if (!file.exists(mm_root)) {dir.create(mm_root, recursive=TRUE)}
+
       ## Write the customization file
-      write(templateText, auth_file, sep='')
+      write(templateText, config_file, sep='')
 
       cat('A user customization template file has been created for you, but before\n',
           'continuing, you must manually edit the file. Instructions for doing so are\n',
           'included in the file itself. The file is located at:\n',
-          file.path(auth_file),
-          '\n## Once you have finished, run MassMine again.\n\n')
+          file.path(config_file),
+          '\nOnce you have finished, run MassMine again.\n\n')
       stop('MassMine stopped\n', call.=FALSE)
       
     } else {
@@ -944,12 +956,16 @@ getResponse <- function(msg, resp) {
     readFun = function() readLines(file("stdin"), 1)
   }
 
-  while (TRUE ) {
+  while (TRUE) {
     cat(paste(msg, '\n', sep=''))
     ## cat('Enter one of the following options:\n')
 
-    ## Present the user with valid response options
-    cat(paste(' <Option ', 1:N_resp, '> ', resp, sep=''), sep='\n')
+    ## Present the user with valid response options. The original
+    ## method below numbered each option. This created the expectation
+    ## that responses could be numeric, so I removed the automatic
+    ## numbering. 
+    ## cat(paste(' <Option ', 1:N_resp, '> ', resp, sep=''), sep='\n')
+    cat(paste(' <Option> ', resp, sep=''), sep='\n')
 
     ## Collect the response
     cat('Choose => ')
@@ -988,6 +1004,7 @@ cat('\n',
     '##                                                        ##\n',
     '############################################################\n\n',
     paste('MassMine version ', mm_version, '\n', sep=''),
+    'https://github.com/n3mo/massmine\n\n',
     'Copyright (C) 2014 Nicholas M. Van Horn & Aaron Beveridge\n',
     'This program comes with ABSOLUTELY NO WARRANTY.\n',
     'This is free software, and you are welcome to redistribute it\n',
