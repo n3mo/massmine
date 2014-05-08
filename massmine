@@ -64,6 +64,125 @@ twit_file = file.path(mm_root, 'mm_twitter_credentials')
 ## offering to install missing deps for the user.
 mm_deps = c('ROAuth', 'twitteR', 'streamR', 'zoo', 'stringr', 'yaml')
 
+## Data mining services currently supported by MassMine
+mm_services = c('twitter')
+
+mmTest <- function(services, verbose=FALSE, logTo = stdout()) {
+  ## MassMine tests. For each valid service in services (see
+  ## mm_services), tests all available functionality. Assumes that
+  ## mmAuth has already authenticated each requested service, and thus
+  ## also implicitly tests whether OAuth authentication is also
+  ## working correctly.
+
+  ## We use tryCatch functionality for now to avoid requiring another
+  ## external dependency like testthat.
+  
+  ## Verify that we can reach a network connection. This is a silly
+  ## hack around, but it gets the job done
+  ## out <- is.character(getURL("www.google.com"))
+
+  ## TWITTER SERVICE
+  if ('twitter' %in% services) {
+
+    ## Trend locations
+    tryCatch(
+      {
+        if (!verbose) {sink("/dev/null")}
+        loc = getTrendLocations()
+        if (!verbose) {sink()}
+        stopifnot(is.data.frame(loc) | !is.null(loc))
+      },
+      error = function(e) {
+        if (!verbose) {sink()}
+        cat('Task [locations]: FAILED!\n', file = logTo,
+            append = TRUE) 
+      },
+      finally = cat("Task [locations]: success!\n", file = logTo,
+        append = TRUE))
+    
+    ## User timelines. Results are test-saved to temporary files
+    tryCatch(
+      {
+
+        if (!verbose) {sink("/dev/null")}
+        tmpDir1 = tempfile('mm_test')
+        tmpDir2 = tempfile('mm_test')
+        dir.create(tmpDir1, recursive=TRUE)
+        dir.create(tmpDir2, recursive=TRUE)
+
+        ## User list supplied as vector
+        fetchUsers(c('twitter'), tmpDir1,
+                   numTweets = 201)
+        ## User list supplied as text file
+        tmpFile = tempfile('mm_user_test.dat',
+          tmpdir = tmpDir2)
+        write('twitter', file = tmpFile, sep="\n")
+        fetchUsers(tmpFile, tmpDir2,
+                   numTweets = 201)
+        if (!verbose) {sink()}
+      },
+      error = function(e) {
+        if (!verbose) {sink()}
+        cat('Task [timeline]: FAILED!\n', file = logTo,
+            append = TRUE)
+      },
+      finally = cat("Task [timeline]: success!\n", file = logTo,
+        append = TRUE))
+
+    ## Top 10 trends monitoring
+    tryCatch(
+      {
+        if (!verbose) {sink("/dev/null")}
+        monitorTrends(tempfile('mm_trends_test.dat'), samples=1)
+        if (!verbose) {sink()}
+        stopifnot(is.data.frame(loc) | !is.null(loc))
+      },
+      error = function(e) {
+        if (!verbose) {sink()}
+        cat('Task [trends]: FAILED!\n', file = logTo,
+            append = TRUE)
+      },
+      finally = cat("Task [trends]: success!\n", file = logTo,
+        append = TRUE))
+
+    ## Streaming API
+    tryCatch(
+      {
+        if (!verbose) {sink("/dev/null")}
+        tmp = streamFilter(track = "fitness", tweets = 10)
+        if (!verbose) {sink()}
+        stopifnot(is.data.frame(tmp) | !is.null(tmp))
+      },
+      error = function(e) {
+        if (!verbose) {sink()}
+        cat('Task [stream]: FAILED!\n', file = logTo,
+            append = TRUE)
+      },
+      finally = cat("Task [stream]: success!\n", file = logTo,
+        append = TRUE))
+
+    ## Search RESTful API
+    tryCatch(
+      {
+        if (!verbose) {sink("/dev/null")}
+        tmp = searchTweets("fitness")
+        if (!verbose) {sink()}
+        stopifnot(is.data.frame(tmp), !is.null(tmp))
+      },
+      error = function(e) {
+        if (!verbose) {sink()}
+        cat('Task [search]: FAILED!\n', file = logTo,
+            append = TRUE)
+      },
+      finally = cat("Task [search]: success!\n", file = logTo,
+        append = TRUE))
+
+    ## We're done.
+    cat('\n\nMassMine testing done!\n',
+        'Check for any FAILED\n tasks above\n\n',
+        file = logTo, append = TRUE)
+  }  # End of twitter service tests
+} # End of function mmTest
 
 ####################################################################
 ## API Authentication
@@ -335,14 +454,16 @@ sampleUsers <- function(tweets, n=20) {
 ## returned by getimeline or searchTweets. "filename" is a string
 ## containing the file name (and option file path) that you would like
 ## to save the data frame to.
-saveData <- function(tweets, filename, append=TRUE) {
+saveData <- function(tweets, filename, append=TRUE,
+                     logTo = stdout()) {
 
   ## This does all the real work. 
   write.table(tweets, file=filename, row.names=F, append=append,
               col.names=TRUE, sep=",")
 
   ## Friendly message letting you know it worked
-  cat(sprintf("Database saved to %s", filename))
+  cat(sprintf("Database saved to %s", filename), file = logTo,
+      append = TRUE)
   ## End of function saveData
 }
 
@@ -437,7 +558,8 @@ filterTweets <- function(tweets, keyword, ignore.case=F) {
 ## searches are written to file. In the case of an error (for any
 ## reason), the current sample's data are lost, but the process will
 ## continue running, attempting to collect subsequent trend data
-monitorTrends <- function(outfile, woeid=23424977, samples=5, exclude=NULL) {
+monitorTrends <- function(outfile, woeid=23424977, samples=5,
+                          exclude=NULL, logTo = stdout()) {
 
   ## No more than 5 woeids can be fetched in a 5 minute period without
   ## violating our rate limits
@@ -455,8 +577,9 @@ monitorTrends <- function(outfile, woeid=23424977, samples=5, exclude=NULL) {
   } 
 
   cat(sprintf("Collecting %d top-10 trend lists for %d woeid(s)\n",
-              samples, N_woeid)) 
-  cat("Wait duration is 5 minutes between samples\n\n")
+              samples, N_woeid), file = logTo, append = TRUE)
+  cat("Wait duration is 5 minutes between samples\n\n",
+      file = logTo, append = TRUE)
   
   ## We define some helper functions for writing data to file and
   ## for error handling
@@ -469,7 +592,8 @@ monitorTrends <- function(outfile, woeid=23424977, samples=5, exclude=NULL) {
   ## of the very first woeid. When TRUE, it writes a header of column
   ## names to the data file (and it does NOT append-- it destroys the
   ## file's contents!)
-  handleTrend <- function(mywoeid, sampleNum, header) {
+  handleTrend <- function(mywoeid, sampleNum, header,
+                          logTo = stdout()) {
 
     ## This call requests the latest trend data. If this fails, we
     ## should kick out and the calling function is responsible for
@@ -503,7 +627,7 @@ monitorTrends <- function(outfile, woeid=23424977, samples=5, exclude=NULL) {
 
     ## Notify the user
     cat(sprintf("Sample %d of %d for woeid %d... ", sampleNum,
-                samples, mywoeid))
+                samples, mywoeid), file = logTo, append = TRUE)
     
     ## Write the latest results to file and merge with previous
     ## data. We only write the column names (the header) on the
@@ -531,15 +655,15 @@ monitorTrends <- function(outfile, woeid=23424977, samples=5, exclude=NULL) {
       ## allData = rbind(allData, d)
     }
 
-    cat("saved... ")
+    cat("saved... ", file = logTo, append = TRUE)
     ## End of function handleTrend
   }
 
   ## Error handling for situations in which the request to twitter's
   ## API times out, returns mal-formed json, or whatever
-  handleError <- function(sampleNum, mywoeid) {
+  handleError <- function(sampleNum, mywoeid, logTo = logTo) {
     cat(sprintf("An error occured on sample %d for woeid %d... ",
-                sampleNum, mywoeid))
+                sampleNum, mywoeid), file = logTo, append = TRUE)
   }
   
   ## Grab trend data once for each time stamp in getTimes. Don't
@@ -579,8 +703,8 @@ monitorTrends <- function(outfile, woeid=23424977, samples=5, exclude=NULL) {
 
       tryCatch(
         handleTrend(woeid[j], i, doHeader),
-        error = function(e) handleError(i, woeid[j]),
-        finally = cat("done.\n"))
+        error = function(e) handleError(i, woeid[j], logTo = logTo),
+        finally = cat("done.\n"), file = logTo, append = TRUE)
     }
 
     ## Done with trend fetching for the current time sample.
@@ -629,7 +753,8 @@ monitorTrends <- function(outfile, woeid=23424977, samples=5, exclude=NULL) {
 ## supplied, it is assumed to have one user screen name, unquoted, per
 ## line. That is, the file should contain screen names as plain text
 ## separated by the newline character "\n"
-fetchUsers <- function(users, outdir) {
+fetchUsers <- function(users, outdir, numTweets = 3200, logTo =
+                       stdout()) {
 
   ## Rate limits. Number of requests per limit window
   rateLimit = 180
@@ -685,7 +810,8 @@ fetchUsers <- function(users, outdir) {
   
   ## Useful diagnostics
   cat(sprintf("Fetching %d user time lines...\n", N_users),
-      sprintf("Estimated maximum run time of %0.2f hours\n", maxDur))
+      sprintf("Estimated maximum run time of %0.2f hours\n", maxDur),
+      file = logTo, append = TRUE)
 
   ## Timing methods. We cannot exceed the rate limit of twitter's
   ## API. This keeps track of the number of calls made. It is reset
@@ -703,7 +829,8 @@ fetchUsers <- function(users, outdir) {
   for (i in 1:N_users) {
 
     ## Begin message. Finished below in one way or another...
-    cat(sprintf("User %s (%d of %d): ", users[i], i, N_users))
+    cat(sprintf("User %s (%d of %d): ", users[i], i, N_users),
+        file = logTo, append = TRUE)
 
     ## Start timer for this loop
     startTime = Sys.time()
@@ -732,10 +859,10 @@ fetchUsers <- function(users, outdir) {
                        basename(userFile)))
         } 
 
-        ## This does all the heavy lifting. We request 3200 tweets
-        ## (the maximum-allowed look into the past). We may get far
-        ## less for less active users.
-        userTweets = getTimeline(users[i], n=3200, includeRts=T)
+        ## This does all the heavy lifting. We request numTweets
+        ## tweets (the maximum-allowed look into the past). We may get
+        ## far less for less active users.
+        userTweets = getTimeline(users[i], n=numTweets, includeRts=T)
 
         ## If the returned data frame has 0 rows, or is not a data
         ## frame (due to any error), then we do not write to
@@ -749,24 +876,24 @@ fetchUsers <- function(users, outdir) {
         }
 
         ## Everything looks good. Save the data and finish up.
-        saveData(userTweets, userFile)
+        saveData(userTweets, userFile, append=FALSE)
         ## Add the user name to our successes file
         write(users[i], successFile, sep="\n", append=TRUE)
         ## Increment success counter
         N_successes = N_successes + 1
-        cat(" ... ")
+        cat(" ... ", file = logTo, append = TRUE)
 
         ## End of try expression
       },
       ## Error handling
       error = function(e) {
-        cat(e$message, " Skipping... ")
+        cat(e$message, " Skipping... ", file = logTo, append = TRUE)
         ## Add the user name to our failures file
         write(users[i], failureFile, sep="\n", append=TRUE)
 
       },
       ## Finish up tryCatch with a confirmation message
-      finally = cat("done.\n"))
+      finally = cat("done.\n", file = logTo, append = TRUE))
 
 
     ## Update rate and time usage information. You get a maximum of
@@ -805,9 +932,9 @@ fetchUsers <- function(users, outdir) {
         ## until our current limit window has expired.
         waitTime = round((rateWindow - totalTime) * 60)
         cat(sprintf("Rate limit exceeded. Waiting %d seconds... ",
-                    waitTime))
+                    waitTime), file = logTo, append = TRUE)
         Sys.sleep(waitTime)
-        cat("done!\n")
+        cat("done!\n", file = logTo, append = TRUE)
 
         ## We're done waiting. We can now safely reset our counters
         ## and proceed with data collection
@@ -832,7 +959,7 @@ fetchUsers <- function(users, outdir) {
   ## Print final summary information
   cat("\nUser data fetching complete\n",
       sprintf("%d of %d users successfully fetched\n",
-              N_successes, N_users))
+              N_successes, N_users), file = logTo, append = TRUE)
 
   ## End of function fetchUsers
 }
@@ -914,7 +1041,7 @@ trendSummary <- function(file) {
 streamFilter <- function(
   file.name = "", track = NULL, follow = NULL, locations = NULL,
   language = NULL, timeout = 0, tweets = NULL, oauth = twitCred,
-  verbose = TRUE) { 
+  logTo = stdout(), verbose = TRUE) { 
 
   ## Message the user about capturing tweets
   ## cat('\nCapturing tweets...\n')
@@ -928,7 +1055,8 @@ streamFilter <- function(
   ## Message user about success
 
   ## Message user about conversion process
-  cat('Converting results to data frame... ')
+  cat('Converting results to data frame... ',
+      file = logTo, append = TRUE)
 
   ## Convert to a data frame
   d = parseTweets(d)
