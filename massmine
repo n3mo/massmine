@@ -265,9 +265,13 @@ mmAuth <- function(config) {
   ## If the user already has a twitter OAuth object on file, offer
   ## to use that
   if (file.exists(twit_file)) {
-    ## Should we use the OAuth credentials on disk?
-    resp = getResponse('\nUse previous Twitter credentials?',
-      c("Yes", "No"))
+    if (interactivep) {
+      resp = "yes"
+    } else {
+      ## Should we use the OAuth credentials on disk?
+      resp = getResponse('\nUse previous Twitter credentials?',
+        c("Yes", "No"))
+    }
   } else {
     resp = "no"
   }
