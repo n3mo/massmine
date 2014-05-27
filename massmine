@@ -1076,7 +1076,7 @@ streamFilter <- function(
     return(d)
   } else {
     ## Else we write the data to file and return nothing
-    saveData(d, filename = file.name, logfile = logfile)
+    saveData(d, filename = file.name, logfile = logfile, append=FALSE)
     return()
   }
   
