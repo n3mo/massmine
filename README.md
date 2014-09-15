@@ -23,13 +23,13 @@ Specifically, MassMine:
 
 ## Installation
 
-MassMine is designed to run on Linux and Mac OSX. Windows is currently not supported.
+MassMine is designed to run on Linux, Mac OSX, and Windows.
 
 ### Dependencies
 
 MassMine requires the following dependencies. Each of these must be installed prior to running MassMine:
 
-1. **R**. The R statistical computing language is freely available for all major operating systems. It is typically quite easy to install. Instructions for doing so can be found on the [The R Project for Statistical Computing](http://www.r-project.org/). MassMine is developed to run on R version 3.0.x. It is likely to also run on newer version of R, but you may (or may not) run into trouble with older 2.x versions of R.
+1. **R**. The R statistical computing language is freely available for all major operating systems. It is typically quite easy to install. Instructions for doing so can be found on the [The R Project for Statistical Computing](http://www.r-project.org/). MassMine is developed to run on R version 3.0.x. It is likely to also run on newer versions of R, but you may (or may not) run into trouble with older 2.x versions of R.
 2. **cURL**. This is a command line utility for fetching web content. It is likely already installed on your system (both Linux and Mac OS X).
 
 If you are using Linux, you may also need to install the cURL development library. If you're using Ubuntu (or similar), you can check for this as follows:
