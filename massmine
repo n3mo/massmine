@@ -23,7 +23,7 @@
 ## instructions for how to use massmine
 
 ## Current version of software
-mm_version = '0.2.1 (2014-09-12)'
+mm_version = '0.2.2 (2014-09-15)'
 
 ## This script behaves differently depending on whether it is called
 ## interactively or as a script
@@ -42,7 +42,7 @@ mm_root = '~/.config/massmine'
 ## it's contents if it exists, or offering to create a template file
 ## if it does not. This file also controls the behavior of massmine,
 ## particularly in automatic mode.
-config_file = file.path(mm_root, 'mm_config')
+default_config_file = file.path(mm_root, 'mm_config')
 
 ## MassMine saves twitter credentials across sessions. A file will be
 ## created at the following location with the OAuth information for
@@ -1299,6 +1299,16 @@ suppressPackageStartupMessages(
            require(x, quietly=TRUE, warn.conflicts = FALSE,
                    character.only = TRUE)
        }))
+
+## Parse command line arguments. Currently, massmine only supports a
+## single argument: The user can specify the path to the configuration
+## file. If no file path is supplied, the default config file is used.
+args = commandArgs(TRUE)
+if (is.na(args[1])) {
+  config_file = default_config_file
+} else {
+  config_file = args[1]
+}
 
 ## Check for the user configuration file and parse it if available
 config = mmConfig(config_file)
