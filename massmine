@@ -1097,7 +1097,8 @@ streamFilter <- function(
   ## Message the user about capturing tweets
   ## cat('\nCapturing tweets...\n')
 
-  if (~is.null(track)) {
+  ## Allow for multiple keywords in search
+  if (!is.null(track)) {
     track = strsplit(track, ",")
   }
 
