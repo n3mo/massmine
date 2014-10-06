@@ -1097,6 +1097,10 @@ streamFilter <- function(
   ## Message the user about capturing tweets
   ## cat('\nCapturing tweets...\n')
 
+  if (~is.null(track)) {
+    track = strsplit(track, ",")
+  } 
+
   ## If file.name is empty, we create a temporary file for temporarily
   ## storing our data while it's being collected. If no file is
   ## supplied, this temporary file is parsed when finished, and the
