@@ -1099,7 +1099,11 @@ streamFilter <- function(
 
   if (~is.null(track)) {
     track = strsplit(track, ",")
-  } 
+  }
+
+  ## Ensure that timeout is numeric (changing this in the massmine
+  ## config file will turn it into a string)
+  timeout = as.numeric(timeout)
 
   ## If file.name is empty, we create a temporary file for temporarily
   ## storing our data while it's being collected. If no file is
