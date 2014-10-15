@@ -997,7 +997,7 @@ streamFilter <- function(
 
   ## Allow for multiple keywords in search
   if (!is.null(track)) {
-    track = strsplit(track, ",")
+    track = unlist(strsplit(track, ","))
   }
 
   ## Ensure that timeout is numeric (changing this in the massmine
