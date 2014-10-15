@@ -54,7 +54,8 @@ default_twit_file = file.path(mm_root, 'mm_twitter_credentials')
 ## Required packages. These dependencies must be installed at the
 ## system OR user level. MassMine checks for these before running,
 ## offering to install missing deps for the user.
-mm_deps = c('ROAuth', 'twitteR', 'streamR', 'zoo', 'stringr', 'yaml')
+## mm_deps = c('ROAuth', 'twitteR', 'streamR', 'zoo', 'stringr', 'yaml')
+mm_deps = c('ROAuth', 'twitteR', 'stringr', 'yaml')
 
 ## Data mining services currently supported by MassMine
 mm_services = c('twitter')
@@ -103,7 +104,7 @@ saveData <- function(tweets, filename, append=TRUE,
               col.names=TRUE, sep=",")
 
   ## Friendly message letting you know it worked
-  cat(sprintf("Database saved to %s", filename), file = logfile,
+  cat(sprintf("Database saved to %s\n", filename), file = logfile,
       append = TRUE)
   
 } ## End of function saveData
@@ -216,8 +217,6 @@ taskDispatch <- function(config) {
   ## Dispatch according to the user's task and options. THIS CALL GETS
   ## THE JOB DONE
   do.call(user_function, user_options)
-
-  ## end of function taskDispatch
   
 } ## End of function taskDispatch
 

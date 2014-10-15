@@ -164,9 +164,7 @@ mmTest <- function(verbose=FALSE, logfile = stdout()) {
   tryCatch(
     {
       if (!verbose) {sink("/dev/null")}
-      tmp = streamFilter(track = "fitness", tweets = 10)
-      if (!verbose) {sink()}
-      stopifnot(is.data.frame(tmp) | !is.null(tmp))
+      streamFilter(track = "fitness", tweets = 10)
     },
     error = function(e) {
       if (!verbose) {sink()}
@@ -406,7 +404,9 @@ monitorTrends <- function(outfile, woeid=23424977, samples=5,
   ## function runs without error for "samples" times, all data from all
   ## searches are written to file. In the case of an error (for any
   ## reason), the current sample's data are lost, but the process will
-  ## continue running, attempting to collect subsequent trend data
+  ## continue running, attempting to collect subsequent trend
+  ## data. Data are written along the way, so a cataclysmic error
+  ## won't result in a data loss of previously collected data.
 
   ## No more than 5 woeids can be fetched in a 5 minute period without
   ## violating our rate limits
@@ -873,171 +873,283 @@ trendSummary <- function(file) {
 
 } ## End of function trendSummary
 
-## Adapted from filterStream in the streamR package. This does the
-## heavy lifting for targeting twitter's streaming API. This will be
-## the new streamFilter function that replaces the original one
-## below. It attempts to replace the need for one of our library
-## dependencies 
-## streamFilter <- function(file.name="", track=NULL, follow=NULL,
-##                          locations=NULL, language=NULL, timeout=0,
-##                          tweets=NULL, oauth=twitCred, verbose=TRUE,
-##                          logfile = stdout())
-## {
-##     if(!is.null(oauth)){library(ROAuth)}
-## 	open.in.memory <- FALSE
-   
-##   	# checking user input is correct
-##    if (all(is.null(c(track,follow,language,locations)))) {
-##     	stop("No filter parameter was specified. At least one is necessary. 
-##     		See ?filterStream for more information about this error.")
-##    } 
-##    if (all(is.null(c(track,follow,locations))) & !is.null(language)){
-##    		stop("Language parameter can only be used in combination with other filter parameters.")
-##    }
-##    if ((missing(file.name)||is.character(file.name)==FALSE)){
-##    	stop("The file where the tweets will be stored was not named properly.")
-##    }
-##    if (timeout<0||is.numeric(timeout)==FALSE||length(timeout)>1){
-##    	stop("The specified time out was not properly formatted.")
-##    }
+streamFilter <- function(outfile="", track=NULL, follow=NULL,
+                         locations=NULL, language=NULL, timeout=0,
+                         tweets=NULL, oauth=twitCred, verbose=TRUE,
+                         logfile = stdout()) {
+  ## Adapted from filterStream in the streamR package. This does the
+  ## heavy lifting for targeting twitter's streaming API. This will be
+  ## the new streamFilter function that replaces the original one
+  ## below. It attempts to replace the need for one of our library
+  ## dependencies 
 
-##    # authentication
-##    if (is.null(oauth)) {
-##     stop("No authentication method was provided. 
-##    		Please use an OAuth token.") }
-##    if (!is.null(oauth)){
-##    	if (!inherits(oauth, "OAuth")) {
-##    			stop("oauth argument must be of class OAuth") }
-##   		if (!oauth$handshakeComplete) {
-##     		stop("Oauth needs to complete its handshake. See ?filterStream.") }
-##    }
-
-##  	# building parameter lists
-##  	params <- buildArgList(track, follow, language, locations, oauth=oauth)
-
-##  	# WRITING FUNCTION
-##  	## tweet counter
-##  	i <- 0
-
-##  	## write the JSON tweets from Streaming API to a text file
-##  	if (!is.null(file.name)){
-##  		if (verbose==TRUE) message("Capturing tweets...")
-## 		if (nchar(file.name)==0) {
-## 			open.in.memory <- TRUE
-## 			file.name <- tempfile()
-## 		}
-## 		conn <- file(description=file.name, open="a")
-## 		write.tweets <- function(x){
-## 			# writes output of stream to a file
-## 			if (nchar(x)>0) {
-## 				i <<- i + 1
-## 				writeLines(x, conn, sep="")
-## 			}
-## 		} 
-## 		if (!is.null(tweets) && is.numeric(tweets) && tweets>0){	
-## 			write.tweets <- function(x){	
-## 				if (i>=tweets){break}	
-## 				# writes output of stream to a file	
-## 				if (nchar(x)>0) {	
-## 					i <<- i + 1	
-## 					writeLines(x, conn, sep="")	
-## 				}	
-## 			}
-## 		}  
-##  	}
-
-
-##  	init <- Sys.time()
-##  	# connecting to Streaming API
-## 	url <- "https://stream.twitter.com/1.1/statuses/filter.json"
-##     if (!is.null(oauth)){
-##     	output <- tryCatch(oauth$OAuthRequest(URL=url, params=params, method="POST", 
-##     		customHeader=NULL, timeout = timeout, writefunction = write.tweets, 
-##     		cainfo=system.file("CurlSSL", "cacert.pem", package = "RCurl")), 
-##     			error=function(e) e)
-##     }
-## 	# housekeeping...
-## 	if (!is.null(file.name)){ close(conn) }
-
-## 	# information messages
-## 	seconds <- round(as.numeric(difftime(Sys.time(), init, units="secs")),0)
-
-## 	# if tweets were saved in temporary file, it now opens it in memory
-## 	if (open.in.memory==TRUE){
-## 		raw.tweets <- readLines(file.name, warn=FALSE, encoding="UTF-8")
-## 		if (verbose==TRUE){ message("Connection to Twitter stream was closed after ", seconds,
-## 			" seconds with up to ", length(raw.tweets), " tweets downloaded.") }
-## 		unlink(file.name)			
-## 		return(raw.tweets)
-## 	}
-## 	if (open.in.memory==FALSE) {
-## 		if (verbose==TRUE) {message("Connection to Twitter stream was closed after ", seconds,
-## 			" seconds with up to ", i, " tweets downloaded.")}	
-## 	}
-## }
-
-
-streamFilter <- function(
-  file.name = "", track = NULL, follow = NULL, locations = NULL,
-  language = NULL, timeout = 0, tweets = NULL, oauth = twitCred,
-  logfile = stdout(), verbose = TRUE) { 
-  ## This is a wrapper function for the streamR library function
-  ## "filterStream". It's purpose is three-fold: (1) To provide a
-  ## chance to rename the function according to our naming
-  ## conventions, and (2) to change certain default parameters. Most
-  ## notably, we insert our twitter credentials as default, so the
-  ## user doesn't have to manage this step. Also, we suppress output
-  ## from streamR functions so that we can control what is printed to
-  ## screen. And (3), we automatically convert the results to a data
-  ## frame using streamR's parseTweets function. This final data frame
-  ## is returned.
-
-  ## Message the user about capturing tweets
-  ## cat('\nCapturing tweets...\n')
-
-  ## Allow for multiple keywords in search
-  if (!is.null(track)) {
-    track = unlist(strsplit(track, ","))
-  }
-
-  ## Ensure that timeout is numeric (changing this in the massmine
-  ## config file will turn it into a string)
-  timeout = as.numeric(timeout)
-
-  ## If file.name is empty, we create a temporary file for temporarily
-  ## storing our data while it's being collected. If no file is
-  ## supplied, this temporary file is parsed when finished, and the
-  ## resulting data frame is returned
-  if (file.name == "") {
-    tempFile = tempfile('mm_stream_data')
-  } else {
-    tempFile = file.name
-  }
-
-  ## Start catching tweets
-  d = filterStream(file.name = tempFile, track = track,
-    follow = follow, locations = locations, language = language,
-    timeout = timeout, tweets = tweets, oauth = oauth,
-    verbose = verbose)
-  
-  ## Message user about conversion process
-  ## cat('Converting results to data frame... ',
-  ##   file = logfile, append = TRUE)
-
-  ## Convert the data to a more useful data frame
-  d = parseTweets(tempFile)
-
-  ## If the user did NOT supply a file name, then we have the raw
-  ## results stored in d. We convert it to a data frame and return
-  if (file.name == "") {
-    return(d)
-  } else {
-    ## Else we write the data to file and return nothing
-    saveData(d, filename = file.name, logfile = logfile, append=FALSE)
-    return()
+  buildArgList <- function(track=NULL, follow=NULL, language=NULL, locations=NULL,
+                           with=NULL,replies=NULL, oauth=NULL) {
+    ## Helper function for creating a list of parameters
+    params <- list()
+    if (!is.null(track)) params[["track"]] <- paste(track, collapse=",")
+    if (!is.null(follow)) params[["follow"]] <- paste(as.character(follow), collapse=",")
+    if (!is.null(locations)) params[["locations"]] <- paste(as.character(locations), collapse=",")
+    if (!is.null(language)) params[["language"]] <- paste(as.character(language), collapse=",")
+    if (!is.null(with)) params[["with"]] <- paste(as.character(with), collapse=",")
+    if (!is.null(replies)) params[["replies"]] <- paste(as.character(replies), collapse=",")
+    return(params)
   }
   
+  ## building parameter lists
+  params = buildArgList(track, follow, language, locations, oauth=oauth)
+
+  ## Tweet counter
+  i = 0
+
+  if (verbose==TRUE) message("Capturing tweets...")
+
+  ## The data collected from twitter are in json format. They are
+  ## written to disk as we go along for safety purposes, but are
+  ## ultimately converted to a csv file. We write the json to disk and
+  ## operate on it only after it's successfully saved. This is the raw
+  ## json file:
+  json_outfile = paste(outfile, ".json", sep="")
+
+  ## Verify that the data file does not already exist. We don't want
+  ## to overwrite anything... (WE NOW USE APPEND=TRUE BELOW)
+  ## if (file.exists(outfile) | file.exists(json_outfile)) {
+  ##   stop("Output file already exists", call.=FALSE)
+  ## } 
+
+  conn <- file(description=json_outfile, open="a")
+  write.tweets <- function(x){
+    ## writes output of stream to a file
+    if (nchar(x)>0) {
+      i <<- i + 1
+      writeLines(x, conn, sep="")
+    }
+  }
+  if (!is.null(tweets) && is.numeric(tweets) && tweets>0){	
+    write.tweets <- function(x){	
+      if (i>=tweets){break}	
+      ## writes output of stream to a file
+      if (nchar(x)>0) {	
+        i <<- i + 1	
+        writeLines(x, conn, sep="")	
+      }	
+    }
+  } 
+
+  init = Sys.time()
+  ## Connect to Streaming API
+  url = "https://stream.twitter.com/1.1/statuses/filter.json"
+  output =
+    tryCatch(
+      oauth$OAuthRequest(URL=url, params=params, method="POST",
+                         customHeader=NULL, timeout = timeout,
+                         writefunction = write.tweets,
+                         cainfo=system.file("CurlSSL", "cacert.pem",
+                           package = "RCurl")), 
+      error=function(e) e)
+
+  ## Close the file we've been writing to
+  close(conn)
+
+  ## Information messages
+  seconds <- round(as.numeric(difftime(Sys.time(), init, units="secs")),0)
+  
+  ## Let the user know how things went. 
+  if (verbose==TRUE) {
+    message("Connection to Twitter stream was closed after ",
+            seconds,  
+            " seconds with up to ", i, " tweets downloaded.")
+  }
+
+  ## Convert the resulting json file into a data frame, and then save
+  ## as a csv file
+  ## Read the text file and save it in memory as a list
+  lines <- readLines(json_outfile, encoding="UTF-8")
+
+  results.list <- lapply(lines[nchar(lines)>0], function(x)
+                         tryCatch(fromJSON(x), error=function(e) e)) 
+  ## removing lines that do not contain tweets or were not properly parsed
+  errors <- which(unlist(lapply(results.list, length))<18)
+  if (length(errors)>0){
+    results.list <- results.list[-errors]
+  }
+  ## information message
+  if (verbose==TRUE) cat(length(results.list),
+                         "tweets have been parsed.", "\n")
+
+  ## Convert to data frame
+  ## if no text in list, change it to NULL
+  if (length(results.list)==0){
+    stop(deparse(substitute(tweets)), " did not contain any tweets. ",
+         "")
+  }
+  ## constructing data frame with tweet and user variable
+  df <- data.frame(
+    text = unlistWithNA(results.list, 'text'),
+    retweet_count = unlistWithNA(results.list, c('retweeted_status', 'retweet_count')),
+    favorited = unlistWithNA(results.list, 'favorited'),
+    truncated = unlistWithNA(results.list, 'truncated'),
+    id_str = unlistWithNA(results.list, 'id_str'),
+    in_reply_to_screen_name = unlistWithNA(results.list, 'in_reply_to_screen_name'),
+    source = unlistWithNA(results.list, 'source'),
+    retweeted = unlistWithNA(results.list, 'retweeted'),
+    created_at = unlistWithNA(results.list, 'created_at'),
+    in_reply_to_status_id_str = unlistWithNA(results.list, 'in_reply_to_status_id_str'),
+    in_reply_to_user_id_str = unlistWithNA(results.list, 'in_reply_to_user_id_str'),
+    lang = unlistWithNA(results.list, 'lang'),
+    listed_count = unlistWithNA(results.list, c('user', 'listed_count')),
+    verified = unlistWithNA(results.list, c('user', 'verified')),
+    location = unlistWithNA(results.list, c('user', 'location')),
+    user_id_str = unlistWithNA(results.list, c('user', 'id_str')),
+    description = unlistWithNA(results.list, c('user', 'description')),
+    geo_enabled = unlistWithNA(results.list, c('user', 'geo_enabled')),
+    user_created_at = unlistWithNA(results.list, c('user', 'created_at')),
+    statuses_count = unlistWithNA(results.list, c('user', 'statuses_count')),
+    followers_count = unlistWithNA(results.list, c('user', 'followers_count')),
+    favourites_count = unlistWithNA(results.list, c('user', 'favourites_count')),
+    protected = unlistWithNA(results.list, c('user', 'protected')),
+    user_url = unlistWithNA(results.list, c('user', 'url')),
+    name = unlistWithNA(results.list, c('user', 'name')),
+    time_zone = unlistWithNA(results.list, c('user', 'time_zone')),
+    user_lang = unlistWithNA(results.list, c('user', 'lang')),
+    utc_offset = unlistWithNA(results.list, c('user', 'utc_offset')),
+    friends_count = unlistWithNA(results.list, c('user', 'friends_count')),
+    screen_name = unlistWithNA(results.list, c('user', 'screen_name')),
+    stringsAsFactors=F)
+
+  ## retweet_count is extracted from retweeted_status. If this is not a RT, set to zero
+  df$retweet_count[is.na(df$retweet_count)] <- 0
+
+  ## adding geographic variables and url entities
+  df$country_code <- unlistWithNA(results.list, c('place', 'country_code'))
+  df$country <- unlistWithNA(results.list, c('place', 'country'))
+  df$place_type <- unlistWithNA(results.list, c('place', 'place_type'))
+  df$full_name <- unlistWithNA(results.list, c('place', 'full_name'))
+  df$place_name <- unlistWithNA(results.list, c('place', 'place_name'))
+  df$place_id <- unlistWithNA(results.list, c('place', 'place_id'))
+  place_lat_1 <- unlistWithNA(results.list, c('place', 'bounding_box', 'coordinates', 1, 1, 2))
+  place_lat_2 <- unlistWithNA(results.list, c('place', 'bounding_box', 'coordinates', 1, 2, 2))
+  df$place_lat <- sapply(1:length(results.list), function(x)
+                         mean(c(place_lat_1[x], place_lat_2[x]), na.rm=TRUE))
+  place_lon_1 <- unlistWithNA(results.list, c('place', 'bounding_box', 'coordinates', 1, 1, 1))
+  place_lon_2 <- unlistWithNA(results.list, c('place', 'bounding_box', 'coordinates', 1, 3, 1))
+  df$place_lon <- sapply(1:length(results.list), function(x)
+                         mean(c(place_lon_1[x], place_lon_2[x]), na.rm=TRUE))
+  df$lat <- unlistWithNA(results.list, c('geo', 'coordinates', 1))
+  df$lon <- unlistWithNA(results.list, c('geo', 'coordinates', 2))
+  df$expanded_url <- unlistWithNA(results.list, c('entities', 'urls', 1, 'expanded_url'))
+  df$url <- unlistWithNA(results.list, c('entities', 'urls', 1, 'url'))
+
+  ## Write the resulting data frame to disk
+  saveData(df, outfile, append=TRUE)
+
 } ## End of function streamFilter
+
+unlistWithNA <- function(lst, field){
+  ## Helper function for streamFilter. This was taken verbatim from
+  ## the streamR package (https://github.com/pablobarbera/streamR)
+  if (length(field)==1){
+    notnulls <- unlist(lapply(lst, function(x) !is.null(x[[field]])))
+    vect <- rep(NA, length(lst))
+    vect[notnulls] <- unlist(lapply(lst[notnulls], '[[', field))
+  }
+  if (length(field)==2){
+    notnulls <- unlist(lapply(lst, function(x) !is.null(x[[field[1]]][[field[2]]])))
+    vect <- rep(NA, length(lst))
+    vect[notnulls] <- unlist(lapply(lst[notnulls], function(x) x[[field[1]]][[field[2]]]))
+  }
+  if (length(field)==3 & field[1]!="geo"){
+    notnulls <- unlist(lapply(lst, function(x) !is.null(x[[field[1]]][[field[2]]][[field[3]]])))
+    vect <- rep(NA, length(lst))
+    vect[notnulls] <- unlist(lapply(lst[notnulls], function(x) x[[field[1]]][[field[2]]][[field[3]]]))
+  }
+  if (field[1]=="geo"){
+    notnulls <- unlist(lapply(lst, function(x) !is.null(x[[field[1]]][[field[2]]])))
+    vect <- rep(NA, length(lst))
+    vect[notnulls] <- unlist(lapply(lst[notnulls], function(x) x[[field[1]]][[field[2]]][[as.numeric(field[3])]]))
+  }
+  if (length(field)==4 && field[2]!="urls"){
+    notnulls <- unlist(lapply(lst, function(x) length(x[[field[1]]][[field[2]]][[field[3]]][[field[4]]])>0))
+    vect <- rep(NA, length(lst))
+    vect[notnulls] <- unlist(lapply(lst[notnulls], function(x) x[[field[1]]][[field[2]]][[field[3]]][[field[4]]]))
+  }
+  if (length(field)==4 && field[2]=="urls"){
+    notnulls <- unlist(lapply(lst, function(x) length(x[[field[1]]][[field[2]]])>0))
+    vect <- rep(NA, length(lst))
+    vect[notnulls] <- unlist(lapply(lst[notnulls], function(x) x[[field[1]]][[field[2]]][[as.numeric(field[3])]][[field[4]]]))
+  }
+  if (length(field)==6 && field[2]=="bounding_box"){
+    notnulls <- unlist(lapply(lst, function(x) length(x[[field[1]]][[field[2]]])>0))
+    vect <- rep(NA, length(lst))
+    vect[notnulls] <- unlist(lapply(lst[notnulls], function(x)
+                                    x[[field[1]]][[field[2]]][[field[3]]][[as.numeric(field[4])]][[as.numeric(field[5])]][[as.numeric(field[6])]]))
+  }
+  return(vect)
+}
+
+
+
+## streamFilter <- function(
+##   file.name = "", track = NULL, follow = NULL, locations = NULL,
+##   language = NULL, timeout = 0, tweets = NULL, oauth = twitCred,
+##   logfile = stdout(), verbose = TRUE) { 
+##   ## This is a wrapper function for the streamR library function
+##   ## "filterStream". It's purpose is three-fold: (1) To provide a
+##   ## chance to rename the function according to our naming
+##   ## conventions, and (2) to change certain default parameters. Most
+##   ## notably, we insert our twitter credentials as default, so the
+##   ## user doesn't have to manage this step. Also, we suppress output
+##   ## from streamR functions so that we can control what is printed to
+##   ## screen. And (3), we automatically convert the results to a data
+##   ## frame using streamR's parseTweets function. This final data frame
+##   ## is returned.
+
+##   ## Message the user about capturing tweets
+##   ## cat('\nCapturing tweets...\n')
+
+##   ## Allow for multiple keywords in search
+##   if (!is.null(track)) {
+##     track = unlist(strsplit(track, ","))
+##   }
+
+##   ## Ensure that timeout is numeric (changing this in the massmine
+##   ## config file will turn it into a string)
+##   timeout = as.numeric(timeout)
+
+##   ## If file.name is empty, we create a temporary file for temporarily
+##   ## storing our data while it's being collected. If no file is
+##   ## supplied, this temporary file is parsed when finished, and the
+##   ## resulting data frame is returned
+##   if (file.name == "") {
+##     tempFile = tempfile('mm_stream_data')
+##   } else {
+##     tempFile = file.name
+##   }
+
+##   ## Start catching tweets
+##   d = filterStream(file.name = tempFile, track = track,
+##     follow = follow, locations = locations, language = language,
+##     timeout = timeout, tweets = tweets, oauth = oauth,
+##     verbose = verbose)
+  
+##   ## Message user about conversion process
+##   ## cat('Converting results to data frame... ',
+##   ##   file = logfile, append = TRUE)
+
+##   ## Convert the data to a more useful data frame
+##   d = parseTweets(tempFile)
+
+##   ## If the user did NOT supply a file name, then we have the raw
+##   ## results stored in d. We convert it to a data frame and return
+##   if (file.name == "") {
+##     return(d)
+##   } else {
+##     ## Else we write the data to file and return nothing
+##     saveData(d, filename = file.name, logfile = logfile, append=FALSE)
+##     return()
+##   }
+  
+## } ## End of function streamFilter
 
 getTrendLocations <- function(file.name="") {
     loc = availableTrendLocations()
