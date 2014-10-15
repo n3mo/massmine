@@ -1051,3 +1051,14 @@ getTrendLocations <- function(file.name="") {
         saveData(loc, filename = file.name)
     }
 } ## End of function getTrendLocations
+
+####################################################################
+## AUTO-RUN CODE
+####################################################################
+## Everything from here downward is evaluated automatically whenever
+## this file is sourced. Sourcing this file should occur from within a
+## running massmine process... sourcing this manually will likely lead
+## to errors.
+
+## Authenticate with Twitter
+twitCred = mmAuth(config)
