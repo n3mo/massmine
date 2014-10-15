@@ -168,7 +168,8 @@ loadModules <- function(config, module_directory) {
   ## For every service requested, the corresponding module is loaded
   ## into memory from the directory module_directory
 
-  if (tolower(config$service) == "twitter") {
+  ## Twitter?
+  if (any(config$service == tolower("twitter"))) {
     source(file.path(mm_module_dir, "twitter.R"))
   }
   
@@ -179,7 +180,7 @@ taskDispatch <- function(config) {
   ## configurations and calls the appropriate internal functions
 
   ## This list maps YAML style config tasks to internal massmine
-  ## twitter service functions.
+  ## service functions.
   twitter_tasks = list(
     test = "mmTest",
     locations = "getTrendLocations",
@@ -192,11 +193,19 @@ taskDispatch <- function(config) {
   ## TODO: add verification method for ensuring that the user has
   ## chosen a valid task and valid options
 
-  ## The service the user has requested
-  user_task = config[[config$service]]$task
+  ## The service(s) the user has requested
+  user_services = config$service
+
+  ## Currently MassMine only supports ONE service at a time. Even
+  ## though the logically-above code allows for multiple services,
+  ## they are pruned away if present at this point. Only the first
+  ## service listed in the user's config file is retained from here
+  ## forward. 
+  
+  user_task = config[[user_services[1]]]$task
 
   ## The options the user has requested for the current task
-  user_options = config[[config$service]]$options
+  user_options = config[[user_services[1]]]$options
 
   ## Convert task request to internal function
   user_function = unlist(twitter_tasks[user_task])
@@ -206,7 +215,7 @@ taskDispatch <- function(config) {
 
   ## Dispatch according to the user's task and options. THIS CALL GETS
   ## THE JOB DONE
-  do.call(unlist(twitter_tasks[user_task]), user_options)
+  do.call(user_function, user_options)
 
   ## end of function taskDispatch
   
@@ -311,11 +320,6 @@ config = mmConfig(config_file)
 ## than sourced from within an active R session), then it is
 ## controlled by the user's configuration file
 if (!interactivep) {
-  ## cat('\n\nMassMine currently supports interactive mode only.\n',
-  ##     'Instead of running massmine directly, start R and load\n',
-  ##     'the interactive version with source("massmine") from the\n',
-  ##     'directory containing the massmine application.\n\n')
-
   ## The user's customization file determines which modules will be
   ## loaded.
   loadModules(config, mm_module_dir)
