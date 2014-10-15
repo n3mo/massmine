@@ -288,11 +288,12 @@ if (!all(is_installed)) {
 ## If we've made it here, all necessary dependencies are
 ## installed. Load them now
 suppressPackageStartupMessages(
-  sapply(mm_deps,
-         function(x) {
-           require(x, quietly=TRUE, warn.conflicts = FALSE,
-                   character.only = TRUE)
-       }))
+
+  ## I hate for loops...
+  for (dep in mm_deps) {
+    require(dep, quietly = TRUE, warn.conflicts = FALSE,
+            character.only = TRUE)
+  })
 
 ## Parse command line arguments. Currently, massmine only supports a
 ## single argument: The user can specify the path to the configuration
