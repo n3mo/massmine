@@ -188,7 +188,7 @@ taskDispatch <- function(config) {
     timeline = "fetchUsers",
     trends = "monitorTrends",
     stream = "streamFilter",
-    search = "searchTweets"
+    search = "restSearch"
     )
 
   ## TODO: add verification method for ensuring that the user has

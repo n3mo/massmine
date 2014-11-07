@@ -286,6 +286,13 @@ searchTweets <- function(searchString, n=25, lang=NULL, since=NULL,
   
 } ## End of function searchTweets
 
+restSearch <- function(file.name, ...) {
+    ## Wrapper for searchTweets that saves the results to file. This
+    ## is meant to be used with massmine's automated functionality
+    tmp = searchTweets(...)
+    saveData(tmp, file.name)
+} ## End of function restSearch
+
 sampleUsers <- function(tweets, n=20) {
 
   ## This function returns a random sample of twitter users from those
