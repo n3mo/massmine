@@ -291,7 +291,7 @@ restSearch <- function(file.name, searchString, n=25, lang=NULL, since=NULL,
                          sinceID=NULL, retryOnRateLimit=120, ...) {
     ## Wrapper for searchTweets that saves the results to file. This
     ## is meant to be used with massmine's automated functionality
-    tmp = searchTwitter(searchString, n=n, lang=lang, since=since,
+    tmp = searchTweets(searchString, n=n, lang=lang, since=since,
         until=until, locale=locale, geocode=geocode, sinceID=sinceID,
         retryOnRateLimit=retryOnRateLimit, ...)
     
