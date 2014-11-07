@@ -100,7 +100,9 @@ saveData <- function(tweets, filename, append=TRUE,
   ## like to save the data frame to.
 
   ## This does all the real work. 
-  write.table(tweets, file=filename, row.names=F, append=append,
+  ## write.table(tweets, file=filename, row.names=F, append=append,
+  ##             col.names=TRUE, sep=",")
+  write.csv(tweets, file=filename, row.names=F,
               col.names=TRUE, sep=",")
 
   ## Friendly message letting you know it worked
