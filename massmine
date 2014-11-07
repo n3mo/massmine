@@ -276,7 +276,14 @@ if (!all(is_installed)) {
 
   if (tolower(resp) == 'yes') {
     cat('Attempting install with your default settings...\n')
+    userdir <- unlist(strsplit(Sys.getenv("R_LIBS_USER"), 
+                                   .Platform$path.sep))[1L]
+    if (!file.exists(userdir)) {
+        ## Create the user's local R library directory if it isn't here
+        dir.create(userdir, recursive = TRUE)
+    } 
     install.packages(mm_deps[!is_installed],
+                     lib = userdir,
                      dependencies = TRUE,
                      repos = "http://cran.us.r-project.org")
     cat('Installation complete! Continuing...\n')
