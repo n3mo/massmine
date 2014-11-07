@@ -102,8 +102,7 @@ saveData <- function(tweets, filename, append=TRUE,
   ## This does all the real work. 
   ## write.table(tweets, file=filename, row.names=F, append=append,
   ##             col.names=TRUE, sep=",")
-  write.csv(tweets, file=filename, row.names=F,
-              col.names=TRUE, sep=",")
+  write.csv(tweets, file=filename, row.names=FALSE)
 
   ## Friendly message letting you know it worked
   cat(sprintf("Database saved to %s\n", filename), file = logfile,
