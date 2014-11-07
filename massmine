@@ -284,7 +284,6 @@ if (!all(is_installed)) {
     } 
     install.packages(mm_deps[!is_installed],
                      lib = userdir,
-                     dependencies = TRUE,
                      repos = "http://cran.us.r-project.org")
     cat('Installation complete! Continuing...\n')
   } else {
