@@ -276,7 +276,7 @@ if (!all(is_installed)) {
 
   if (tolower(resp) == 'yes') {
     cat('Attempting install with your default settings...\n')
-    install.packages(mm_deps[!is_installed])
+    install.packages(mm_deps[!is_installed], dependencies = TRUE)
     cat('Installation complete! Continuing...\n')
   } else {
     stop('Please install dependencies before continuing',
