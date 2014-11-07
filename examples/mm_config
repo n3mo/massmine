@@ -1,0 +1,33 @@
+####################################################################
+##
+## mm_config
+##
+## Example configuration file for massmine. Copy this to 
+## ~/.config/massmine/mm_config (create the directory ~/.config/massmine 
+## if it doesn't exist
+
+## Lines in this file beginning with ## will be ignored by MassMine,
+## so you are welcome and encouraged to make notes for yourself.
+## The remaining lines below that do NOT begin with ## must be manually
+## edited. Instructions for each line are given below.
+
+mm_apps:
+ - Your twitter app name goes here
+ 
+mm_keys:
+ - twitter key here
+ 
+mm_secrets:
+ - twitter secret here
+
+# Choose a service
+service : twitter
+
+twitter:
+ task : search 
+ options:
+  file.name	: twitter_data.dat
+  searchString  : UF
+  n		: 200 
+
+## End of file mm_config
