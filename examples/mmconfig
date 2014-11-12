@@ -1,27 +1,32 @@
 ####################################################################
 ##
-## mm_config
+## mmconfig
 ##
-## Example configuration file for massmine. Copy this to 
-## ~/.config/massmine/mm_config (create the directory ~/.config/massmine 
-## if it doesn't exist
+## Example configuration file for massmine. MassMine will find this
+## file automatically when it runs. Instead of relying on this, you
+## should edit a copy of this file to include your twitter account
+## information (application names, keys, and secrets). Place that
+## edited copy in a folder of your choice, and then point to the file
+## when you run massmine (see www.massmine.org for more info) by using
+## the following syntax
+
+## massmine /path/to/mmconfig
 
 ## Lines in this file beginning with ## will be ignored by MassMine,
 ## so you are welcome and encouraged to make notes for yourself.
 ## The remaining lines below that do NOT begin with ## must be manually
-## edited. Instructions for each line are given below.
+## edited. Instructions for each line are given below. This
+## configuration file uses YAML structuring. See www.massmine.org for
+## more information. 
 
 mm_apps:
- - EcoModeling
- - EcoModeling2
+ - TwitterAppName
  
 mm_keys:
- - yTaD9IZxX9VBozSE6gp7WA
- - A1V0B0WWIfNYVArrpledQ
+ - YourKeyGoesHere
  
 mm_secrets:
- - 3Mrn7lKd5fKpDLiH4y5W81totNtquoQdEdOAtHUXBU
- - 01WUzh5uUzUlgErtu32rOLmiwqMSxCxmkPDLDPMDMsc
+ - YourSecretGoesHere
 
 # Choose a service
 service : twitter
@@ -33,4 +38,4 @@ twitter:
   searchString  : florida
   tweets	: 20
 
-## End of file mm_config
+## End of file mmconfig
