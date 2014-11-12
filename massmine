@@ -41,14 +41,22 @@ if (!file.exists(mm_cred_path)) {
 
 ## Parse command line arguments. Currently, massmine only supports a
 ## single argument: The user can specify the path to the configuration
-## file. If no file path is supplied, the default config file is used.
-initial.options = commandArgs(trailingOnly = FALSE)
-file.arg.name = "--file="
-massmine.path = sub(file.arg.name, "",
-  initial.options[grep(file.arg.name, initial.options)])
-## This is the installation location for massmine on the current
-## machine. Loading of modules should be done relative to this path
-mm_install_dir = dirname(massmine.path)
+## file. If no file path is supplied, the default config file is
+## used. If you're running massmine manually inside of R, the
+## installation directory will not be detected properly. Users
+## shouldn't be doing this though. They should be calling massmine
+## directly from a terminal.
+if (interactivep) {
+  mm_install_dir = "."
+} else {
+  initial.options = commandArgs(trailingOnly = FALSE)
+  file.arg.name = "--file="
+  massmine.path = sub(file.arg.name, "",
+    initial.options[grep(file.arg.name, initial.options)])
+  ## This is the installation location for massmine on the current
+  ## machine. Loading of modules should be done relative to this path
+  mm_install_dir = dirname(massmine.path)
+}
 ## MassMine modules are installed relative to the above directory
 mm_module_dir = file.path(mm_install_dir, "R")
 
@@ -304,7 +312,8 @@ if (!all(is_installed)) {
     install.packages(mm_deps[!is_installed],
                      lib = userdir,
                      repos = "http://cran.us.r-project.org")
-    cat('Installation complete! Continuing...\n')
+    cat('Installation complete!',
+        'Please quit R. MassMine is ready to run', sep="\n")
   } else {
     stop('Please install dependencies before continuing',
          call. = FALSE)
