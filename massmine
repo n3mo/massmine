@@ -29,6 +29,14 @@ mm_version = '0.4.0 (2014-11-12)'
 ## interactively or as a script
 interactivep = interactive()
 
+## If massmine was called as a script (the preferred method), then the
+## readline function used by many packages is broken. You must use
+## readLines() instead. Here, we simply redefine the function once and
+## for all under such circumstances
+if (!interactivep) {
+  readline <- function(x) {cat(x); readLines(file("stdin"), 1)}
+} 
+
 ## Credentials are still managed transparently for the user, who
 ## presumably doesn't want to think about such
 ## things. Pre-authenticated accounts are stored in a more traditional
