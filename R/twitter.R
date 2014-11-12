@@ -54,7 +54,14 @@ mmAuth <- function(config) {
     registerTwitterOAuth(twitCred)
   } else {
     ## If we made it here, the user wants to manually authenticate.
-
+    if (!interactivep) {
+      cat("\nBefore using MassMine with Twitter, you must",
+          "authenticate your Twitter account.",
+          "To do this, start R and run the command:",
+          "\nsource(\"massmine\")\n",
+          "from within the MassMine directory.", sep = "\n")
+      stop("Quitting MassMine...", call.=FALSE)
+    } 
     resp = getResponse(
       '\nPlease choose an account to authenticate:',
       config$mm_apps)

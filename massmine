@@ -33,9 +33,9 @@ interactivep = interactive()
 ## readline function used by many packages is broken. You must use
 ## readLines() instead. Here, we simply redefine the function once and
 ## for all under such circumstances
-if (!interactivep) {
-  readline <- function(x) {cat(x); readLines(file("stdin"), 1)}
-} 
+## if (!interactivep) {
+##   readline <- function(...) {cat("It worked!", ...); readLines(file("stdin"), 1)}
+## } 
 
 ## Credentials are still managed transparently for the user, who
 ## presumably doesn't want to think about such
@@ -370,6 +370,12 @@ if (!interactivep) {
 
   ## All finished!
   cat('MassMine finished successfully!\n')
+} else {
+  ## Just load the requested modules, but do nothing else
+  loadModules(config, mm_module_dir)
+
+  ## Let the user know something happened. The rest is up to them.
+  cat('\nMassMine is loaded and ready to go\n\n')
 }
 
 ## End of file massmine
