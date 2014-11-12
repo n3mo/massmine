@@ -312,8 +312,8 @@ if (!all(is_installed)) {
     install.packages(mm_deps[!is_installed],
                      lib = userdir,
                      repos = "http://cran.us.r-project.org")
-    cat('Installation complete!',
-        'Please quit R. MassMine is ready to run', sep="\n")
+    cat('Installation complete!\n')
+    stop('Restart MassMine to begin', call.=FALSE)
   } else {
     stop('Please install dependencies before continuing',
          call. = FALSE)
