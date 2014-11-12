@@ -17,13 +17,13 @@
 ##  You should have received a copy of the GNU General Public License
 ##  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
-## 0.1.0 2014-04-04 NVH: Initial version.
+## 0.1.0 2014-04-04 NVH: Initial (github) version.
 ##
 ## Instructions: See www.massmine.org for complete documentation and
 ## instructions for how to use massmine
 
 ## Current version of software
-mm_version = '0.3.1 (2014-10-15)'
+mm_version = '0.4.0 (2014-11-12)'
 
 ## This script behaves differently depending on whether it is called
 ## interactively or as a script

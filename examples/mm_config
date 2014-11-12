@@ -27,7 +27,7 @@ twitter:
  task : search 
  options:
   file.name	: twitter_data.dat
-  searchString  : UF
-  n		: 200 
+  searchString  : florida
+  tweets	: 200 
 
 ## End of file mm_config
