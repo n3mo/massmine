@@ -12,13 +12,16 @@
 ## edited. Instructions for each line are given below.
 
 mm_apps:
- - Your twitter app name goes here
+ - EcoModeling
+ - EcoModeling2
  
 mm_keys:
- - twitter key here
+ - yTaD9IZxX9VBozSE6gp7WA
+ - A1V0B0WWIfNYVArrpledQ
  
 mm_secrets:
- - twitter secret here
+ - 3Mrn7lKd5fKpDLiH4y5W81totNtquoQdEdOAtHUXBU
+ - 01WUzh5uUzUlgErtu32rOLmiwqMSxCxmkPDLDPMDMsc
 
 # Choose a service
 service : twitter
@@ -28,6 +31,6 @@ twitter:
  options:
   file.name	: twitter_data.dat
   searchString  : florida
-  tweets	: 200 
+  tweets	: 20
 
 ## End of file mm_config

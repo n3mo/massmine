@@ -29,27 +29,45 @@ mm_version = '0.4.0 (2014-11-12)'
 ## interactively or as a script
 interactivep = interactive()
 
-## All massmine configuration and authentication files are stored in a
-## single directory in ~/.config to avoid cluttering the user's home
-## directory with dot files. This file typically already exists on
-## *nix machines. If not, it is created on initial startup
-mm_root = '~/.config/massmine'
+## Credentials are still managed transparently for the user, who
+## presumably doesn't want to think about such
+## things. Pre-authenticated accounts are stored in a more traditional
+## *nix location. If the configuration directory doesn't exist, it is
+## created at startup
+mm_cred_path = "~/.config/massmine"
+if (!file.exists(mm_cred_path)) {
+  dir.create(mm_cred_path, showWarnings = TRUE, recursive = TRUE)
+} 
 
-## MassMine allows for multiple twitter accounts, each with multiple
-## applications (each application has its own authentication
-## credentials). Authorization credentials are managed in the
-## following file. MassMine checks for this file on startup, loading
-## it's contents if it exists, or offering to create a template file
-## if it does not. This file also controls the behavior of massmine,
-## particularly in automatic mode.
-default_config_file = file.path(mm_root, 'mm_config')
+## Parse command line arguments. Currently, massmine only supports a
+## single argument: The user can specify the path to the configuration
+## file. If no file path is supplied, the default config file is used.
+initial.options = commandArgs(trailingOnly = FALSE)
+file.arg.name = "--file="
+massmine.path = sub(file.arg.name, "",
+  initial.options[grep(file.arg.name, initial.options)])
+## This is the installation location for massmine on the current
+## machine. Loading of modules should be done relative to this path
+mm_install_dir = dirname(massmine.path)
+## MassMine modules are installed relative to the above directory
+mm_module_dir = file.path(mm_install_dir, "R")
+
+## As of 2014-11-12, massmine looks in the current working directory
+## for a configuration file called mmconfig. If it can't find it, it
+## looks for a folder called "examples" in the massmine installation
+## directory and searches there for the same file. If that fails,
+## massmine quits and complains to the user. Of course, the user can
+## avoid all of this by simply including the path to a config file at
+## runtime ("massmine ~/.../mmconfig)
+default_config_file = file.path(".", 'mmconfig')
+backup_config_file = file.path(mm_install_dir, "examples", 'mmconfig')
 
 ## MassMine saves twitter credentials across sessions. A file will be
 ## created at the following location with the OAuth information for
 ## your account. The next time you run massmine, you will not need to
 ## authenticate manually (unless you wish to switch to another twitter
 ## account)
-default_twit_file = file.path(mm_root, 'mm_twitter_credentials')
+default_twit_file = file.path(mm_cred_path, 'mm_twitter_credentials')
 
 ## Required packages. These dependencies must be installed at the
 ## system OR user level. MassMine checks for these before running,
@@ -303,21 +321,18 @@ suppressPackageStartupMessages(
             character.only = TRUE)
   })
 
-## Parse command line arguments. Currently, massmine only supports a
-## single argument: The user can specify the path to the configuration
-## file. If no file path is supplied, the default config file is used.
-initial.options = commandArgs(trailingOnly = FALSE)
-file.arg.name = "--file="
-massmine.path = sub(file.arg.name, "", initial.options[grep(file.arg.name, initial.options)])
-## This is the installation location for massmine on the current
-## machine. Loading of modules should be done relative to this path
-mm_install_dir = dirname(massmine.path)
-## MassMine modules are installed relative to the above directory
-mm_module_dir = file.path(mm_install_dir, "R")
-
 args = commandArgs(TRUE)
 if (is.na(args[1])) {
-  config_file = default_config_file
+  ## The user has not supplied a path to a configuration file at
+  ## runtime. We now search locally
+  if (file.exists(default_config_file)) {
+    config_file = default_config_file
+  } else if (file.exists(backup_config_file)) {
+    config_file = backup_config_file
+  } else {
+    stop('No configuration file found. MassMine stopped\n',
+         call.=FALSE)
+  }
 } else {
   config_file = args[1]
 }
