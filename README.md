@@ -80,9 +80,45 @@ chmod +x massmine
 ./massmine
 ```
 
-On its first run, MassMine will offer to create a user customization template file. The template file will be created in your home folder as `~/.config/massmine/mm_config` (note that files that begin with "." will not show up in your file browser by default. You may need to turn on "hidden files" to see the directory "~/.config").
+On its first run, MassMine will offer to install any required R packages. You must either allow MassMine to install these when prompted, or alternatively you can install them yourself from R (experienced users only). Once complete, MassMine is installed and is ready to be used. Restart MassMine with `./massmine` to begin using it.
 
-The template file `~/.config/massmine/mm_config` contains instructions for how to edit it. You will find information for how to include your authorization credentials, etc. Once you have finished editing the customization file, you can rerun massmine at any time to begin using it:
+### Configuration File
+
+You can control MassMine's behavior with user configuration files. These files are [YAML](http://en.wikipedia.org/wiki/YAML) formatted (that is, they are structured for a computer to read, but are also human-readable). Example configuration files are included with MassMine in the "examples" folder of your installation.
+
+When started, you can specify a custom configuration file by including the file name after the call to MassMine. Assuming you have a file called "my-massmine-config" in the same directory you are working in, you can start MassMine as follows:
+
+```sh
+./massmine my-massmine-config
+```
+
+If you do not specify a configuration file in this manner, MassMine will search for a configuration file called "mmconfig" in the following locations, in this order:
+
+1. In the current directory that you're calling MassMine in.
+2. In the "examples" folder of the MassMine installation, wherever it was installed on your computer.
+
+If no file can be found in these locations, MassMine stops with an error.
+
+### Authenticating With Twitter
+
+If you are using the Twitter functionality of MassMine, you must authenticate with the Twitter servers. This is a requirement of Twitter. To do so, you must log in to (or create) an account at [Twitter's Developer Site](https://dev.twitter.com). Once logged in, you must create a new "application" at [](https://apps.twitter.com/). Write down the application "key" and "secret" provided by Twitter for your application.
+
+When you attempt to use MassMine to access Twitter for the first time, you will be asked to authenticate your account. In a terminal, you must enter the following commands:
+
+```sh
+cd ~/path/to/massmine
+R
+```
+
+This will start an R process. At the R prompt, enter:
+
+```R
+source("massmine")
+```
+
+When you enter the `source("massmine")` command, you will be prompted with an authentication process. Follow the provided web link, and enter the numeric code provided to you. Upon success, MassMine will be ready for use with Twitter. You can now quit R with `q()` (choosing "no" when asked about saving your session).
+
+MassMine is now ready to work with Twitter. You can now start MassMine directly at any time, and you will never have to authenticate with Twitter again:
 
 ```sh
 ~/path/to/massmine
