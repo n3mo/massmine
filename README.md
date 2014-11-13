@@ -101,7 +101,7 @@ If no file can be found in these locations, MassMine stops with an error.
 
 ### Authenticating With Twitter
 
-If you are using the Twitter functionality of MassMine, you must authenticate with the Twitter servers. This is a requirement of Twitter. To do so, you must log in to (or create) an account at [Twitter's Developer Site](https://dev.twitter.com). Once logged in, you must create a new "application" at [Twitter's Application Site](https://apps.twitter.com/). In your customization file, edit the entries for "key" and "secret" to include the corresponding codes provided to you by Twitter. You should also provide a name for your Twitter account in your configuration file. 
+If you are using the Twitter functionality of MassMine, you must authenticate with the Twitter servers. This is a requirement of Twitter. To do so, you must log in to (or create) an account at [Twitter's Developer Site](https://dev.twitter.com). Once logged in, you must create a new "application" at [Twitter's Application Site](https://apps.twitter.com/). In your configuration file, edit the entries for "key" and "secret" to include the corresponding codes provided to you by Twitter. You should also provide a name for your Twitter account in your configuration file. 
 
 When you attempt to use MassMine to access Twitter for the first time, you will be asked to authenticate your account. In a terminal, you must enter the following commands:
 
