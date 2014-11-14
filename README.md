@@ -4,8 +4,10 @@
 
 ![Splash Screen](https://github.com/n3mo/massmine/raw/master/img/splash.png)
 
-Documentation and installation instructions are available at [](http://www.massmine.org)
+## Installation and Usage
+Documentation and installation instructions are available at [www.massmine.org](http://www.massmine.org)
 
+## About
 MassMine is a research tool designed to simplify the collection and use of data from social media outlets.
 
 Specifically, MassMine:
