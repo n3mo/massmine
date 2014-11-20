@@ -293,12 +293,12 @@ searchTweets <- function(searchString, n=25, lang=NULL, since=NULL,
   
 } ## End of function searchTweets
 
-restSearch <- function(file.name, searchString, tweets=25, lang=NULL, since=NULL,
+restSearch <- function(file.name, query, tweets=25, lang=NULL, since=NULL,
                          until=NULL, locale=NULL, geocode=NULL,
                          sinceID=NULL, retryOnRateLimit=120, ...) {
     ## Wrapper for searchTweets that saves the results to file. This
     ## is meant to be used with massmine's automated functionality
-    tmp = searchTweets(searchString, n=tweets, lang=lang, since=since,
+    tmp = searchTweets(searchString=query, n=tweets, lang=lang, since=since,
         until=until, locale=locale, geocode=geocode, sinceID=sinceID,
         retryOnRateLimit=retryOnRateLimit, ...)
     

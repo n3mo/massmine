@@ -23,7 +23,7 @@
 ## instructions for how to use massmine
 
 ## Current version of software
-mm_version = '0.4.0 (2014-11-12)'
+mm_version = '0.5.0 (2014-11-20)'
 
 ## This script behaves differently depending on whether it is called
 ## interactively or as a script

@@ -35,7 +35,7 @@ twitter:
  task : search 
  options:
   file.name	: twitter_data.dat
-  searchString  : florida
+  query         : florida gators
   tweets	: 20
 
 ## End of file mmconfig
