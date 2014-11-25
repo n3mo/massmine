@@ -34,7 +34,7 @@ service : twitter
 twitter:
  task : search 
  options:
-  file.name	: twitter_data.dat
+  file.name	: twitter_data.csv
   query         : florida gators
   tweets	: 20
 
