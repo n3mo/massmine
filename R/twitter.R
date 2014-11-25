@@ -579,7 +579,7 @@ monitorTrends <- function(outfile, woeid=23424977, samples=5,
 
 } ## End of function monitorTrends
 
-fetchUsers <- function(users, outdir, numTweets = 3200, logfile =
+fetchUsers <- function(users, outdir, tweets = 3200, logfile =
                        stdout()) {
   ## Wrapper for getTimeline. This function provides an automated
   ## method for harvesting multiple user's timelines from twitter's
@@ -588,7 +588,7 @@ fetchUsers <- function(users, outdir, numTweets = 3200, logfile =
   ## their previous 3200 statuses (the oldest allowable tweet by
   ## twitter's API). Each user's data is written to an individual file
   ## in the directory "outdir". User data file names will be generated
-  ## according to the pattern user_SCREENNAME.dat, where SCREENNAME is
+  ## according to the pattern user_SCREENNAME.csv, where SCREENNAME is
   ## the user's official twitter screen name. Additionally, two files
   ## will be created. One file contains screen names of users
   ## successfully fetched (fetched_users_XXXXX.txt) and another for
@@ -708,7 +708,7 @@ fetchUsers <- function(users, outdir, numTweets = 3200, logfile =
         ## Let's determine the current user's file that we will
         ## create. 
         userFile = file.path(outdir,
-          paste("user_", users[i], ".dat", sep=""))
+          paste("user_", users[i], ".csv", sep=""))
 
         ## If the file userFile already exists, we signal an error
         ## rather than processing the current user. The reason is
@@ -722,10 +722,10 @@ fetchUsers <- function(users, outdir, numTweets = 3200, logfile =
                        basename(userFile)))
         } 
 
-        ## This does all the heavy lifting. We request numTweets
+        ## This does all the heavy lifting. We request tweets
         ## tweets (the maximum-allowed look into the past). We may get
         ## far less for less active users.
-        userTweets = getTimeline(users[i], n=numTweets, includeRts=T)
+        userTweets = getTimeline(users[i], n=tweets, includeRts=T)
 
         ## If the returned data frame has 0 rows, or is not a data
         ## frame (due to any error), then we do not write to
