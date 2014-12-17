@@ -29,14 +29,6 @@ mm_version = '0.5.0 (2014-11-20)'
 ## interactively or as a script
 interactivep = interactive()
 
-## If massmine was called as a script (the preferred method), then the
-## readline function used by many packages is broken. You must use
-## readLines() instead. Here, we simply redefine the function once and
-## for all under such circumstances
-## if (!interactivep) {
-##   readline <- function(...) {cat("It worked!", ...); readLines(file("stdin"), 1)}
-## } 
-
 ## Credentials are still managed transparently for the user, who
 ## presumably doesn't want to think about such
 ## things. Pre-authenticated accounts are stored in a more traditional
@@ -337,6 +329,17 @@ suppressPackageStartupMessages(
     require(dep, quietly = TRUE, warn.conflicts = FALSE,
             character.only = TRUE)
   })
+
+## If massmine was called as a script (the preferred method), then the
+## readline function used by many packages is broken. You must use
+## readLines() instead. Here, we simply redefine the function once and
+## for all under such circumstances
+## if (!interactivep) {
+##   my.readline <- function(...) {cat("It worked!", ...); readLines(file("stdin"), 1)}
+##   unlockBinding("ROAuth::readline", as.environment("package:ROAuth"))
+##   assign("ROAuth::readline", my.readline, as.environment("package:ROAuth"))
+##   lockBinding("ROAuth::readline", as.environment("package:ROAuth"))
+## } 
 
 args = commandArgs(TRUE)
 if (is.na(args[1])) {
