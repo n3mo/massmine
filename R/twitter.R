@@ -413,13 +413,13 @@ filterTweets <- function(tweets, keyword, ignore.case=F) {
   tweets[!idx, ]
 } ## End of function filterTweets
 
-monitorTrends <- function(outfile, woeid=23424977, samples=5,
-                          exclude=NULL, logfile = stdout()) {
+monitorTrends <- function(file.name, woeid=23424977, samples=1,
+                          hashtags=TRUE, logfile = stdout()) {
   ## The following function takes as input a woeid, or a vector of
   ## woeids of length < 6, and grabs the latest twitter trends once
   ## every 5 minutes for "sample" number of times for the given
   ## woeid. Each 5-minute's worth of results are given a timestamp and
-  ## then written (appended) to the file "outfile". Provided the
+  ## then written (appended) to the file "file.name". Provided the
   ## function runs without error for "samples" times, all data from all
   ## searches are written to file. In the case of an error (for any
   ## reason), the current sample's data are lost, but the process will
@@ -427,19 +427,38 @@ monitorTrends <- function(outfile, woeid=23424977, samples=5,
   ## data. Data are written along the way, so a cataclysmic error
   ## won't result in a data loss of previously collected data.
 
+  ## Include hashtags in trends?
+  if (hashtags == FALSE | tolower(hashtags) == "false") {
+    exclude = "hashtags"
+  } else {
+    exclude = NULL
+  }
+
+  ## If the user used a YAML config file to submit multiple WOEIDS,
+  ## the ids will be encoded as a string. We must split the string
+  ## into separate numbers and convert to numeric. This regex (and
+  ## splitting technique) allows the woeids in the YAML file to be
+  ## separated by any combination of spaces (or tabs, etc.) AND/OR
+  ## punctuation. 
+  if (is.character(woeid)) {
+    tmp = unlist(strsplit(woeid, split = "[[:space:][:punct:]]"))
+    woeid = as.numeric(tmp)[nchar(tmp) != 0]
+    rm(tmp)
+  }
+
   ## No more than 5 woeids can be fetched in a 5 minute period without
   ## violating our rate limits
   N_woeid = length(woeid)
   if (N_woeid > 5) {
     stop("5 woeids max allowed", call.=FALSE)
-  } 
+  }
 
   ## Don't allow the user to overright or append to an existing
   ## file. There should be no way to bypass this check. The user (or
   ## calling function) should give a new file name every time
   ## monitorTrends is called to prevent accidental data loss.
-  if (file.exists(outfile)) {
-    stop(sprintf("File %s already exists", outfile), call.=FALSE)
+  if (file.exists(file.name)) {
+    stop(sprintf("File %s already exists", file.name), call.=FALSE)
   } 
 
   cat(sprintf("Collecting %d top-10 trend lists for %d woeid(s)\n",
@@ -474,7 +493,7 @@ monitorTrends <- function(outfile, woeid=23424977, samples=5,
     ## return a malformed data frame (or some other unpredictable
     ## data). Here we double check that the data appears to of the
     ## correct type, signaling an error if something looks wrong. We
-    ## do this to avoid corrupting the outfile that we're writing to
+    ## do this to avoid corrupting the file.name that we're writing to
     ## below.
     if (class(d) != "data.frame") {
       stop("Malformed trend data frame", call.=FALSE)
@@ -499,10 +518,10 @@ monitorTrends <- function(outfile, woeid=23424977, samples=5,
     ## data. We only write the column names (the header) on the
     ## first pass.
     if (header) {
-      ## WARNING: This call overwrites the contents of outfile!
+      ## WARNING: This call overwrites the contents of file.name!
       ## This shouldn't be a problem, as the beginning of this
       ## function stops if the file already exists.
-      write.table(d, file=outfile, sep=",",
+      write.table(d, file=file.name, sep=",",
                   row.names=F, append=FALSE, col.names=TRUE)
       ## Create new data frame for storing the results away
       ## As of 2013-11-17, we longer keep the data from in
@@ -513,7 +532,7 @@ monitorTrends <- function(outfile, woeid=23424977, samples=5,
       ## saving the data in allData serves no purpose.
       ## allData = d
     } else {
-      write.table(d, file=outfile, sep=",",
+      write.table(d, file=file.name, sep=",",
                   row.names=F, append=T, col.names=FALSE)
       ## Add current trend results to previous results
       ## As of 2013-11-17 this data is no longer saved within
@@ -892,8 +911,8 @@ trendSummary <- function(file) {
 
 } ## End of function trendSummary
 
-streamFilter <- function(outfile="", track=NULL, follow=NULL,
-                         locations=NULL, language=NULL, timeout=0,
+streamFilter <- function(file.name="", track=NULL, follow=NULL,
+                         locations=NULL, lang=NULL, timeout=0,
                          tweets=NULL, oauth=twitCred, verbose=TRUE,
                          logfile = stdout()) {
   ## Adapted from filterStream in the streamR package. This does the
@@ -916,7 +935,7 @@ streamFilter <- function(outfile="", track=NULL, follow=NULL,
   }
   
   ## building parameter lists
-  params = buildArgList(track, follow, language, locations, oauth=oauth)
+  params = buildArgList(track, follow, lang, locations, oauth=oauth)
 
   ## Tweet counter
   i = 0
@@ -928,11 +947,11 @@ streamFilter <- function(outfile="", track=NULL, follow=NULL,
   ## ultimately converted to a csv file. We write the json to disk and
   ## operate on it only after it's successfully saved. This is the raw
   ## json file:
-  json_outfile = paste(outfile, ".json", sep="")
+  json_outfile = paste(file.name, ".json", sep="")
 
   ## Verify that the data file does not already exist. We don't want
   ## to overwrite anything... (WE NOW USE APPEND=TRUE BELOW)
-  ## if (file.exists(outfile) | file.exists(json_outfile)) {
+  ## if (file.exists(file.name) | file.exists(json_outfile)) {
   ##   stop("Output file already exists", call.=FALSE)
   ## } 
 
@@ -1060,7 +1079,7 @@ streamFilter <- function(outfile="", track=NULL, follow=NULL,
   df$url <- unlistWithNA(results.list, c('entities', 'urls', 1, 'url'))
 
   ## Write the resulting data frame to disk
-  saveData(df, outfile, append=TRUE)
+  saveData(df, file.name, append=TRUE)
 
 } ## End of function streamFilter
 
