@@ -12,12 +12,12 @@
 
 ## massmine /path/to/mmconfig
 
-## Lines in this file beginning with ## will be ignored by MassMine,
-## so you are welcome and encouraged to make notes for yourself.
-## The remaining lines below that do NOT begin with ## must be manually
+## Lines in this file beginning with # will be ignored by MassMine, so
+## you are welcome and encouraged to make notes for yourself.  The
+## remaining lines below that do NOT begin with # must be manually
 ## edited. Instructions for each line are given below. This
 ## configuration file uses YAML structuring. See www.massmine.org for
-## more information. 
+## more information.
 
 mm_apps:
  - TwitterAppName
