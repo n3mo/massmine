@@ -1,7 +1,7 @@
 ####################################################################
 ##
 ## MassMine: twitter module
-## Copyright (C) 2014  Nicholas M. Van Horn & Aaron Beveridge
+## Copyright (C) 2014-2015  Nicholas M. Van Horn & Aaron Beveridge
 ## 
 ##  This program is free software: you can redistribute it and/or modify
 ##  it under the terms of the GNU General Public License as published by
