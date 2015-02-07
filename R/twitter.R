@@ -914,7 +914,7 @@ trendSummary <- function(file) {
 streamFilter <- function(file.name="", track=NULL, follow=NULL,
                          locations=NULL, lang=NULL, timeout=0,
                          tweets=NULL, oauth=twitCred, verbose=TRUE,
-                         logfile = stdout()) {
+                         logfile = stdout(), shrink=FALSE) {
   ## Adapted from filterStream in the streamR package. This does the
   ## heavy lifting for targeting twitter's streaming API. This will be
   ## the new streamFilter function that replaces the original one
@@ -1022,61 +1022,79 @@ streamFilter <- function(file.name="", track=NULL, follow=NULL,
          "")
   }
   ## constructing data frame with tweet and user variable
-  df <- data.frame(
-    text = unlistWithNA(results.list, 'text'),
-    retweet_count = unlistWithNA(results.list, c('retweeted_status', 'retweet_count')),
-    favorited = unlistWithNA(results.list, 'favorited'),
-    truncated = unlistWithNA(results.list, 'truncated'),
-    id_str = unlistWithNA(results.list, 'id_str'),
-    in_reply_to_screen_name = unlistWithNA(results.list, 'in_reply_to_screen_name'),
-    source = unlistWithNA(results.list, 'source'),
-    retweeted = unlistWithNA(results.list, 'retweeted'),
-    created_at = unlistWithNA(results.list, 'created_at'),
-    in_reply_to_status_id_str = unlistWithNA(results.list, 'in_reply_to_status_id_str'),
-    in_reply_to_user_id_str = unlistWithNA(results.list, 'in_reply_to_user_id_str'),
-    lang = unlistWithNA(results.list, 'lang'),
-    listed_count = unlistWithNA(results.list, c('user', 'listed_count')),
-    verified = unlistWithNA(results.list, c('user', 'verified')),
-    location = unlistWithNA(results.list, c('user', 'location')),
-    user_id_str = unlistWithNA(results.list, c('user', 'id_str')),
-    description = unlistWithNA(results.list, c('user', 'description')),
-    geo_enabled = unlistWithNA(results.list, c('user', 'geo_enabled')),
-    user_created_at = unlistWithNA(results.list, c('user', 'created_at')),
-    statuses_count = unlistWithNA(results.list, c('user', 'statuses_count')),
-    followers_count = unlistWithNA(results.list, c('user', 'followers_count')),
-    favourites_count = unlistWithNA(results.list, c('user', 'favourites_count')),
-    protected = unlistWithNA(results.list, c('user', 'protected')),
-    user_url = unlistWithNA(results.list, c('user', 'url')),
-    name = unlistWithNA(results.list, c('user', 'name')),
-    time_zone = unlistWithNA(results.list, c('user', 'time_zone')),
-    user_lang = unlistWithNA(results.list, c('user', 'lang')),
-    utc_offset = unlistWithNA(results.list, c('user', 'utc_offset')),
-    friends_count = unlistWithNA(results.list, c('user', 'friends_count')),
-    screen_name = unlistWithNA(results.list, c('user', 'screen_name')),
-    stringsAsFactors=F)
+  if (shrink) {
+      df <- data.frame(
+          text = unlistWithNA(results.list, 'text'),
+          retweet_count = unlistWithNA(results.list, c('retweeted_status', 'retweet_count')),
+          favorited = unlistWithNA(results.list, 'favorited'),
+          in_reply_to_screen_name = unlistWithNA(results.list, 'in_reply_to_screen_name'),
+          retweeted = unlistWithNA(results.list, 'retweeted'),
+          created_at = unlistWithNA(results.list, 'created_at'),
+          lang = unlistWithNA(results.list, 'lang'),
+          location = unlistWithNA(results.list, c('user', 'location')),
+          user_id_str = unlistWithNA(results.list, c('user', 'id_str')),
+          description = unlistWithNA(results.list, c('user', 'description')),
+          favourites_count = unlistWithNA(results.list, c('user', 'favourites_count')),
+          time_zone = unlistWithNA(results.list, c('user', 'time_zone')),
+          screen_name = unlistWithNA(results.list, c('user', 'screen_name')),
+          stringsAsFactors=F)
+    } else {
+        df <- data.frame(
+            text = unlistWithNA(results.list, 'text'),
+            retweet_count = unlistWithNA(results.list, c('retweeted_status', 'retweet_count')),
+            favorited = unlistWithNA(results.list, 'favorited'),
+            truncated = unlistWithNA(results.list, 'truncated'),
+            id_str = unlistWithNA(results.list, 'id_str'),
+            in_reply_to_screen_name = unlistWithNA(results.list, 'in_reply_to_screen_name'),
+            source = unlistWithNA(results.list, 'source'),
+            retweeted = unlistWithNA(results.list, 'retweeted'),
+            created_at = unlistWithNA(results.list, 'created_at'),
+            in_reply_to_status_id_str = unlistWithNA(results.list, 'in_reply_to_status_id_str'),
+            in_reply_to_user_id_str = unlistWithNA(results.list, 'in_reply_to_user_id_str'),
+            lang = unlistWithNA(results.list, 'lang'),
+            listed_count = unlistWithNA(results.list, c('user', 'listed_count')),
+            verified = unlistWithNA(results.list, c('user', 'verified')),
+            location = unlistWithNA(results.list, c('user', 'location')),
+            user_id_str = unlistWithNA(results.list, c('user', 'id_str')),
+            description = unlistWithNA(results.list, c('user', 'description')),
+            geo_enabled = unlistWithNA(results.list, c('user', 'geo_enabled')),
+            user_created_at = unlistWithNA(results.list, c('user', 'created_at')),
+            statuses_count = unlistWithNA(results.list, c('user', 'statuses_count')),
+            followers_count = unlistWithNA(results.list, c('user', 'followers_count')),
+            favourites_count = unlistWithNA(results.list, c('user', 'favourites_count')),
+            protected = unlistWithNA(results.list, c('user', 'protected')),
+            user_url = unlistWithNA(results.list, c('user', 'url')),
+            name = unlistWithNA(results.list, c('user', 'name')),
+            time_zone = unlistWithNA(results.list, c('user', 'time_zone')),
+            user_lang = unlistWithNA(results.list, c('user', 'lang')),
+            utc_offset = unlistWithNA(results.list, c('user', 'utc_offset')),
+            friends_count = unlistWithNA(results.list, c('user', 'friends_count')),
+            screen_name = unlistWithNA(results.list, c('user', 'screen_name')),
+            stringsAsFactors=F)
 
+        ## adding geographic variables and url entities
+        df$country_code <- unlistWithNA(results.list, c('place', 'country_code'))
+        df$country <- unlistWithNA(results.list, c('place', 'country'))
+        df$place_type <- unlistWithNA(results.list, c('place', 'place_type'))
+        df$full_name <- unlistWithNA(results.list, c('place', 'full_name'))
+        df$place_name <- unlistWithNA(results.list, c('place', 'place_name'))
+        df$place_id <- unlistWithNA(results.list, c('place', 'place_id'))
+        place_lat_1 <- unlistWithNA(results.list, c('place', 'bounding_box', 'coordinates', 1, 1, 2))
+        place_lat_2 <- unlistWithNA(results.list, c('place', 'bounding_box', 'coordinates', 1, 2, 2))
+        df$place_lat <- sapply(1:length(results.list), function(x)
+            mean(c(place_lat_1[x], place_lat_2[x]), na.rm=TRUE))
+        place_lon_1 <- unlistWithNA(results.list, c('place', 'bounding_box', 'coordinates', 1, 1, 1))
+        place_lon_2 <- unlistWithNA(results.list, c('place', 'bounding_box', 'coordinates', 1, 3, 1))
+        df$place_lon <- sapply(1:length(results.list), function(x)
+            mean(c(place_lon_1[x], place_lon_2[x]), na.rm=TRUE))
+        df$lat <- unlistWithNA(results.list, c('geo', 'coordinates', 1))
+        df$lon <- unlistWithNA(results.list, c('geo', 'coordinates', 2))
+        df$expanded_url <- unlistWithNA(results.list, c('entities', 'urls', 1, 'expanded_url'))
+        df$url <- unlistWithNA(results.list, c('entities', 'urls', 1, 'url'))
+
+    }
   ## retweet_count is extracted from retweeted_status. If this is not a RT, set to zero
   df$retweet_count[is.na(df$retweet_count)] <- 0
-
-  ## adding geographic variables and url entities
-  df$country_code <- unlistWithNA(results.list, c('place', 'country_code'))
-  df$country <- unlistWithNA(results.list, c('place', 'country'))
-  df$place_type <- unlistWithNA(results.list, c('place', 'place_type'))
-  df$full_name <- unlistWithNA(results.list, c('place', 'full_name'))
-  df$place_name <- unlistWithNA(results.list, c('place', 'place_name'))
-  df$place_id <- unlistWithNA(results.list, c('place', 'place_id'))
-  place_lat_1 <- unlistWithNA(results.list, c('place', 'bounding_box', 'coordinates', 1, 1, 2))
-  place_lat_2 <- unlistWithNA(results.list, c('place', 'bounding_box', 'coordinates', 1, 2, 2))
-  df$place_lat <- sapply(1:length(results.list), function(x)
-                         mean(c(place_lat_1[x], place_lat_2[x]), na.rm=TRUE))
-  place_lon_1 <- unlistWithNA(results.list, c('place', 'bounding_box', 'coordinates', 1, 1, 1))
-  place_lon_2 <- unlistWithNA(results.list, c('place', 'bounding_box', 'coordinates', 1, 3, 1))
-  df$place_lon <- sapply(1:length(results.list), function(x)
-                         mean(c(place_lon_1[x], place_lon_2[x]), na.rm=TRUE))
-  df$lat <- unlistWithNA(results.list, c('geo', 'coordinates', 1))
-  df$lon <- unlistWithNA(results.list, c('geo', 'coordinates', 2))
-  df$expanded_url <- unlistWithNA(results.list, c('entities', 'urls', 1, 'expanded_url'))
-  df$url <- unlistWithNA(results.list, c('entities', 'urls', 1, 'url'))
 
   ## Write the resulting data frame to disk
   saveData(df, file.name, append=TRUE)
