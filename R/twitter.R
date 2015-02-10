@@ -383,6 +383,12 @@ hashtags <- function(tweets) {
 
 } ## End of function hashtags
 
+hashUsers <- function(texts) {
+    ## Similar to hashtags, but uses base R functions. Extracts
+    ## hashtags and user names in one pass.
+    unlist(regmatches(texts, gregexpr("[#|@][^[:space:]|[:punct:]]+", texts)))
+} ## End of function hashUsers
+
 filterTweets <- function(tweets, keyword, ignore.case=F) {
   ## Given a data frame formed by getTimeline or searchTweets, this
   ## returns the subset of tweets that do NOT contain
