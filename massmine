@@ -23,7 +23,7 @@
 ## instructions for how to use massmine
 
 ## Current version of software
-mm_version = '0.6.1 (2015-02-07)'
+mm_version = '0.6.2 (2015-02-19)'
 
 ## This script behaves differently depending on whether it is called
 ## interactively or as a script
@@ -247,6 +247,25 @@ taskDispatch <- function(config) {
   
 } ## End of function taskDispatch
 
+upgradeMassmine <- function(doPackages = mm_deps) {
+  ## Run this for side effects. This attempts to install/update all
+  ## required dependencies for MassMine.
+
+  cat("\nUpgrading MassMine dependencies...\n")
+  userdir <- unlist(strsplit(Sys.getenv("R_LIBS_USER"), 
+                             .Platform$path.sep))[1L]
+  if (!file.exists(userdir)) {
+    ## Create the user's local R library directory if it isn't here
+    dir.create(userdir, recursive = TRUE)
+  } 
+  install.packages(mm_deps,
+                   lib = userdir,
+                   repos = "http://cran.us.r-project.org")
+  cat('Upgrade complete!\n')
+  stop('Restart MassMine to begin', call.=FALSE)
+
+} ## End of function upgradeMassmine
+
 ####################################################################
 ## AUTO RUN
 ####################################################################
@@ -354,6 +373,13 @@ if (is.na(args[1])) {
          call.=FALSE)
   }
 } else {
+  ## User has supplied command-line arguments. Check them and act
+  ## accordingly
+  if (args[1] == "upgrade") {
+    ## The user has asked for a forced upgrade of dependencies. This
+    ## will force (re)install those deps.
+    upgradeMassmine(mm_deps)
+  }
   config_file = args[1]
 }
 
