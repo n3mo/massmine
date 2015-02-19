@@ -24,59 +24,84 @@
 ####################################################################
 ## API Authentication
 ####################################################################
-mmAuth <- function(config) {
+mmAuth <- function(config, apiType) {
   ## Handles authentication with Twitter's servers
+
+  ## Currently, the Rest API and streaming API use different
+  ## authorization methods. Depending on the task, we use the
+  ## corresponding method
   
-  ## The location of pre-authorized twitter credentials on disk. This
-  ## file may or may not exist.
-  ## twit_file = config$twitter$twit_file
+  if (apiType == "stream") {
+    ## The location of pre-authorized twitter credentials on disk. This
+    ## file may or may not exist.
+    twit_file = config$twitter$twit_file
 
-  ## ## If the user already has a twitter OAuth object on file, offer
-  ## ## to use that
-  ## if (file.exists(twit_file)) {
-  ##   if (!interactivep) {
-  ##     resp = "yes"
-  ##   } else {
-  ##     ## Should we use the OAuth credentials on disk?
-  ##     resp = getResponse('\nUse previous Twitter credentials?',
-  ##       c("Yes", "No"))
-  ##   }
-  ## } else {
-  ##   resp = "no"
-  ## }
+    ## If the user already has a twitter OAuth object on file, offer
+    ## to use that
+    if (file.exists(twit_file)) {
+      if (!interactivep) {
+        resp = "yes"
+      } else {
+        ## Should we use the OAuth credentials on disk?
+        resp = getResponse('\nUse previous Twitter credentials?',
+            c("Yes", "No"))
+      }
+    } else {
+      resp = "no"
+    }
 
-  ## ## Now we either load the previous OAuth credentials, or
-  ## ## authenticate with new credentials, according to the user's choice
-  ## if (tolower(resp) == "yes") {
-  ##   ## If we're here, things are easy. Just load the old credentials
-  ##   ## and register them again
-  ##   load(twit_file)
-  ##   registerTwitterOAuth(twitCred)
-  ## } else {
-  ##   ## If we made it here, the user wants to manually authenticate.
-  ##   if (!interactivep) {
-  ##     cat("\nBefore using MassMine with Twitter, you must",
-  ##         "authenticate your Twitter account.",
-  ##         "To do this, start R and run the command:",
-  ##         "\nsource(\"massmine\")\n",
-  ##         "from within the MassMine directory.", sep = "\n")
-  ##     stop("Quitting MassMine...", call.=FALSE)
-  ##   } 
-  ##   resp = getResponse(
-  ##     '\nPlease choose an account to authenticate:',
-  ##     config$mm_apps)
+    ## Now we either load the previous OAuth credentials, or
+    ## authenticate with new credentials, according to the user's choice
+    if (tolower(resp) == "yes") {
+      ## If we're here, things are easy. Just load the old credentials
+      ## and register them again
+      load(twit_file)
+      ## registerTwitterOAuth(twitCred)
+    } else {
+      ## If we made it here, the user wants to manually authenticate.
+      if (!interactivep) {
+        cat("\nBefore using MassMine with Twitter, you must",
+            "authenticate your Twitter account.",
+            "To do this, start R and run the command:",
+            "\nsource(\"massmine\")\n",
+            "from within the MassMine directory.", sep = "\n")
+        stop("Quitting MassMine...", call.=FALSE)
+      } 
+      resp = getResponse(
+          '\nPlease choose an account to authenticate:',
+          config$mm_apps)
 
-    ## myapp = which(resp == config$mm_apps)
-    
-    ## consumerKey = config$mm_keys[myapp]
-    ## consumerSecret = config$mm_secrets[myapp]
+      myapp = which(resp == config$mm_apps)
+      
+      consumerKey = config$mm_keys[myapp]
+      consumerSecret = config$mm_secrets[myapp]
 
-    ## accessToken = config$mm_access_tokens[myapp]
-    ## accessSecret = config$mm_access_secrets[myapp]
+      accessToken = config$mm_access_tokens[myapp]
+      accessSecret = config$mm_access_secrets[myapp]
 
-    ## ## Authenticate with oauth using httr
-    ## setup_twitter_oauth(consumerKey, consumerSecret,
-    ##                     accessToken, accessSecret)
+      ## You need to reauthenticate to the twitter API using oauth:
+      reqURL <- "https://api.twitter.com/oauth/request_token"
+      accessURL <- "https://api.twitter.com/oauth/access_token"
+      authURL <- "https://api.twitter.com/oauth/authorize"
+
+      twitCred <- OAuthFactory$new(consumerKey=consumerKey,
+                                   consumerSecret=consumerSecret,
+                                   requestURL=reqURL,
+                                   accessURL=accessURL,
+                                   authURL=authURL)
+      twitCred$handshake()
+      ## registerTwitterOAuth(twitCred)
+
+      ## Save these credentials for next time. This step allows the
+      ## script to start up with manually authenticating on future runs
+      save(list="twitCred", file=twit_file)
+    }
+
+    ## Regardess of how we authenticated, return the OAuth credentials
+    return(twitCred)
+  } else {
+    ## We're using the Rest API if we've made it here. This uses the
+    ## httr method
 
     myapp = config$mm_apps
     
@@ -89,27 +114,7 @@ mmAuth <- function(config) {
     ## Authenticate with oauth using httr
     setup_twitter_oauth(consumerKey, consumerSecret,
                         accessToken, accessSecret)
-
-    ## You need to reauthenticate to the twitter API using oauth:
-    ## reqURL <- "https://api.twitter.com/oauth/request_token"
-    ## accessURL <- "https://api.twitter.com/oauth/access_token"
-    ## authURL <- "https://api.twitter.com/oauth/authorize"
-
-    ## twitCred <- OAuthFactory$new(consumerKey=consumerKey,
-    ##                              consumerSecret=consumerSecret,
-    ##                              requestURL=reqURL,
-    ##                              accessURL=accessURL,
-    ##                              authURL=authURL)
-    ## twitCred$handshake()
-    ## registerTwitterOAuth(twitCred)
-
-    ## Save these credentials for next time. This step allows the
-    ## script to start up with manually authenticating on future runs
-    ## save(list="twitCred", file=twit_file)
-    ## }
-
-  ## Regardess of how we authenticated, return the OAuth credentials
-  ## return(twitCred)
+    }
   
 } # End of function mmAuth
 
@@ -1028,7 +1033,7 @@ streamFilter <- function(file.name="", track=NULL, follow=NULL,
   ## Convert the resulting json file into a data frame, and then save
   ## as a csv file
   ## Read the text file and save it in memory as a list
-  lines <- readLines(json_outfile, encoding="UTF-8")
+  lines <- suppressWarnings(readLines(json_outfile, encoding="UTF-8"))
 
   results.list <- lapply(lines[nchar(lines)>0], function(x)
                          tryCatch(fromJSON(x), error=function(e) e)) 
@@ -1255,4 +1260,6 @@ getTrendLocations <- function(file.name="") {
 ## to errors.
 
 ## Authenticate with Twitter
-twitCred = mmAuth(config)
+twitCred = mmAuth(config, config$twitter$task)
+ 
+
