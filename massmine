@@ -23,7 +23,7 @@
 ## instructions for how to use massmine
 
 ## Current version of software
-mm_version = '0.6.2 (2015-02-19)'
+mm_version = '0.7.0 (2015-02-19)'
 
 ## This script behaves differently depending on whether it is called
 ## interactively or as a script
@@ -348,6 +348,10 @@ suppressPackageStartupMessages(
     require(dep, quietly = TRUE, warn.conflicts = FALSE,
             character.only = TRUE)
   })
+
+## For unknown reasons, the built-in methods package doesn't load when
+## running with RScript. This gets things running.
+suppressPackageStartupMessages(require(methods))
 
 ## If massmine was called as a script (the preferred method), then the
 ## readline function used by many packages is broken. You must use
