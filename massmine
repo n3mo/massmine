@@ -23,7 +23,7 @@
 ## instructions for how to use massmine
 
 ## Current version of software
-mm_version = '0.7.1 (2015-02-19)'
+mm_version = '0.8.1 (2015-03-02)'
 
 ## This script behaves differently depending on whether it is called
 ## interactively or as a script
@@ -81,7 +81,7 @@ default_twit_file = file.path(mm_cred_path, 'mm_twitter_credentials')
 ## system OR user level. MassMine checks for these before running,
 ## offering to install missing deps for the user.
 ## mm_deps = c('ROAuth', 'twitteR', 'streamR', 'zoo', 'stringr', 'yaml')
-mm_deps = c('ROAuth', 'twitteR', 'stringr', 'yaml', 'rjson')
+mm_deps = c('ROAuth', 'twitteR', 'stringr', 'yaml', 'rjson', 'tools')
 
 ## Data mining services currently supported by MassMine
 mm_services = c('twitter')
