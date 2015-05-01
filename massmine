@@ -1,4 +1,4 @@
-#! /home/nemo/bin/bin/csi -s
+#! /usr/local/bin/csi -s
 ;; ##################################################################
 ;;
 ;; MassMine: Your Access To Big Data
@@ -28,6 +28,9 @@
 ;; Extensions
 (require-extension args)
 
+;; Load massmine modules
+(load "./modules/twitter.scm")
+
 ;; Current version of software
 ;; mm_version = 'x.x.x (2015-05-01)'
 (define mm-version "x.x.x (2015-05-01)")
@@ -39,8 +42,12 @@
 (define opts
   (list (args:make-option (h help)    #:none "Help information"
 			  (usage))
+	(args:make-option (pattern)  (required: "KEYWORDS") "Keyword(s)"
+			  (set! keywords #f))
 	(args:make-option (count)  (required: "NUM") "Number of records"
-			  (set! max-count #f))
+			  (set! max-tweets #f))
+	(args:make-option (time)  (required: "SECOND") "Duration"
+			  (set! global-max-seconds #f))
 	(args:make-option (v version)  #:none "Version information"
 			  (print-version))
 	))
@@ -459,19 +466,26 @@
 
 ;;; Just what you think. This gets things started
 (define (main)
-  (if (not max-count)
-      (set! max-count (alist-ref 'count options)))
+  (if (not max-tweets)
+      (set! max-tweets (string->number (alist-ref 'count options))))
+  (if (not keywords)
+      (set! keywords (alist-ref 'pattern options)))
+  (if (not global-max-seconds)
+      (set! global-max-seconds (string->number (alist-ref 'time options))))
+  (fetch-data keywords)
   (exit 1))
 
 (define options)
 (define operands)
-(define max-tweets 0)
-(define max-count 0)
+(define max-tweets 999999999999999999)
+(define global-max-seconds 999999999999999999)
+(define keywords "")
 
 ;; Parse command line arguments
 (set!-values (options operands)
 	     (args:parse (command-line-arguments) opts))
 
-(handle-exceptions exn (usage) (main))
+;; (handle-exceptions exn (usage) (main))
+(main)
 
 ;; End of file massmine
