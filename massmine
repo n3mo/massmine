@@ -42,6 +42,10 @@
 (define opts
   (list (args:make-option (h help)    #:none "Help information"
 			  (usage))
+	(args:make-option (v version)  #:none "Version information"
+			  (print-version))
+	(args:make-option (output)  (required: "FILE")  "Write to file"
+			  (set! output-to-file? #t))
 	(args:make-option (pattern)  (required: "KEYWORDS") "Keyword(s)"
 			  (set! keywords #f))
 	(args:make-option (count)  (required: "NUM") "Number of records"
@@ -50,8 +54,8 @@
 			  (set! global-max-seconds #f))
 	(args:make-option (geo)  (required: "coordinate") "Locations"
 			  (set! locations #f))
-	(args:make-option (v version)  #:none "Version information"
-			  (print-version))
+	(args:make-option (no-splash)  #:none "No splash screen"
+			  (set! do-splash? #f))
 	))
 
 ;;; This procedure is called whenever the user specifies the help
@@ -331,25 +335,23 @@
 ;; Splash Screen
 ;; ##################################################################
 ;; Software info pretty-printed for the user
-;; cat('\n',
-;;     '############################################################\n',
-;;     '##                                                        ##\n',
-;;     '##        __  __               __  __ _                   ##\n',
-;;     '##       |  \\/  | __ _ ___ ___|  \\/  (_)_ __   ___        ##\n',
-;;     '##       | |\\/| |/ _` / __/ __| |\\/| | | \'_ \\ / _ \\       ##\n',
-;;     '##       | |  | | (_| \\__ \\__ \\ |  | | | | | |  __/       ##\n',
-;;     '##       |_|  |_|\\__,_|___/___/_|  |_|_|_| |_|\\___|       ##\n',
-;;     '##                                                        ##\n',
-;;     '##                Your Access To Big Data                 ##\n',    
-;;     '##                                                        ##\n',
-;;     '############################################################\n\n',
-;;     paste('MassMine version ', mm_version, '\n', sep=''),
-;;     'https://github.com/n3mo/massmine\n\n',
-;;     'Copyright (C) 2014-2015 Nicholas M. Van Horn & Aaron Beveridge\n',
-;;     'This program comes with ABSOLUTELY NO WARRANTY.\n',
-;;     'This is free software, and you are welcome to redistribute it\n',
-;;     'under certain conditions. Please see the included LICENSE file\n',
-;;     'for more information\n\n')
+(define (splash-screen)
+  (print "\n"
+	 "        __  __               __  __ _                     \n"
+	 "       |  \\/  | __ _ ___ ___|  \\/  (_)_ __   ___        \n"
+	 "       | |\\/| |/ _` / __/ __| |\\/| | | \"_ \\ / _ \\    \n"
+	 "       | |  | | (_| \\__ \\__ \\ |  | | | | | |  __/      \n"
+	 "       |_|  |_|\\__,_|___/___/_|  |_|_|_| |_|\\___|       \n"
+	 "                                                          \n"
+	 "                Your Access To Big Data                   \n"
+	 "\n\n"
+	 "MassMine version " mm-version "\n"
+	 "https://github.com/n3mo/massmine\n\n"
+	 "Copyright (C) 2014-2015 Nicholas M. Van Horn & Aaron Beveridge\n"
+	 "This program comes with ABSOLUTELY NO WARRANTY.\n"
+	 "This is free software, and you are welcome to redistribute it\n"
+	 "under certain conditions. Please see the included LICENSE file\n"
+	 "for more information\n\n"))
 
 ;; ##################################################################
 ;; Load dependencies
@@ -476,11 +478,35 @@
       (set! global-max-seconds (string->number (alist-ref 'time options))))
   (if (not locations)
       (set! locations (alist-ref 'geo options)))
-  (fetch-data keywords locations)
+
+  ;; Greet the user
+  (if (and do-splash? output-to-file?) (splash-screen))
+
+  ;; Get things done
+  (if output-to-file?
+      (let ((out-file (alist-ref 'output options)))
+	(if (file-exists? out-file)
+	    ;; Abort if the output file already exists
+	    (begin (with-output-to-port (current-error-port)
+		     (lambda ()
+		       (print "Abort: Output file " out-file
+			      " already exists!")))
+		   (exit 1))
+	    ;; Else, get down to business
+	    (begin
+	      (display "Fetching requested data... ")
+	      (with-output-to-file out-file
+		(lambda () (fetch-data keywords locations))))))
+      (fetch-data keywords locations))
+
+  (if output-to-file? (print "done!"))
+  
   (exit 1))
 
 (define options)
 (define operands)
+(define do-splash? #t)
+(define output-to-file? #f)
 (define max-tweets 999999999999999999)
 (define global-max-seconds 999999999999999999)
 (define keywords "")

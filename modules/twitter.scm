@@ -30,16 +30,27 @@
 	     "1961116760-b3tyEWzZAFoKElzjnYyBf2EPRt9uKDeo7GQTqyQ"
 	     "bYpDF5lqv0ck1WNyjcQp3pRV73oD4rAgoHwzecEgePU"))
 
+;; (define (fetch-data pattern geo-locations)
+;;   (with-output-to-file "./data_dump.json"
+;;     (lambda ()
+;;       (handle-exceptions exn
+;; 	  ;; Exception handler does nothing but suppress the inevitable
+;; 	  ;; error caused but terminating the connection manually
+;; 	  #t
+;; 	;; This does the real work
+;; 	(with-oauth twitter-app me
+;; 		    (lambda ()
+;; 		      (statuses-filter-method #:delimited "length"
+;; 					      #:track pattern
+;; 					      #:locations geo-locations)))))))
 (define (fetch-data pattern geo-locations)
-  (with-output-to-file "./data_dump.json"
-    (lambda ()
-      (handle-exceptions exn
-	  ;; Exception handler does nothing but suppress the inevitable
-	  ;; error caused but terminating the connection manually
-	  #t
-	;; This does the real work
-	(with-oauth twitter-app me
-		    (lambda ()
-		      (statuses-filter-method #:delimited "length"
-					      #:track pattern
-					      #:locations geo-locations)))))))
+  (handle-exceptions exn
+      ;; Exception handler does nothing but suppress the inevitable
+      ;; error caused but terminating the connection manually
+      #t
+    ;; This does the real work
+    (with-oauth twitter-app me
+		(lambda ()
+		  (statuses-filter-method #:delimited "length"
+					  #:track pattern
+					  #:locations geo-locations)))))
