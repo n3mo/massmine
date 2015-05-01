@@ -30,7 +30,7 @@
 	     "1961116760-b3tyEWzZAFoKElzjnYyBf2EPRt9uKDeo7GQTqyQ"
 	     "bYpDF5lqv0ck1WNyjcQp3pRV73oD4rAgoHwzecEgePU"))
 
-(define (fetch-data pattern)
+(define (fetch-data pattern geo-locations)
   (with-output-to-file "./data_dump.json"
     (lambda ()
       (handle-exceptions exn
@@ -41,4 +41,5 @@
 	(with-oauth twitter-app me
 		    (lambda ()
 		      (statuses-filter-method #:delimited "length"
-					      #:track pattern)))))))
+					      #:track pattern
+					      #:locations geo-locations)))))))
