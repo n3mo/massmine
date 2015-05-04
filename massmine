@@ -30,6 +30,7 @@
 
 ;; Load massmine modules
 (load "./modules/twitter.scm")
+(import massmine-twitter)
 
 ;; Current version of software
 ;; mm_version = 'x.x.x (2015-05-01)'
@@ -52,9 +53,9 @@
 			  (set! max-tweets #f))
 	(args:make-option (time)  (required: "SECOND") "Duration"
 			  (set! global-max-seconds #f))
-	(args:make-option (geo)  (required: "coordinate") "Locations"
+	(args:make-option (geo)  (required: "COORDINATE") "Locations"
 			  (set! locations #f))
-	(args:make-option (no-splash)  #:none "No splash screen"
+	(args:make-option (no-splash)  #:none "Inhibit splash screen"
 			  (set! do-splash? #f))
 	))
 
@@ -64,7 +65,7 @@
 (define (usage)
  (with-output-to-port (current-error-port)
    (lambda ()
-     (print "Usage: massmine --input=FILE... [options...]")
+     (print "Usage: massmine ... [options...]")
      (newline)
      (print (args:usage opts))
      (print "Retrieve and store data from web sources")
