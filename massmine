@@ -54,7 +54,9 @@
 			  (set! max-tweets #f))
 	(args:make-option (time)  (required: "SECOND") "Duration"
 			  (set! global-max-seconds #f))
-	(args:make-option (geo)  (required: "COORDINATE") "Locations"
+	(args:make-option (geo)  (required: "COORDINATE") "Location"
+			  (set! locations #f))
+	(args:make-option (lang)  (required: "LANG") "Language"
 			  (set! locations #f))
 	(args:make-option (no-splash)  #:none "Inhibit splash screen"
 			  (set! do-splash? #f))
@@ -498,8 +500,8 @@
 	    (begin
 	      (display "Fetching requested data... ")
 	      (with-output-to-file out-file
-		(lambda () (fetch-data keywords locations))))))
-      (fetch-data keywords locations))
+		(lambda () (fetch-data keywords locations language))))))
+      (fetch-data keywords locations language))
 
   (if output-to-file? (print "done!"))
   
@@ -513,6 +515,7 @@
 (define global-max-seconds 999999999999999999)
 (define keywords "")
 (define locations "")
+(define language "")
 
 ;; Parse command line arguments
 (set!-values (options operands)

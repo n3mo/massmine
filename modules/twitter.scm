@@ -42,7 +42,7 @@
 	      "bYpDF5lqv0ck1WNyjcQp3pRV73oD4rAgoHwzecEgePU"))
 
   ;; This is the call to twitter's streaming api.
-  (define (fetch-data pattern geo-locations)
+  (define (fetch-data pattern geo-locations lang-code)
     (handle-exceptions exn
 	;; Exception handler does nothing but suppress the inevitable
 	;; error caused but terminating the connection manually
@@ -52,7 +52,8 @@
 		  (lambda ()
 		    (statuses-filter-method #:delimited "length"
 					    #:track pattern
-					    #:locations geo-locations)))))
+					    #:locations geo-locations
+					    #:language lang-code)))))
   ) ;; end of module massmine-twitter
 
 ;; twitter.scm ends here
