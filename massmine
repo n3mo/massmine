@@ -26,11 +26,12 @@
 ;; You are working in the chicken branch of this git repo
 
 ;; Extensions
-(require-extension args)
+(require-extension args clucker)
 
 ;; Load massmine modules
 (load "./modules/twitter.scm")
 (import massmine-twitter)
+(import clucker)
 
 ;; Current version of software
 ;; mm_version = 'x.x.x (2015-05-01)'
