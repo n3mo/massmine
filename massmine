@@ -25,11 +25,25 @@
 ;; WARNING @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ;; You are working in the chicken branch of this git repo
 
+;; (declare (uses massmine-twitter))
+
 ;; Extensions
 (require-extension args clucker)
 
-;; Load massmine modules
-(load "./modules/twitter.scm")
+;; Load massmine modules. This only occurs during interpreted
+;; evaluation. These modules are linked when compiled for compiled
+;; code 
+;; (eval-when (eval)
+;; 	   (load "./modules/twitter.scm"))
+
+;; (eval-when (eval)
+;; 	   (import massmine-twitter))
+
+;; (eval-when (compile)
+;; 	   (include "modules/twitter")
+;; 	   (import massmine-twitter))
+
+(include "./modules/twitter")
 (import massmine-twitter)
 (import clucker)
 

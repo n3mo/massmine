@@ -1,11 +1,12 @@
+;; For compile time linkage. An accompanying (declare (uses
+;; twitter)) must be included in the main massmine module
+;; (declare (unit massmine-twitter))
+
 (module massmine-twitter *
 
   (import scheme chicken)
   (use extras irregex data-structures)
   (use openssl oauth-client uri-common rest-bind medea clucker)
-
-  ;; (load "./modules/clucker.scm")
-  ;; (import clucker)
 
   ;; The use of Twitter's API requires OAuth 1.0a for authenticated
   ;; connections. The oauth egg handles this. Before using any of the
