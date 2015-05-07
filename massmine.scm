@@ -27,8 +27,10 @@
 
 ;; (declare (uses massmine-twitter))
 
-;; Extensions
-(require-extension args clucker)
+;; Extensions. We need to import clucker here just so we can set! the
+;; global variables used to sever the https connection with Twitter's
+;; streaming API (which are defined in clucker)
+(require-extension args clucker openssl)
 
 ;; Load massmine modules. This only occurs during interpreted
 ;; evaluation. These modules are linked when compiled for compiled
@@ -45,7 +47,7 @@
 
 (include "./modules/twitter")
 (import massmine-twitter)
-(import clucker)
+;;(import clucker)
 
 ;; Current version of software
 ;; mm_version = 'x.x.x (2015-05-01)'
