@@ -43,27 +43,20 @@
 	      "bYpDF5lqv0ck1WNyjcQp3pRV73oD4rAgoHwzecEgePU"))
 
   ;; This is the call to twitter's streaming api.
-  ;; (define (fetch-data pattern geo-locations lang-code)
-  ;;   (handle-exceptions exn
-  ;; 	;; Exception handler does nothing but suppress the inevitable
-  ;; 	;; error caused but terminating the connection manually
-  ;; 	#t
-  ;;     ;; This does the real work
-  ;;     (with-oauth twitter-app me
-  ;; 		  (lambda ()
-  ;; 		    (statuses-filter-method #:delimited "length"
-  ;; 					    #:track pattern
-  ;; 					    #:locations geo-locations
-  ;; 					    #:language lang-code)))))
   (define (fetch-data pattern geo-locations lang-code)
-    (with-oauth twitter-app me
-		(lambda ()
-		  (statuses-filter-method #:delimited "length"
-					  #:track pattern
-					  #:locations geo-locations
-					  #:language lang-code))))
+    (handle-exceptions exn
+  	;; Exception handler does nothing but suppress the inevitable
+  	;; error caused but terminating the connection manually
+  	#t
+      ;; This does the real work
+      (with-oauth twitter-app me
+  		  (lambda ()
+  		    (statuses-filter-method #:delimited "length"
+  					    #:track pattern
+  					    #:locations geo-locations
+  					    #:language lang-code)))))
 
 
-  ) ;; end of module massmine-twitter
+) ;; end of module massmine-twitter
 
 ;; twitter.scm ends here

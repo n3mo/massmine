@@ -537,7 +537,8 @@
 (set!-values (options operands)
 	     (args:parse (command-line-arguments) opts))
 
-;; (handle-exceptions exn (usage) (main))
-(main)
+(handle-exceptions exn (usage) (main))
+;; (main)
+
 
 ;; End of file massmine
