@@ -27,14 +27,15 @@
 mmAuth <- function(config, apiType) {
   ## Handles authentication with Twitter's servers
 
+  ## The location of pre-authorized twitter credentials on disk. This
+  ## file may or may not exist.
+  twit_file = config$twitter$twit_file
+
   ## Currently, the Rest API and streaming API use different
   ## authorization methods. Depending on the task, we use the
   ## corresponding method
   
-  if (apiType == "stream") {
-    ## The location of pre-authorized twitter credentials on disk. This
-    ## file may or may not exist.
-    twit_file = config$twitter$twit_file
+  if (apiType == "stream" | !file.exists(twit_file)) {
 
     ## If the user already has a twitter OAuth object on file, offer
     ## to use that

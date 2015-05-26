@@ -23,7 +23,7 @@
 ## instructions for how to use massmine
 
 ## Current version of software
-mm_version = '0.8.1 (2015-03-02)'
+mm_version = '0.8.2 (2015-05-26)'
 
 ## This script behaves differently depending on whether it is called
 ## interactively or as a script
@@ -277,17 +277,15 @@ upgradeMassmine <- function(doPackages = mm_deps) {
 ####################################################################
 ## Software info pretty-printed for the user
 cat('\n',
-    '############################################################\n',
-    '##                                                        ##\n',
-    '##        __  __               __  __ _                   ##\n',
-    '##       |  \\/  | __ _ ___ ___|  \\/  (_)_ __   ___        ##\n',
-    '##       | |\\/| |/ _` / __/ __| |\\/| | | \'_ \\ / _ \\       ##\n',
-    '##       | |  | | (_| \\__ \\__ \\ |  | | | | | |  __/       ##\n',
-    '##       |_|  |_|\\__,_|___/___/_|  |_|_|_| |_|\\___|       ##\n',
-    '##                                                        ##\n',
-    '##                Your Access To Big Data                 ##\n',    
-    '##                                                        ##\n',
-    '############################################################\n\n',
+    '        __  __               __  __ _                   \n',
+    '       |  \\/  | __ _ ___ ___|  \\/  (_)_ __   ___        \n',
+    '       | |\\/| |/ _` / __/ __| |\\/| | | \'_ \\ / _ \\       \n',
+    '       | |  | | (_| \\__ \\__ \\ |  | | | | | |  __/       \n',
+    '       |_|  |_|\\__,_|___/___/_|  |_|_|_| |_|\\___|       \n',
+    '                                                        \n',
+    '                Your Access To Big Data                 \n',    
+    '                                                        \n',
+    '\n',
     paste('MassMine version ', mm_version, '\n', sep=''),
     'https://github.com/n3mo/massmine\n\n',
     'Copyright (C) 2014-2015 Nicholas M. Van Horn & Aaron Beveridge\n',
