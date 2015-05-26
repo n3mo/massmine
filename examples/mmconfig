@@ -23,10 +23,17 @@ mm_apps:
  - TwitterAppName
  
 mm_keys:
- - YourKeyGoesHere
+ - YourConsumerKeyGoesHere
  
 mm_secrets:
- - YourSecretGoesHere
+ - YourConsumerSecretGoesHere
+
+mm_access_tokens:
+ - YourAccessTokenGoesHere
+
+mm_access_secrets:
+ - YourAccessTokenSecretGoesHere
+
 
 # Choose a service
 service : twitter
