@@ -30,7 +30,7 @@
 ;; Extensions. We need to import clucker here just so we can set! the
 ;; global variables used to sever the https connection with Twitter's
 ;; streaming API (which are defined in clucker)
-(require-extension args clucker openssl)
+(require-extension args clucker openssl posix)
 
 ;; Load massmine modules. This only occurs during interpreted
 ;; evaluation. These modules are linked when compiled for compiled
@@ -49,6 +49,9 @@
 (import massmine-twitter)
 ;;(import clucker)
 
+;; Master parameter alist
+(define P '((mm-cred-path . "~/.config/massmine")))
+
 ;; Current version of software
 ;; mm_version = 'x.x.x (2015-05-01)'
 (define mm-version "x.x.x (2015-05-01)")
@@ -64,6 +67,8 @@
 			  (print-version))
 	(args:make-option (output)  (required: "FILE")  "Write to file"
 			  (set! output-to-file? #t))
+	(args:make-option (task)  (required: "TASK") "Task name"
+			  (set! task #f))
 	(args:make-option (pattern)  (required: "KEYWORDS") "Keyword(s)"
 			  (set! keywords #f))
 	(args:make-option (count)  (required: "NUM") "Number of records"
@@ -102,6 +107,11 @@
   (print "This is free software: you are free to change and redistribute it.")
   (print "There is NO WARRANTY, to the extent permitted by law.")
   (exit 0))
+
+;; Routine responsible for setting up massmine's configuration
+;; settings, etc.
+(define (install-massmine params)
+  (create-directory (alist-ref 'mm-cred-path params) #t))
 
 ;; This script behaves differently depending on whether it is called
 ;; interactively or as a script
@@ -488,8 +498,17 @@
 ;;   cat('\nMassMine is loaded and ready to go\n\n')
 ;; }
 
+(define (task-dispatch curr-task)
+  (cond
+   [(equal? curr-task "auth") (twitter-auth P)]))
+
 ;;; Just what you think. This gets things started
 (define (main)
+
+  ;; Install massmine
+  (install-massmine P)
+
+  ;; Adjust for command line options
   (if (not max-tweets)
       (set! max-tweets (string->number (alist-ref 'count options))))
   (if (not keywords)
@@ -498,9 +517,14 @@
       (set! global-max-seconds (string->number (alist-ref 'time options))))
   (if (not locations)
       (set! locations (alist-ref 'geo options)))
+  (if (not task)
+      (set! task (alist-ref 'task options)))
 
   ;; Greet the user
   (if (and do-splash? output-to-file?) (splash-screen))
+
+  ;; Task dispatch
+  (task-dispatch task)
 
   ;; Get things done
   (if output-to-file?
@@ -529,6 +553,7 @@
 (define output-to-file? #f)
 (define max-tweets 999999999999999999)
 (define global-max-seconds 999999999999999999)
+(define task "stream")
 (define keywords "")
 (define locations "")
 (define language "")
@@ -538,7 +563,8 @@
 	     (args:parse (command-line-arguments) opts))
 
 (handle-exceptions exn (usage) (main))
-;; (main)
+;;(main)
+
 
 
 ;; End of file massmine

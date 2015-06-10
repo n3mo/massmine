@@ -13,6 +13,14 @@
   ;; functionality of this egg, you must set up and authenticate your
   ;; credentials with Twitter's services. This can be done as follows
 
+  (define (twitter-auth params)
+    (let ((twitter-cred-file (string-append (alist-ref 'mm-cred-path params) "/"
+					    "twitter_cred")))
+      (if (file-exists? twitter-cred-file)
+	  (load twitter-cred-file)
+	  (begin (display "Would you like to authenticate?")
+		 (exit 0)))))
+
   ;; Set up the service provider
   (define twitter (make-oauth-service-provider
 		   protocol-version: '1.0a
