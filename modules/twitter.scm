@@ -1,71 +1,89 @@
-;; For compile time linkage. An accompanying (declare (uses
-;; twitter)) must be included in the main massmine module
-;; (declare (unit massmine-twitter))
+;; ##################################################################
+;;
+;; MassMine: Your Access To Big Data
+;; Copyright (C) 2014-2015  Nicholas M. Van Horn & Aaron Beveridge
+;; Author: Nicholas M. Van Horn
+;; 
+;;  This program is free software: you can redistribute it and/or modify
+;;  it under the terms of the GNU General Public License as published by
+;;  the Free Software Foundation, either version 3 of the License, or
+;;  (at your option) any later version.
+;;
+;;  This program is distributed in the hope that it will be useful,
+;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;  GNU General Public License for more details.
+;;
+;;  You should have received a copy of the GNU General Public License
+;;  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;
+;; x.x.x 2015-05-01 NVH: Initial chicken version
+;;
+;; Instructions: See www.massmine.org for complete documentation and
+;; instructions for how to use massmine
 
 (module massmine-twitter *
 
   (import scheme chicken)
-  (use extras irregex data-structures posix)
+  (use extras irregex data-structures posix utils)
   (use openssl oauth-client uri-common rest-bind medea clucker)
 
-  ;; The use of Twitter's API requires OAuth 1.0a for authenticated
-  ;; connections. The oauth egg handles this. Before using any of the
-  ;; functionality of this egg, you must set up and authenticate your
-  ;; credentials with Twitter's services. This can be done as follows
-
+  ;; This returns the user's twitter credentials, if available. If the
+  ;; user has not provided this information previously, an error is
+  ;; reported 
   (define (twitter-auth params)
     (let ((twitter-cred-file (string-append (alist-ref 'mm-cred-path params) "/"
 					    "twitter_cred")))
       (if (file-exists? twitter-cred-file)
-	  (read twitter-cred-file)
+	  ;; Return twitter credential information
+	  (with-input-from-file twitter-cred-file read)
+	  ;; Else the user needs set up their credentials
 	  (begin
-	    ;; (error 'twitter-auth "Authenticate before using Twitter.\nRun --> 'massmine --task=auth")
-	    (begin
-	      (print "Authenticate before using Twitter.\nRun --> 'massmine --task=auth'")
-	      (exit 1))))))
+	    (display "Authenticate before using Twitter.\nRun --> 'massmine --task=twitter-auth'\n"
+		     (current-error-port))
+	    (exit 1)))))
 
-  ;; Set up the service provider
-  (define twitter (make-oauth-service-provider
-		   protocol-version: '1.0a
-		   credential-request-url: "https://api.twitter.com/oauth/request_token"
-		   owner-auth-url: "https://api.twitter.com/oauth/authorize"
-		   token-request-url: "https://api.twitter.com/oauth/access_token"
-		   signature-method: 'hmac-sha1))
+  ;; This walks the user through setting up their Twitter credentials
+  ;; for MassMine
+  (define (twitter-setup-auth params)
+    (print "Would you like to setup your Twitter credentials?")
+    (print "Warning: continuing will over-write any previous credentials")
+    (if (yes-or-no? "Continue?" #:default "No" #:abort #f)
+	;; Walk the user through setting up their credentials
+	(let ((twitter-cred-file (string-append
+				  (alist-ref 'mm-cred-path params)
+				  "/"
+				  "twitter_cred")))
+	  (print "Please visit https://apps.twitter.com to collect")
+	  (print "the following information:")
+	  (display "Consumer key: ")
+	  (define c-key (read-line))
+	  (display "Consumer secret: ")
+	  (define c-secret (read-line))
+	  (display "Access token: ")
+	  (define a-token (read-line))
+	  (display "Access token secret: ")
+	  (define a-secret (read-line))
+	  ;; Prepare a proper alist and write to disk
+	  (with-output-to-file twitter-cred-file
+	    (lambda ()
+	      (write `((consumer-key . ,c-key)
+		(consumer-secret . ,c-secret)
+		(access-token . ,a-token)
+		(access-token-secret . ,a-secret)))))
+	  (print "\nAuthentication setup finished!"))
+	(print "Stopping!")))
 
-  ;; Set up the application to include your secret tokens (available at
-  ;; apps.twitter.com)
-  (define twitter-app
-    (make-oauth-service
-     service: twitter
-     client-credential: (make-oauth-credential
-			 "yTaD9IZxX9VBozSE6gp7WA"
-			 "3Mrn7lKd5fKpDLiH4y5W81totNtquoQdEdOAtHUXBU")))
-
-  ;; Acquire a new credentials ------------------------------------
-  ;; (define x (acquire-temporary-credential twitter-app))
-  ;; (uri->string (authorize-resource-owner twitter-app x))
-  ;; Visit the supplied URL in browser, allow app and retrive verifier
-  ;; (define me (acquire-token-credential twitter-app x <VERIFIER>))
-  ;; end of code for acquiring new credentials -------------------
-
-  ;; Use an existing, already confirmed set of credentials
-  (define me (make-oauth-credential
-	      "1961116760-b3tyEWzZAFoKElzjnYyBf2EPRt9uKDeo7GQTqyQ"
-	      "bYpDF5lqv0ck1WNyjcQp3pRV73oD4rAgoHwzecEgePU"))
-
-  ;; This is the call to twitter's streaming api.
   (define (twitter-stream pattern geo-locations lang-code)
     (handle-exceptions exn
   	;; Exception handler does nothing but suppress the inevitable
   	;; error caused but terminating the connection manually
   	#t
       ;; This does the real work
-      (with-oauth twitter-app me
-  		  (lambda ()
-  		    (statuses-filter-method #:delimited "length"
-  					    #:track pattern
-  					    #:locations geo-locations
-  					    #:language lang-code)))))
+      (statuses-filter-method #:delimited "length"
+			      #:track pattern
+			      #:locations geo-locations
+			      #:language lang-code)))
 
 ) ;; end of module massmine-twitter
 
