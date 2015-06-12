@@ -500,15 +500,16 @@
 
 (define (task-dispatch curr-task)
   (cond
-   [(equal? curr-task "auth") (twitter-auth P)]))
+   [(equal? curr-task "twitter-auth") (twitter-auth P)]
+   [(equal? curr-task "twitter-stream") (twitter-stream keywords locations language)]))
 
 ;;; Just what you think. This gets things started
 (define (main)
 
-  ;; Install massmine
+  ;; Install massmine's config file(s) if missing
   (install-massmine P)
 
-  ;; Adjust for command line options
+  ;; Adjust for command line options. Update the master parameter alist
   (if (not max-tweets)
       (set! max-tweets (string->number (alist-ref 'count options))))
   (if (not keywords)
@@ -523,26 +524,38 @@
   ;; Greet the user
   (if (and do-splash? output-to-file?) (splash-screen))
 
-  ;; Task dispatch
-  (task-dispatch task)
-
   ;; Get things done
+  ;; (if output-to-file?
+  ;;     (let ((out-file (alist-ref 'output options)))
+  ;; 	(if (file-exists? out-file)
+  ;; 	    ;; Abort if the output file already exists
+  ;; 	    (begin (with-output-to-port (current-error-port)
+  ;; 		     (lambda ()
+  ;; 		       (print "Abort: Output file " out-file
+  ;; 			      " already exists!")))
+  ;; 		   (exit 1))
+  ;; 	    ;; Else, get down to business
+  ;; 	    (begin
+  ;; 	      (display "Fetching requested data... ")
+  ;; 	      (with-output-to-file out-file
+  ;; 		(lambda () (fetch-data keywords locations language))))))
+  ;;     (fetch-data keywords locations language))
+  ;; (if output-to-file? (print "done!"))
   (if output-to-file?
       (let ((out-file (alist-ref 'output options)))
-	(if (file-exists? out-file)
-	    ;; Abort if the output file already exists
-	    (begin (with-output-to-port (current-error-port)
-		     (lambda ()
-		       (print "Abort: Output file " out-file
-			      " already exists!")))
-		   (exit 1))
-	    ;; Else, get down to business
-	    (begin
-	      (display "Fetching requested data... ")
-	      (with-output-to-file out-file
-		(lambda () (fetch-data keywords locations language))))))
-      (fetch-data keywords locations language))
-
+  	(if (file-exists? out-file)
+  	    ;; Abort if the output file already exists
+  	    (begin (with-output-to-port (current-error-port)
+  		     (lambda ()
+  		       (print "Abort: Output file " out-file
+  			      " already exists!")))
+  		   (exit 1))
+  	    ;; Else, get down to business
+  	    (begin
+  	      (display "Fetching requested data... ")
+  	      (with-output-to-file out-file
+  		(lambda () (task-dispatch task))))))
+      (task-dispatch task))
   (if output-to-file? (print "done!"))
   
   (exit 1))
@@ -553,7 +566,7 @@
 (define output-to-file? #f)
 (define max-tweets 999999999999999999)
 (define global-max-seconds 999999999999999999)
-(define task "stream")
+(define task "twitter-stream")
 (define keywords "")
 (define locations "")
 (define language "")
@@ -564,6 +577,7 @@
 
 (handle-exceptions exn (usage) (main))
 ;;(main)
+
 
 
 

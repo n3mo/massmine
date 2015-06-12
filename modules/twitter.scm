@@ -5,7 +5,7 @@
 (module massmine-twitter *
 
   (import scheme chicken)
-  (use extras irregex data-structures)
+  (use extras irregex data-structures posix)
   (use openssl oauth-client uri-common rest-bind medea clucker)
 
   ;; The use of Twitter's API requires OAuth 1.0a for authenticated
@@ -17,9 +17,12 @@
     (let ((twitter-cred-file (string-append (alist-ref 'mm-cred-path params) "/"
 					    "twitter_cred")))
       (if (file-exists? twitter-cred-file)
-	  (load twitter-cred-file)
-	  (begin (display "Would you like to authenticate?")
-		 (exit 0)))))
+	  (read twitter-cred-file)
+	  (begin
+	    ;; (error 'twitter-auth "Authenticate before using Twitter.\nRun --> 'massmine --task=auth")
+	    (begin
+	      (print "Authenticate before using Twitter.\nRun --> 'massmine --task=auth'")
+	      (exit 1))))))
 
   ;; Set up the service provider
   (define twitter (make-oauth-service-provider
@@ -51,7 +54,7 @@
 	      "bYpDF5lqv0ck1WNyjcQp3pRV73oD4rAgoHwzecEgePU"))
 
   ;; This is the call to twitter's streaming api.
-  (define (fetch-data pattern geo-locations lang-code)
+  (define (twitter-stream pattern geo-locations lang-code)
     (handle-exceptions exn
   	;; Exception handler does nothing but suppress the inevitable
   	;; error caused but terminating the connection manually
@@ -63,7 +66,6 @@
   					    #:track pattern
   					    #:locations geo-locations
   					    #:language lang-code)))))
-
 
 ) ;; end of module massmine-twitter
 
