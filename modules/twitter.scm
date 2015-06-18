@@ -85,6 +85,18 @@
 			      #:locations geo-locations
 			      #:language lang-code)))
 
+  ;; Task for retrieving list of locations and their associated WOEIDs
+  ;; from twitter
+  (define (twitter-locations)
+    (trends-available))
+
+  ;; Search the twitter REST API
+  (define (twitter-search)
+    (let ((results (read-json (search-tweets #:q "cavs" #:count 10))))
+      ;; Return on the tweet information, not the application
+      ;; bookkeeping indices for rate limiting
+      (write-json (alist-ref 'statuses results))))
+
 ) ;; end of module massmine-twitter
 
 ;; twitter.scm ends here
