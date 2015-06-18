@@ -95,7 +95,8 @@
     (let ((results (read-json (search-tweets #:q "cavs" #:count 10))))
       ;; Return on the tweet information, not the application
       ;; bookkeeping indices for rate limiting
-      (write-json (alist-ref 'statuses results))))
+      (write-json (alist-ref 'statuses results))
+      (newline)))
 
 ) ;; end of module massmine-twitter
 
