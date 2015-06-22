@@ -200,22 +200,41 @@
 	  (twitter-rate-limit "search")
 	  ;; We've passed the rate limit check, continue
 	  (if (not (null? how-many))
-	      (let ((results (read-json
-			      (search-tweets #:q pattern
-					     #:lang lang-code
-					     #:geocode geo-locations
-					     #:count (car how-many)
-					     #:max_id max-id))))
-		;; We have the current batch of tweets, with meta-data
-		;; in results. Write out the current tweets
-		(write-json (alist-ref 'statuses results))
-		(newline)
-		;; Now bookkeeping begins. We save the current max_id
-		;; param, substract to avoid getting the same tweet back
-		;; on our next call
-		(query-api
-		 (cdr how-many)
-		 (- (alist-ref 'max_id (alist-ref 'search_metadata results)) 1))))))))
+	      (let ((results
+		     (if (equal? max-id "")
+			 ;; On the first query, you cannot supply a
+			 ;; max_id, even the empty string ""
+			 (read-json
+			  (search-tweets #:q pattern
+					 #:lang lang-code
+					 #:geocode geo-locations
+					 #:count (car how-many)))
+			 ;; Subsequent queries we supply the max_id to
+			 ;; handle pagination of results
+			 (read-json
+			  (search-tweets #:q pattern
+					 #:lang lang-code
+					 #:geocode geo-locations
+					 #:count (car how-many)
+					 #:max_id max-id)))))
+
+		;; The remaining code should only run if we
+		;; successfully received tweets on the last query. If
+		;; twitter returned nothing, we're done here
+		(unless (or (not results) (= (vector-length (alist-ref 'statuses results)) 0))
+		  ;;We have the current batch of tweets, with meta-data
+		  ;;in results. Write out the current tweets
+		  (write-json (alist-ref 'statuses results))
+		  (newline)
+		  ;; Now bookkeeping begins. We save the current max_id
+		  ;; param, substract to avoid getting the same tweet back
+		  ;; on our next call. 
+		  (query-api
+		   (cdr how-many)
+		   (- (alist-ref 'id (car
+				      (reverse (vector->list (alist-ref 'statuses results)))))
+		      1))))))))) 
+
 
 ) ;; end of module massmine-twitter
 
