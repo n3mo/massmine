@@ -146,6 +146,7 @@
 	  (set! search-rate-limit `(,(- (first trends-rate-limit) 1)
 				    ,(second trends-rate-limit))))]))
 
+  ;; Search the twitter streaming endpoint by keyword
   (define (twitter-stream pattern geo-locations lang-code)
     (handle-exceptions exn
   	;; Exception handler does nothing but suppress the inevitable
@@ -157,10 +158,45 @@
 			      #:locations geo-locations
 			      #:language lang-code)))
 
+  ;; Returns a random sample of 1% of all tweets from the streaming
+  ;; endpoint. No keywords required
+  (define (twitter-sample)
+    (handle-exceptions exn
+	;; Exception handler does nothing but suppress the inevitable
+  	;; error caused but terminating the connection manually
+  	#t
+      (statuses-sample #:delimited "length")))
+
   ;; Task for retrieving list of locations and their associated WOEIDs
   ;; from twitter
   (define (twitter-locations)
     (trends-available))
+
+  ;; Top-10 trends. Returns the current top-10 trends for a given
+  ;; WOEID location. This method includes hashtags
+  (define (twitter-trends woeid)
+    (let* ((results (read-json (trends-place #:id woeid)))
+	   (trends (vector->list (alist-ref 'trends (car (vector->list results)))))
+	   (metadata (car (vector->list (alist-ref 'locations (car (vector->list results)))))))
+      (write-json
+       (list->vector
+	(map (lambda (x)
+	       (cons `(woeid . ,(alist-ref 'woeid metadata))
+		     (cons `(location . ,(alist-ref 'name metadata)) x))) trends)))
+      (newline)))
+
+  ;; Top-10 trends. Returns the current top-10 trends for a given
+  ;; WOEID location. This method EXCLUDES hashtags
+  (define (twitter-trends-nohash woeid)
+    (let* ((results (read-json (trends-place #:id woeid #:exclude "hashtags")))
+	   (trends (vector->list (alist-ref 'trends (car (vector->list results)))))
+	   (metadata (car (vector->list (alist-ref 'locations (car (vector->list results)))))))
+      (write-json
+       (list->vector
+	(map (lambda (x)
+	       (cons `(woeid . ,(alist-ref 'woeid metadata))
+		     (cons `(location . ,(alist-ref 'name metadata)) x))) trends)))
+      (newline)))
 
   ;; Search the twitter REST API. This is a rate-limited API endpoint,
   ;; and MUST include a call to twitter-rate-limit, which keeps track
