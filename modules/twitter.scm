@@ -25,7 +25,7 @@
 (module massmine-twitter *
 
   (import scheme chicken)
-  (use extras irregex data-structures posix utils)
+  (use extras irregex data-structures posix utils srfi-1)
   (use openssl oauth-client uri-common rest-bind medea clucker)
 
   ;; This returns the user's twitter credentials, if available. If the
@@ -82,7 +82,7 @@
   (define trends-rate-limit `(0 ,(current-seconds)))
 
   ;; These values are reset with this procedure
-  (define (twitter-update-rate-limits)
+  (define (twitter-update-rate-limits!)
     (let* ((result (application-rate-limit-status #:resources "search,trends"))
 	   (search-rate (flatten (alist-ref 'search (alist-ref 'resources result))))
 	   (trends-rate (flatten (alist-ref 'trends (alist-ref 'resources result)))))
@@ -109,11 +109,42 @@
   ;; "search" or "trends"
   (define (twitter-rate-limit resource)
     (cond
+     ;; REST API: Search
      [(equal? resource "search")
-      (if search-rate-limit
-	  (dosomethinghere)
-	  ;; First time we've called this procedure. Query twitter
-	  )]))
+      (if (<= (first search-rate-limit) 0)
+	  ;; We have run out of api calls (or this is the first time
+	  ;; we've called this procedure, in which case the delay
+	  ;; below will be zero seconds). Wait until the our rate
+	  ;; limit is reset by twitter, and then continue.
+	  (begin
+	    (sleep (inexact->exact (max (- (second search-rate-limit) (current-seconds)))))
+	    ;; We're done waiting. Query twitter to ensure that our API
+	    ;; limits have been reset. Set! our rate limit variables accordingly
+	    (twitter-update-rate-limits!)
+	    ;; Try again
+	    (twitter-rate-limit resource))
+	  ;; We have api calls available. Decrement our counter and
+	  ;; return to sender
+	  (set! search-rate-limit `(,(- (first search-rate-limit) 1)
+				    ,(second search-rate-limit))))]
+     ;; REST API: Trends
+     [(equal? resource "trends")
+      (if (<= (first trends-rate-limit) 0)
+	  ;; We have run out of api calls (or this is the first time
+	  ;; we've called this procedure, in which case the delay
+	  ;; below will be zero seconds). Wait until the our rate
+	  ;; limit is reset by twitter, and then continue.
+	  (begin
+	    (sleep (inexact->exact (max (- (second trends-rate-limit) (current-seconds)))))
+	    ;; We're done waiting. Query twitter to ensure that our API
+	    ;; limits have been reset. Set! our rate limit variables accordingly
+	    (twitter-update-rate-limits!)
+	    ;; Try again
+	    (twitter-rate-limit resource))
+	  ;; We have api calls available. Decrement our counter and
+	  ;; return to sender
+	  (set! search-rate-limit `(,(- (first trends-rate-limit) 1)
+				    ,(second trends-rate-limit))))]))
 
   (define (twitter-stream pattern geo-locations lang-code)
     (handle-exceptions exn
@@ -131,13 +162,60 @@
   (define (twitter-locations)
     (trends-available))
 
-  ;; Search the twitter REST API
-  (define (twitter-search)
-    (let ((results (read-json (search-tweets #:q "cavs" #:count 10))))
-      ;; Return on the tweet information, not the application
-      ;; bookkeeping indices for rate limiting
-      (write-json (alist-ref 'statuses results))
-      (newline)))
+  ;; Search the twitter REST API. This is a rate-limited API endpoint,
+  ;; and MUST include a call to twitter-rate-limit, which keeps track
+  ;; of rate limits and sleeps an appropriate amount of time when
+  ;; limits are exhausted.
+  ;; (define (twitter-search)
+  ;;   (let ((results (read-json (search-tweets #:q "cavs" #:count 10))))
+  ;;     ;; Return on the tweet information, not the application
+  ;;     ;; bookkeeping indices for rate limiting
+  ;;     (write-json (alist-ref 'statuses results))
+  ;;     (newline)))
+
+  ;; (search-tweets #:q pattern #:lang lang-code #:geocode geo-location
+  ;; 		 #:count max-tweets)
+
+  (define (twitter-search num-tweets pattern geo-locations lang-code)
+    (let* ((num-counts (inexact->exact (floor (/ num-tweets 100))))
+	   (raw-counts (reverse (cons (- num-tweets (* num-counts 100))
+				  (take (circular-list '100) num-counts))))
+	   (counts (filter (lambda (x) (not (= x 0))) raw-counts)))
+      ;; counts is a list of numbers. The length of the list
+      ;; corresponds to the number of times we have to query the api
+      ;; (100 tweets can be returned max per query). Each individual
+      ;; number corresponds to the number of requested tweets on a
+      ;; given query. The sum of the list equals the requested number
+      ;; of tweets from the user. E.g., if the user asked for 250
+      ;; tweets, counts will be (100 100 50)
+
+      ;; Twitter provides a mechanism for paginating results through
+      ;; the parameter max_id. On the first call we supply no max_id
+      ;; param. On subsequent calls, we must update and manage this
+      ;; parameter to ensure that different tweets are returned on
+      ;; each call
+      (let query-api ((how-many counts) (max-id ""))
+	(begin
+	  ;; Put the brakes on if necessary
+	  (twitter-rate-limit "search")
+	  ;; We've passed the rate limit check, continue
+	  (if (not (null? how-many))
+	      (let ((results (read-json
+			      (search-tweets #:q pattern
+					     #:lang lang-code
+					     #:geocode geo-locations
+					     #:count (car how-many)
+					     #:max_id max-id))))
+		;; We have the current batch of tweets, with meta-data
+		;; in results. Write out the current tweets
+		(write-json (alist-ref 'statuses results))
+		(newline)
+		;; Now bookkeeping begins. We save the current max_id
+		;; param, substract to avoid getting the same tweet back
+		;; on our next call
+		(query-api
+		 (cdr how-many)
+		 (- (alist-ref 'max_id (alist-ref 'search_metadata results)) 1))))))))
 
 ) ;; end of module massmine-twitter
 

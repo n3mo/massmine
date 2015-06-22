@@ -166,7 +166,8 @@
 	    [(equal? curr-task "twitter-test") (twitter-test)]
 	    [(equal? curr-task "twitter-stream") (twitter-stream keywords locations language)]
 	    [(equal? curr-task "twitter-locations") (twitter-locations)]
-	    [(equal? curr-task "twitter-search") (twitter-search)]
+	    [(equal? curr-task "twitter-search")
+	     (twitter-search max-tweets keywords locations language)]
 	    [else (display "MassMine: Unknown task\n" (current-error-port))])))))]
    [else (display "MassMine: Unknown task\n" (current-error-port))])
   (exit 0))
