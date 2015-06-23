@@ -117,6 +117,9 @@
 	  ;; below will be zero seconds). Wait until the our rate
 	  ;; limit is reset by twitter, and then continue.
 	  (begin
+	    ;; Update our rate limits
+	    (twitter-update-rate-limits!)
+	    ;; Begin waiting (if necessary)
 	    (sleep (inexact->exact (max (- (second search-rate-limit) (current-seconds)))))
 	    ;; We're done waiting. Query twitter to ensure that our API
 	    ;; limits have been reset. Set! our rate limit variables accordingly
@@ -135,6 +138,9 @@
 	  ;; below will be zero seconds). Wait until the our rate
 	  ;; limit is reset by twitter, and then continue.
 	  (begin
+	    ;; Update our rate limits
+	    (twitter-update-rate-limits!)
+	    ;; Begin waiting (if necessary)
 	    (sleep (inexact->exact (max (- (second trends-rate-limit) (current-seconds)))))
 	    ;; We're done waiting. Query twitter to ensure that our API
 	    ;; limits have been reset. Set! our rate limit variables accordingly
@@ -143,7 +149,7 @@
 	    (twitter-rate-limit resource))
 	  ;; We have api calls available. Decrement our counter and
 	  ;; return to sender
-	  (set! search-rate-limit `(,(- (first trends-rate-limit) 1)
+	  (set! trends-rate-limit `(,(- (first trends-rate-limit) 1)
 				    ,(second trends-rate-limit))))]))
 
   ;; Search the twitter streaming endpoint by keyword
@@ -175,6 +181,8 @@
   ;; Top-10 trends. Returns the current top-10 trends for a given
   ;; WOEID location. This method includes hashtags
   (define (twitter-trends woeid)
+    ;; Check rate limits and pause if necessary
+    (twitter-rate-limit "trends")
     (let* ((results (read-json (trends-place #:id woeid)))
 	   (trends (vector->list (alist-ref 'trends (car (vector->list results)))))
 	   (metadata (car (vector->list (alist-ref 'locations (car (vector->list results)))))))
@@ -188,6 +196,8 @@
   ;; Top-10 trends. Returns the current top-10 trends for a given
   ;; WOEID location. This method EXCLUDES hashtags
   (define (twitter-trends-nohash woeid)
+    ;; Check rate limits and pause if necessary
+    (twitter-rate-limit "trends")
     (let* ((results (read-json (trends-place #:id woeid #:exclude "hashtags")))
 	   (trends (vector->list (alist-ref 'trends (car (vector->list results)))))
 	   (metadata (car (vector->list (alist-ref 'locations (car (vector->list results)))))))
@@ -202,16 +212,6 @@
   ;; and MUST include a call to twitter-rate-limit, which keeps track
   ;; of rate limits and sleeps an appropriate amount of time when
   ;; limits are exhausted.
-  ;; (define (twitter-search)
-  ;;   (let ((results (read-json (search-tweets #:q "cavs" #:count 10))))
-  ;;     ;; Return on the tweet information, not the application
-  ;;     ;; bookkeeping indices for rate limiting
-  ;;     (write-json (alist-ref 'statuses results))
-  ;;     (newline)))
-
-  ;; (search-tweets #:q pattern #:lang lang-code #:geocode geo-location
-  ;; 		 #:count max-tweets)
-
   (define (twitter-search num-tweets pattern geo-locations lang-code)
     (let* ((num-counts (inexact->exact (floor (/ num-tweets 100))))
 	   (raw-counts (reverse (cons (- num-tweets (* num-counts 100))
@@ -270,6 +270,65 @@
 		   (- (alist-ref 'id (car
 				      (reverse (vector->list (alist-ref 'statuses results)))))
 		      1))))))))) 
+
+  ;; Procedure for fetching a user's timeline. Up to 200 tweets can be
+  ;; returned per api call, for a total of 3200 max. Older tweets
+  ;; (>3200) cannot be retrieved from this endpoint
+  (define (twitter-timeline num-tweets screen-name)
+    (let* ((num-counts (inexact->exact (floor (/ num-tweets 200))))
+	   (raw-counts (reverse (cons (- num-tweets (* num-counts 200))
+				      (take (circular-list '200) num-counts))))
+	   (counts (filter (lambda (x) (not (= x 0))) raw-counts)))
+      ;; counts is a list of numbers. The length of the list
+      ;; corresponds to the number of times we have to query the api
+      ;; (200 tweets can be returned max per query). Each individual
+      ;; number corresponds to the number of requested tweets on a
+      ;; given query. The sum of the list equals the requested number
+      ;; of tweets from the user. E.g., if the user asked for 550
+      ;; tweets, counts will be (200 200 150)
+
+      ;; Twitter provides a mechanism for paginating results through
+      ;; the parameter max_id. On the first call we supply no max_id
+      ;; param. On subsequent calls, we must update and manage this
+      ;; parameter to ensure that different tweets are returned on
+      ;; each call
+      (let query-api ((how-many counts) (max-id ""))
+	(begin
+	  ;; TODO: Put the brakes on if necessary
+	  ;;(twitter-rate-limit "search")
+	  ;; We've passed the rate limit check, continue
+	  (if (not (null? how-many))
+	      (let ((results
+		     (if (equal? max-id "")
+			 ;; On the first query, you cannot supply a
+			 ;; max_id, even the empty string ""
+			 (read-json
+			  (user-timeline #:screen_name screen-name
+					 #:count (car how-many)
+					 #:include_rts 1))
+			 ;; Subsequent queries we supply the max_id to
+			 ;; handle pagination of results
+			 (read-json
+			  (user-timeline #:screen_name screen-name
+					 #:count (car how-many)
+					 #:include_rts 1
+					 #:max_id max-id)))))
+
+		;; The remaining code should only run if we
+		;; successfully received tweets on the last query. If
+		;; twitter returned nothing, we're done here
+		(unless (or (not results) (= (vector-length results) 0))
+		  ;;We have the current batch of tweets, with meta-data
+		  ;;in results. Write out the current tweets
+		  (write-json results)
+		  (newline)
+		  ;; Now bookkeeping begins. We save the current max_id
+		  ;; param, substract to avoid getting the same tweet back
+		  ;; on our next call. 
+		  (query-api
+		   (cdr how-many)
+		   (- (alist-ref 'id (car (reverse (vector->list results))))
+		      1)))))))))
 
 
 ) ;; end of module massmine-twitter

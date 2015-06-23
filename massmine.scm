@@ -42,7 +42,7 @@
 
 ;; Current version of software
 ;; mm_version = 'x.x.x (2015-05-01)'
-(define mm-version "x.x.x (2015-05-01)")
+(define mm-version "x.x.x (2015-06-22)")
 
 ;;; The following list contains all defined command line options
 ;;; available to the user. For example, (h help) makes all of the
@@ -67,6 +67,8 @@
 			  (set! locations #f))
 	(args:make-option (lang)  (required: "LANG") "Language"
 			  (set! locations #f))
+	(args:make-option (user)  (required: "NAME") "Screen name"
+			  (set! screen-name #f))
 	(args:make-option (no-splash)  #:none "Inhibit splash screen"
 			  (set! do-splash? #f))
 	))
@@ -169,6 +171,8 @@
 	    [(equal? curr-task "twitter-locations") (twitter-locations)]
 	    [(equal? curr-task "twitter-trends") (twitter-trends locations)]
 	    [(equal? curr-task "twitter-trends-nohash") (twitter-trends-nohash locations)]
+	    [(equal? curr-task "twitter-timeline")
+	     (twitter-timeline max-tweets screen-name)]
 	    [(equal? curr-task "twitter-search")
 	     (twitter-search max-tweets keywords locations language)]
 	    [else (display "MassMine: Unknown task\n" (current-error-port))])))))]
@@ -190,6 +194,8 @@
       (set! global-max-seconds (string->number (alist-ref 'time options))))
   (if (not locations)
       (set! locations (alist-ref 'geo options)))
+  (if (not screen-name)
+      (set! screen-name (alist-ref 'user options)))
   (if (not task)
       (set! task (alist-ref 'task options)))
 
@@ -226,6 +232,7 @@
 (define keywords "")
 (define locations "")
 (define language "")
+(define screen-name "")
 
 ;; Parse command line arguments
 (set!-values (options operands)
