@@ -78,18 +78,23 @@
   ;; variables. Each limit variable contains a pair: (1) the number of
   ;; remaining API calls, and (2) Unix (Epoch) time until the
   ;; available calls are refreshed
-  (define search-rate-limit `(0 ,(current-seconds)))
-  (define trends-rate-limit `(0 ,(current-seconds)))
-
+  (define search-rate-limit `(0 0))
+  (define trends-rate-limit `(0 0))
+  (define timeline-rate-limit `(0 0))
+  
   ;; These values are reset with this procedure
   (define (twitter-update-rate-limits!)
-    (let* ((result (application-rate-limit-status #:resources "search,trends"))
+    (let* ((result (application-rate-limit-status #:resources "search,trends,statuses"))
 	   (search-rate (flatten (alist-ref 'search (alist-ref 'resources result))))
-	   (trends-rate (flatten (alist-ref 'trends (alist-ref 'resources result)))))
+	   (trends-rate (flatten (alist-ref 'trends (alist-ref 'resources result))))
+	   (timeline-rate
+	    (alist-ref '/statuses/user_timeline (alist-ref 'statuses (alist-ref 'resources result)))))
       (set! search-rate-limit `(,(cdr (third search-rate))
 				,(cdr (fourth search-rate))))
       (set! trends-rate-limit `(,(cdr (third trends-rate))
-				,(cdr (fourth trends-rate))))))
+				,(cdr (fourth trends-rate))))
+      (set! timeline-rate-limit `(,(cdr (second trends-rate))
+				  ,(cdr (third trends-rate))))))
 
   ;; Rate limit monitor. This has side effects and sets! variables
   ;; defined above. It does so because twitter's API rate limits are
@@ -106,7 +111,7 @@
   ;; requested API resource, otherwise #f is returned. This procedure
   ;; can only be called with oauth, so it should only be called by
   ;; twitter tasks that have such bindings. "resource" can be either
-  ;; "search" or "trends"
+  ;; "search", "trends", or "timeline"
   (define (twitter-rate-limit resource)
     (cond
      ;; REST API: Search
@@ -120,10 +125,12 @@
 	    ;; Update our rate limits
 	    (twitter-update-rate-limits!)
 	    ;; Begin waiting (if necessary)
-	    (sleep (inexact->exact (max (- (second search-rate-limit) (current-seconds)))))
-	    ;; We're done waiting. Query twitter to ensure that our API
-	    ;; limits have been reset. Set! our rate limit variables accordingly
-	    (twitter-update-rate-limits!)
+	    (if (<= (first search-rate-limit) 0)
+		(begin
+		  (sleep (inexact->exact (max (- (second search-rate-limit) (current-seconds)))))
+		  ;; We're done waiting. Query twitter to ensure that our API
+		  ;; limits have been reset. Set! our rate limit variables accordingly
+		  (twitter-update-rate-limits!)))
 	    ;; Try again
 	    (twitter-rate-limit resource))
 	  ;; We have api calls available. Decrement our counter and
@@ -141,16 +148,41 @@
 	    ;; Update our rate limits
 	    (twitter-update-rate-limits!)
 	    ;; Begin waiting (if necessary)
-	    (sleep (inexact->exact (max (- (second trends-rate-limit) (current-seconds)))))
-	    ;; We're done waiting. Query twitter to ensure that our API
-	    ;; limits have been reset. Set! our rate limit variables accordingly
-	    (twitter-update-rate-limits!)
+	    (if (<= (first trends-rate-limit) 0)
+		(begin
+		  (sleep (inexact->exact (max (- (second trends-rate-limit) (current-seconds)))))
+		  ;; We're done waiting. Query twitter to ensure that our API
+		  ;; limits have been reset. Set! our rate limit variables accordingly
+		  (twitter-update-rate-limits!)))
 	    ;; Try again
 	    (twitter-rate-limit resource))
 	  ;; We have api calls available. Decrement our counter and
 	  ;; return to sender
 	  (set! trends-rate-limit `(,(- (first trends-rate-limit) 1)
-				    ,(second trends-rate-limit))))]))
+				    ,(second trends-rate-limit))))]
+     ;; REST API: User timelines
+     [(equal? resource "timeline")
+      (if (<= (first timeline-rate-limit) 0)
+	  ;; We have run out of api calls (or this is the first time
+	  ;; we've called this procedure, in which case the delay
+	  ;; below will be zero seconds). Wait until the our rate
+	  ;; limit is reset by twitter, and then continue.
+	  (begin
+	    ;; Update our rate limits
+	    (twitter-update-rate-limits!)
+	    ;; Begin waiting (if necessary)
+	    (if (<= (first timeline-rate-limit) 0)
+		(begin
+		  (sleep (inexact->exact (max (- (second timeline-rate-limit) (current-seconds)))))
+		  ;; We're done waiting. Query twitter to ensure that our API
+		  ;; limits have been reset. Set! our rate limit variables accordingly
+		  (twitter-update-rate-limits!)))
+	    ;; Try again
+	    (twitter-rate-limit resource))
+	  ;; We have api calls available. Decrement our counter and
+	  ;; return to sender
+	  (set! timeline-rate-limit `(,(- (first timeline-rate-limit) 1)
+				      ,(second timeline-rate-limit))))]))
 
   ;; Search the twitter streaming endpoint by keyword
   (define (twitter-stream pattern geo-locations lang-code)
@@ -294,8 +326,8 @@
       ;; each call
       (let query-api ((how-many counts) (max-id ""))
 	(begin
-	  ;; TODO: Put the brakes on if necessary
-	  ;;(twitter-rate-limit "search")
+	  ;; Put the brakes on if necessary
+	  (twitter-rate-limit "timeline")
 	  ;; We've passed the rate limit check, continue
 	  (if (not (null? how-many))
 	      (let ((results
