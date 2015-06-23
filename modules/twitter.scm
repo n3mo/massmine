@@ -185,7 +185,7 @@
 				      ,(second timeline-rate-limit))))]))
 
   ;; Search the twitter streaming endpoint by keyword
-  (define (twitter-stream pattern geo-locations lang-code)
+  (define (twitter-stream pattern geo-locations lang-code user-ids)
     (handle-exceptions exn
   	;; Exception handler does nothing but suppress the inevitable
   	;; error caused but terminating the connection manually
@@ -194,7 +194,8 @@
       (statuses-filter #:delimited "length"
 			      #:track pattern
 			      #:locations geo-locations
-			      #:language lang-code)))
+			      #:language lang-code
+			      #:follow user-ids)))
 
   ;; Returns a random sample of 1% of all tweets from the streaming
   ;; endpoint. No keywords required

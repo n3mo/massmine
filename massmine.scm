@@ -138,8 +138,7 @@
 ;; arguments) 
 (define (task-dispatch curr-task)
   (cond
-   [(equal? curr-task "twitter-auth") (twitter-setup-auth P)]
-   ;; The remaining twitter tasks must be signed with oauth
+   ;; Twitter tasks must be signed with oauth
    [(s-starts-with? "twitter" curr-task)
     (begin
       ;; Twitter related tasks require the same blanket authentication
@@ -165,8 +164,10 @@
 	 twitter-app user-tokens
 	 (lambda ()
 	   (cond
+	    [(equal? curr-task "twitter-auth") (twitter-setup-auth P)]
 	    [(equal? curr-task "twitter-test") (twitter-test)]
-	    [(equal? curr-task "twitter-stream") (twitter-stream keywords locations language)]
+	    [(equal? curr-task "twitter-stream")
+	     (twitter-stream keywords locations language screen-name)]
 	    [(equal? curr-task "twitter-sample") (twitter-sample)]
 	    [(equal? curr-task "twitter-locations") (twitter-locations)]
 	    [(equal? curr-task "twitter-trends") (twitter-trends locations)]
