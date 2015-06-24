@@ -51,21 +51,21 @@
 			  (usage))
 	(args:make-option (v version)  #:none "Version information"
 			  (print-version))
-	(args:make-option (output)  (required: "FILE")  "Write to file"
+	(args:make-option (o output)  (required: "FILE")  "Write to file"
 			  (set! output-to-file? #t))
-	(args:make-option (task)  (required: "TASK") "Task name"
+	(args:make-option (t task)  (required: "TASK") "Task name"
 			  (set! task #f))
-	(args:make-option (pattern)  (required: "KEYWORDS") "Keyword(s)"
+	(args:make-option (q query)  (required: "QUERY") "Query string"
 			  (set! keywords #f))
-	(args:make-option (count)  (required: "NUM") "Number of records"
+	(args:make-option (c count)  (required: "NUM") "Number of records"
 			  (set! max-tweets #f))
-	(args:make-option (time)  (required: "SECOND") "Duration"
+	(args:make-option (d dur)  (required: "SECOND") "Max runtime"
 			  (set! global-max-seconds #f))
-	(args:make-option (geo)  (required: "COORDINATE") "Location"
+	(args:make-option (g geo)  (required: "LOCATION") "Location"
 			  (set! locations #f))
-	(args:make-option (lang)  (required: "LANG") "Language"
+	(args:make-option (l lang)  (required: "LANG") "Language"
 			  (set! locations #f))
-	(args:make-option (user)  (required: "NAME") "Screen name"
+	(args:make-option (u user)  (required: "NAME") "Screen name"
 			  (set! screen-name #f))
 	(args:make-option (no-splash)  #:none "Inhibit splash screen"
 			  (set! do-splash? #f))
@@ -183,7 +183,7 @@
   (if (not max-tweets)
       (set! max-tweets (string->number (alist-ref 'count options))))
   (if (not keywords)
-      (set! keywords (alist-ref 'pattern options)))
+      (set! keywords (alist-ref 'query options)))
   (if (not global-max-seconds)
       (set! global-max-seconds (string->number (alist-ref 'time options))))
   (if (not locations)
