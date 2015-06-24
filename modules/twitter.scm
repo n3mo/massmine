@@ -43,6 +43,33 @@
 		     (current-error-port))
 	    (exit 1)))))
 
+  ;; Use this to verify the credentials supplied by the user. If this
+  ;; returns, then the credentials were valid. If not, an exception is
+  ;; raised warning the user about the error
+  (define (twitter-verify-credentials #!key
+				      consumer-key
+				      consumer-secret
+				      access-token
+				      access-token-secret)
+    (let ((twitter-app
+	   (twitter-service #:consumer-key consumer-key
+			    #:consumer-secret consumer-secret))
+	  (user-tokens
+	   (twitter-token-credential #:access-token access-token
+				     #:access-token-secret access-token-secret)))
+      (with-oauth
+       twitter-app user-tokens
+       (lambda ()
+	 (handle-exceptions exn
+	     (begin
+	       (newline)
+	       (display "An error occurred while verifying your credentials.")
+	       (newline)
+	       (display "Please double check your values and try again.")
+	       (newline)
+	       (exit 1))
+	   (account-verify-credentials))))))
+
   ;; This walks the user through setting up their Twitter credentials
   ;; for MassMine
   (define (twitter-setup-auth params)
@@ -64,6 +91,17 @@
 	  (define a-token (read-line))
 	  (display "Access token secret: ")
 	  (define a-secret (read-line))
+
+	  ;; Verify the user's supplied credentials. This will return
+	  ;; if the credentials are successfully verified, otherwise
+	  ;; an exception (with an explanation to the user) will be
+	  ;; raised.
+	  (twitter-verify-credentials #:consumer-key c-key
+				      #:consumer-secret c-secret
+				      #:access-token a-token
+				      #:access-token-secret a-secret)
+
+	  ;; If we've made it here, the user's credentials check out.
 	  ;; Prepare a proper alist and write to disk
 	  (with-output-to-file twitter-cred-file
 	    (lambda ()

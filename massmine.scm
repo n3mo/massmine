@@ -138,33 +138,28 @@
 ;; arguments) 
 (define (task-dispatch curr-task)
   (cond
+   ;; Authentication is a special case
+   [(equal? curr-task "twitter-auth") (twitter-setup-auth P)]
    ;; Twitter tasks must be signed with oauth
    [(s-starts-with? "twitter" curr-task)
     (begin
       ;; Twitter related tasks require the same blanket authentication
       ;; prior to running
       (let* ((creds (twitter-auth P))
-	     (twitter (make-oauth-service-provider
-		       protocol-version: '1.0a
-		       credential-request-url: "https://api.twitter.com/oauth/request_token"
-		       owner-auth-url: "https://api.twitter.com/oauth/authorize"
-		       token-request-url: "https://api.twitter.com/oauth/access_token"
-		       signature-method: 'hmac-sha1))
-	     (twitter-app (make-oauth-service
-			   service: twitter
-			   client-credential: (make-oauth-credential
-					       (alist-ref 'consumer-key creds)
-					       (alist-ref 'consumer-secret creds))))
-	     (user-tokens (make-oauth-credential
-		  (alist-ref 'access-token creds)
-		  (alist-ref 'access-token-secret creds))))
+	     (twitter-app
+	      (twitter-service
+	       #:consumer-key (alist-ref 'consumer-key creds)
+	       #:consumer-secret (alist-ref 'consumer-secret creds)))
+	     (user-tokens
+	      (twitter-token-credential
+	       #:access-token (alist-ref 'access-token creds)
+	       #:access-token-secret (alist-ref 'access-token-secret creds))))
 	;; This intercepts all calls to Twitter and signs them with
 	;; the user's oauth credentials
 	(with-oauth
 	 twitter-app user-tokens
 	 (lambda ()
 	   (cond
-	    [(equal? curr-task "twitter-auth") (twitter-setup-auth P)]
 	    [(equal? curr-task "twitter-test") (twitter-test)]
 	    [(equal? curr-task "twitter-stream")
 	     (twitter-stream keywords locations language screen-name)]
