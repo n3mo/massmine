@@ -26,8 +26,6 @@
 ;; WARNING @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ;; You are working in the chicken branch of this git repo
 
-;; (declare (uses massmine-twitter))
-
 ;; Extensions. We need to import clucker here just so we can set! the
 ;; global variables used to sever the https connection with Twitter's
 ;; streaming API (which are defined in clucker)
@@ -42,7 +40,7 @@
 
 ;; Current version of software
 ;; mm_version = 'x.x.x (2015-05-01)'
-(define mm-version "x.x.x (2015-06-22)")
+(define mm-version "0.9.0 (2015-06-24)")
 
 ;;; The following list contains all defined command line options
 ;;; available to the user. For example, (h help) makes all of the
@@ -237,4 +235,4 @@
 ;;(handle-exceptions exn (usage) (main))
 (main)
 
-;; End of file massmine
+;; End of file massmine.scm
