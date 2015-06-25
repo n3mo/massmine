@@ -29,7 +29,7 @@
 ;; Extensions. We need to import clucker here just so we can set! the
 ;; global variables used to sever the https connection with Twitter's
 ;; streaming API (which are defined in clucker)
-(require-extension args clucker openssl posix oauth-client openssl)
+(require-extension args clucker openssl posix oauth-client openssl extras)
 
 ;; Current version of software
 (define mm-version "0.9.0 (2015-06-24)")
@@ -59,7 +59,7 @@
 ;;; --help. These are used by the "args" egg.
 (define opts
   (list (args:make-option (h help)    #:none "Help information"
-			  (usage))
+			  (massmine-help options))
 	(args:make-option (v version)  #:none "Version information"
 			  (print-version))
 	(args:make-option (o output)  (required: "FILE")  "Write to file"
@@ -79,8 +79,7 @@
 	(args:make-option (u user)  (required: "NAME") "Screen name"
 			  (user-info #f))
 	(args:make-option (no-splash)  #:none "Inhibit splash screen"
-			  (do-splash? #f))
-	))
+			  (do-splash? #f))))
 
 ;;; This procedure is called whenever the user specifies the help
 ;;; option at runtime OR whenever an unexpected command line option or
@@ -106,6 +105,25 @@
   (print "This is free software: you are free to change and redistribute it.")
   (print "There is NO WARRANTY, to the extent permitted by law.")
   (exit 0))
+
+;; Detailed help for UI
+(define (massmine-help topic)
+  (let ((topic (alist-ref 'help options)))
+    (print topic)
+    (cond
+     [(equal? topic "task")
+      (begin
+	(print "Control massmine's behavior by setting a task:")
+	(print "Example: massmine -t twitter-sample")
+	(newline)
+	(print "Available tasks:")
+	(print "----------------")
+	(for-each (lambda (task)
+		    (display (sprintf "~A \t\t-- ~A" (car task) (cdr task)))
+		    (newline))
+		  twitter-task-descriptions)
+	(exit 0))]
+     [else (usage)])))
 
 ;; Routine responsible for setting up massmine's configuration
 ;; settings, etc.
@@ -145,43 +163,6 @@
 ;; This controls the main behavior of each run, dependent on the task
 ;; provided by the user at runtime (along with other command line
 ;; arguments) 
-;; (define (task-dispatch curr-task)
-;;   (cond
-;;    ;; Authentication is a special case
-;;    [(equal? curr-task "twitter-auth") (twitter-setup-auth P)]
-;;    ;; Twitter tasks must be signed with oauth
-;;    [(s-starts-with? "twitter" curr-task)
-;;     (begin
-;;       ;; Twitter related tasks require the same blanket authentication
-;;       ;; prior to running
-;;       (let* ((creds (twitter-auth P))
-;; 	     (twitter-app
-;; 	      (twitter-service
-;; 	       #:consumer-key (alist-ref 'consumer-key creds)
-;; 	       #:consumer-secret (alist-ref 'consumer-secret creds)))
-;; 	     (user-tokens
-;; 	      (twitter-token-credential
-;; 	       #:access-token (alist-ref 'access-token creds)
-;; 	       #:access-token-secret (alist-ref 'access-token-secret creds))))
-;; 	;; This intercepts all calls to Twitter and signs them with
-;; 	;; the user's oauth credentials
-;; 	(with-oauth
-;; 	 twitter-app user-tokens
-;; 	 (lambda ()
-;; 	   (cond
-;; 	    [(equal? curr-task "twitter-stream")
-;; 	     (twitter-stream (keywords) (locations) (language) (user-info))]
-;; 	    [(equal? curr-task "twitter-sample") (twitter-sample)]
-;; 	    [(equal? curr-task "twitter-locations") (twitter-locations)]
-;; 	    [(equal? curr-task "twitter-trends") (twitter-trends (locations))]
-;; 	    [(equal? curr-task "twitter-trends-nohash") (twitter-trends-nohash (locations))]
-;; 	    [(equal? curr-task "twitter-user")
-;; 	     (twitter-timeline (max-tweets) (user-info))]
-;; 	    [(equal? curr-task "twitter-search")
-;; 	     (twitter-search (max-tweets) (keywords) (locations) (language))]
-;; 	    [else (display "MassMine: Unknown task\n" (current-error-port))])))))]
-;;    [else (display "MassMine: Unknown task\n" (current-error-port)) (usage)])
-;;   (exit 0))
 (define (task-dispatch curr-task)
   (cond
    ;; Authentication is a special case

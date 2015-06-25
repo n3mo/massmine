@@ -32,7 +32,7 @@
   (define twitter-task-descriptions
     '((twitter-stream .		"Get tweets by keyword in real time")
       (twitter-sample .		"Get random sample of tweets in real time")
-      (twitter-locations .	"Available geo locations")
+      (twitter-locations .	"Available geo locations (WOEIDS)")
       (twitter-trends .		"Top-10 trends for a given location")
       (twitter-trends-nohash .	"Top-10 trends (no #hashtags)")
       (twitter-user .		"Fetch a user's timeline of tweets")
