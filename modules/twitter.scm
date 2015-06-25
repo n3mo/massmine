@@ -30,7 +30,8 @@
 
   ;; Available tasks and brief descriptions
   (define twitter-task-descriptions
-    '((twitter-stream .		"Get tweets by keyword in real time")
+    '((twitter-auth .           "Authenticate with Twitter")
+      (twitter-stream .		"Get tweets by keyword in real time")
       (twitter-sample .		"Get random sample of tweets in real time")
       (twitter-locations .	"Available geo locations (WOEIDS)")
       (twitter-trends .		"Top-10 trends for a given location")
@@ -40,7 +41,8 @@
 
   ;; Available tasks and their corresponding procedure calls
   (define twitter-tasks
-    '((twitter-stream . (twitter-stream (keywords) (locations) (language) (user-info)))
+    '((twitter-auth . (twitter-setup-auth P))
+      (twitter-stream . (twitter-stream (keywords) (locations) (language) (user-info)))
       (twitter-sample . (twitter-sample))
       (twitter-locations . (twitter-locations))
       (twitter-trends . (twitter-trends (locations)))

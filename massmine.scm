@@ -53,6 +53,53 @@
 ;; Master parameter alist
 (define P '((mm-cred-path . "~/.config/massmine")))
 
+;; Useful examples, displayed when 'massmine -h examples' is ran
+(define massmine-examples #<<END
+The following examples demonstrate how to compose options into
+customized data requests. For more information on any massmine
+option, run
+
+    massmine -h <option>
+
+For example, to see what tasks are available run
+
+    massmine -h task
+
+EXAMPLES
+--------
+
+Collect 200 tweets from Twitter in real time matching the keyword
+'love'. Write the results to the file my_data.json
+
+    massmine -t twitter-stream -c 200 --query love -o my_data.json
+
+Same as above, but collect the maximum number of tweets for 10 seconds
+
+    massmine -t twitter-stream -d 10 -q love -o my_data.json
+
+Search for up to 100 previously existing tweets matching 'potato'
+or 'climbing'. Limit results to english tweets. Print results to
+standard output (not to file). Notice the single quotes around
+complex queries
+
+    massmine -t twitter-search -c 100 -q 'potato OR climbing' -l en
+
+Retrieve the current top-10 trends in the world
+    
+    massmine -t twitter-trends -g 1
+
+Same as above, but hide the MassMine splash screen
+
+    massmine -t twitter-trends -g 1 --no-splash
+
+Retrieve the current top-10 trends, excluding #hashtags, in
+New York, New York. Write results to the file NY_trends.json
+
+    massmine -t twitter-trends-nohash -g 2459115 -o NY_trends.json
+
+END
+)
+
 ;;; The following list contains all defined command line options
 ;;; available to the user. For example, (h help) makes all of the
 ;;; following equivalent options available at runtime: -h, -help, --h,
@@ -93,6 +140,7 @@
      (print "Retrieve and store data from web sources")
      (newline)
      (print "See 'massmine -h <option>' to read about a specific topic")
+     (print "or  'massmine -h examples' for detailed examples")
      (newline)
      (print "Report bugs to nemo1211 at gmail.")))
  (exit 1))
@@ -122,16 +170,62 @@
      [(equal? topic "task")
       (begin
 	(print "Control massmine's behavior by setting a task:")
-	(print "Example: massmine -t twitter-sample")
+	(print "Example(s): 'massmine --task=twitter-locations'")
+	(print "            'massmine -t twitter-locations'")
 	(newline)
 	(print "Available tasks:")
 	(print "----------------")
 	(for-each (lambda (task)
 		    (display (sprintf "~A \t\t-- ~A" (car task) (cdr task)))
 		    (newline))
-		  twitter-task-descriptions)
-	(exit 0))]
-     [else (usage)])))
+		  twitter-task-descriptions))]
+     [(equal? topic "output")
+      (begin
+	(print "If included, output is written to file (otherwise, standard out)")
+	(print "Example(s): 'massmine --output=twitterdata.json'")
+	(print "            'massmine -o twitterdata.json'")
+	(newline))]
+     [(equal? topic "query")
+      (begin
+	(print "Keyword(s) strings to be applied to data searches")
+	(print "Example(s): 'massmine --query=buckeyes'")
+	(print "            'massmine -q buckeyes'")
+	(newline))]
+     [(equal? topic "count")
+      (begin
+	(print "Request a number of records for tasks that accept limits")
+	(print "Example(s): 'massmine --count=100'")
+	(print "            'massmine -c 100'")
+	(newline))]
+     [(equal? topic "dur")
+      (begin
+	(print "Stop collection of records after DUR seconds")
+	(print "Example(s): 'massmine --dur=3600'")
+	(print "            'massmine -d 3600'")
+	(newline))]
+     [(equal? topic "geo")
+      (begin
+	(print "Limit collection to geographic regions for tasks that allow it")
+	(print "Example(s): 'massmine --geo=-74,40,-73,41'")
+	(print "            'massmine -g -74,40,-73,41'")
+	(newline))]
+     [(equal? topic "lang")
+      (begin
+	(print "Limit collection to a given language for tasks that allow it")
+	(print "Example(s): 'massmine --lang=en'")
+	(print "            'massmine -l en'")
+	(newline))]
+     [(equal? topic "user")
+      (begin
+	(print "Limit collection to specific users for tasks that allow it")
+	(print "Example(s): 'massmine --user=ladygaga'")
+	(print "            'massmine -u ladygaga'")
+	(newline))]
+     [(equal? topic "examples")
+      (begin
+	(print massmine-examples))]
+     [else (usage)])
+    (exit 0)))
 
 ;; Routine responsible for setting up massmine's configuration
 ;; settings, etc.
@@ -174,7 +268,8 @@
 (define (task-dispatch curr-task)
   (cond
    ;; Authentication is a special case
-   [(equal? curr-task "twitter-auth") (twitter-setup-auth P)]
+   [(equal? curr-task "twitter-auth")
+    (eval (alist-ref (string->symbol curr-task) twitter-tasks))]
    ;; Twitter tasks must be signed with oauth
    [(s-starts-with? "twitter" curr-task)
     (begin
