@@ -92,6 +92,8 @@
      (print (args:usage opts))
      (print "Retrieve and store data from web sources")
      (newline)
+     (print "See 'massmine -h <option>' to read about a specific topic")
+     (newline)
      (print "Report bugs to nemo1211 at gmail.")))
  (exit 1))
 
@@ -108,8 +110,14 @@
 
 ;; Detailed help for UI
 (define (massmine-help topic)
-  (let ((topic (alist-ref 'help options)))
-    (print topic)
+  (let ((topic
+	 (let loop ((myargs (command-line-arguments)))
+	   (cond
+	    [(null? myargs) ""]
+	    [(and (not (null? (cdr myargs)))
+	      (or (equal? (car myargs) "-h")
+		  (equal? (car myargs) "--help"))) (car (cdr myargs))] 
+	    [else (loop (cdr myargs))]))))
     (cond
      [(equal? topic "task")
       (begin
