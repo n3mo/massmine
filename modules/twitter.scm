@@ -28,6 +28,26 @@
   (use extras irregex data-structures posix utils srfi-1)
   (use openssl oauth-client uri-common rest-bind medea clucker)
 
+  ;; Available tasks and brief descriptions
+  (define twitter-task-descriptions
+    '((twitter-stream .		"Get tweets by keyword in real time")
+      (twitter-sample .		"Get random sample of tweets in real time")
+      (twitter-locations .	"Available geo locations")
+      (twitter-trends .		"Top-10 trends for a given location")
+      (twitter-trends-nohash .	"Top-10 trends (no #hashtags)")
+      (twitter-user .		"Fetch a user's timeline of tweets")
+      (twitter-search .		"Search existing tweets by keyword(s)")))
+
+  ;; Available tasks and their corresponding procedure calls
+  (define twitter-tasks
+    '((twitter-stream . (twitter-stream (keywords) (locations) (language) (user-info)))
+      (twitter-sample . (twitter-sample))
+      (twitter-locations . (twitter-locations))
+      (twitter-trends . (twitter-trends (locations)))
+      (twitter-trends-nohash . (twitter-trends-nohash (locations)))
+      (twitter-user . (twitter-timeline (max-tweets) (user-info)))
+      (twitter-search . (twitter-search (max-tweets) (keywords) (locations) (language)))))
+  
   ;; This returns the user's twitter credentials, if available. If the
   ;; user has not provided this information previously, an error is
   ;; reported 

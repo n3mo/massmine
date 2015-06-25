@@ -31,16 +31,27 @@
 ;; streaming API (which are defined in clucker)
 (require-extension args clucker openssl posix oauth-client openssl)
 
+;; Current version of software
+(define mm-version "0.9.0 (2015-06-24)")
+
+;; For future command line arguments and options
+(define options)
+(define operands)
+
+;; MassMine parameters
+(define do-splash?	(make-parameter #t))
+(define output-to-file? (make-parameter #f))
+(define task		(make-parameter ""))
+(define keywords	(make-parameter ""))
+(define locations	(make-parameter ""))
+(define language	(make-parameter ""))
+(define user-info	(make-parameter ""))
+
 (include "./modules/twitter")
 (import massmine-twitter)
-;;(import clucker)
 
 ;; Master parameter alist
 (define P '((mm-cred-path . "~/.config/massmine")))
-
-;; Current version of software
-;; mm_version = 'x.x.x (2015-05-01)'
-(define mm-version "0.9.0 (2015-06-24)")
 
 ;;; The following list contains all defined command line options
 ;;; available to the user. For example, (h help) makes all of the
@@ -52,23 +63,23 @@
 	(args:make-option (v version)  #:none "Version information"
 			  (print-version))
 	(args:make-option (o output)  (required: "FILE")  "Write to file"
-			  (set! output-to-file? #t))
+			  (output-to-file? #t))
 	(args:make-option (t task)  (required: "TASK") "Task name"
-			  (set! task #f))
+			  (task #f))
 	(args:make-option (q query)  (required: "QUERY") "Query string"
-			  (set! keywords #f))
+			  (keywords #f))
 	(args:make-option (c count)  (required: "NUM") "Number of records"
-			  (set! max-tweets #f))
+			  (max-tweets #f))
 	(args:make-option (d dur)  (required: "SECOND") "Max runtime"
-			  (set! global-max-seconds #f))
+			  (global-max-seconds #f))
 	(args:make-option (g geo)  (required: "LOCATION") "Location"
-			  (set! locations #f))
+			  (locations #f))
 	(args:make-option (l lang)  (required: "LANG") "Language"
-			  (set! locations #f))
+			  (language #f))
 	(args:make-option (u user)  (required: "NAME") "Screen name"
-			  (set! screen-name #f))
+			  (user-info #f))
 	(args:make-option (no-splash)  #:none "Inhibit splash screen"
-			  (set! do-splash? #f))
+			  (do-splash? #f))
 	))
 
 ;;; This procedure is called whenever the user specifies the help
@@ -134,6 +145,43 @@
 ;; This controls the main behavior of each run, dependent on the task
 ;; provided by the user at runtime (along with other command line
 ;; arguments) 
+;; (define (task-dispatch curr-task)
+;;   (cond
+;;    ;; Authentication is a special case
+;;    [(equal? curr-task "twitter-auth") (twitter-setup-auth P)]
+;;    ;; Twitter tasks must be signed with oauth
+;;    [(s-starts-with? "twitter" curr-task)
+;;     (begin
+;;       ;; Twitter related tasks require the same blanket authentication
+;;       ;; prior to running
+;;       (let* ((creds (twitter-auth P))
+;; 	     (twitter-app
+;; 	      (twitter-service
+;; 	       #:consumer-key (alist-ref 'consumer-key creds)
+;; 	       #:consumer-secret (alist-ref 'consumer-secret creds)))
+;; 	     (user-tokens
+;; 	      (twitter-token-credential
+;; 	       #:access-token (alist-ref 'access-token creds)
+;; 	       #:access-token-secret (alist-ref 'access-token-secret creds))))
+;; 	;; This intercepts all calls to Twitter and signs them with
+;; 	;; the user's oauth credentials
+;; 	(with-oauth
+;; 	 twitter-app user-tokens
+;; 	 (lambda ()
+;; 	   (cond
+;; 	    [(equal? curr-task "twitter-stream")
+;; 	     (twitter-stream (keywords) (locations) (language) (user-info))]
+;; 	    [(equal? curr-task "twitter-sample") (twitter-sample)]
+;; 	    [(equal? curr-task "twitter-locations") (twitter-locations)]
+;; 	    [(equal? curr-task "twitter-trends") (twitter-trends (locations))]
+;; 	    [(equal? curr-task "twitter-trends-nohash") (twitter-trends-nohash (locations))]
+;; 	    [(equal? curr-task "twitter-user")
+;; 	     (twitter-timeline (max-tweets) (user-info))]
+;; 	    [(equal? curr-task "twitter-search")
+;; 	     (twitter-search (max-tweets) (keywords) (locations) (language))]
+;; 	    [else (display "MassMine: Unknown task\n" (current-error-port))])))))]
+;;    [else (display "MassMine: Unknown task\n" (current-error-port)) (usage)])
+;;   (exit 0))
 (define (task-dispatch curr-task)
   (cond
    ;; Authentication is a special case
@@ -157,20 +205,11 @@
 	(with-oauth
 	 twitter-app user-tokens
 	 (lambda ()
-	   (cond
-	    [(equal? curr-task "twitter-test") (twitter-test)]
-	    [(equal? curr-task "twitter-stream")
-	     (twitter-stream keywords locations language screen-name)]
-	    [(equal? curr-task "twitter-sample") (twitter-sample)]
-	    [(equal? curr-task "twitter-locations") (twitter-locations)]
-	    [(equal? curr-task "twitter-trends") (twitter-trends locations)]
-	    [(equal? curr-task "twitter-trends-nohash") (twitter-trends-nohash locations)]
-	    [(equal? curr-task "twitter-timeline")
-	     (twitter-timeline max-tweets screen-name)]
-	    [(equal? curr-task "twitter-search")
-	     (twitter-search max-tweets keywords locations language)]
-	    [else (display "MassMine: Unknown task\n" (current-error-port))])))))]
-   [else (display "MassMine: Unknown task\n" (current-error-port))])
+	   (if (alist-ref (string->symbol curr-task) twitter-tasks)
+	       ;; This does the heavy lifting, calling the right procedure
+	       (eval (alist-ref (string->symbol curr-task) twitter-tasks))
+	       (display "MassMine: Unknown task\n" (current-error-port)))))))]
+   [else (display "MassMine: Unknown task\n" (current-error-port)) (usage)])
   (exit 0))
 
 ;;; Just what you think. This gets things started
@@ -180,25 +219,27 @@
   (install-massmine P)
 
   ;; Adjust for command line options. Update the master parameter alist
-  (if (not max-tweets)
-      (set! max-tweets (string->number (alist-ref 'count options))))
-  (if (not keywords)
-      (set! keywords (alist-ref 'query options)))
-  (if (not global-max-seconds)
-      (set! global-max-seconds (string->number (alist-ref 'time options))))
-  (if (not locations)
-      (set! locations (alist-ref 'geo options)))
-  (if (not screen-name)
-      (set! screen-name (alist-ref 'user options)))
-  (if (not task)
-      (set! task (alist-ref 'task options)))
+  (if (not (max-tweets))
+      (max-tweets (string->number (alist-ref 'count options))))
+  (if (not (keywords))
+      (keywords (alist-ref 'query options)))
+  (if (not (global-max-seconds))
+      (global-max-seconds (string->number (alist-ref 'dur options))))
+  (if (not (locations))
+      (locations (alist-ref 'geo options)))
+  (if (not (language))
+      (language (alist-ref 'lang options)))
+  (if (not (user-info))
+      (user-info (alist-ref 'user options)))
+  (if (not (task))
+      (task (alist-ref 'task options)))
 
   ;; Greet the user
-  (if (and do-splash? output-to-file?) (splash-screen))
+  (if (and (do-splash?) (output-to-file?)) (splash-screen))
 
   ;; Get things done, printing to stdout or file contingent on how the
   ;; user called massmine
-  (if output-to-file?
+  (if (output-to-file?)
       (let ((out-file (alist-ref 'output options)))
   	(if (file-exists? out-file)
   	    ;; Abort if the output file already exists
@@ -210,23 +251,11 @@
   	    ;; Else, get down to business
   	    (begin
   	      (with-output-to-file out-file
-  		(lambda () (task-dispatch task))))))
-      (task-dispatch task))
-  (if output-to-file? (print "MassMine done!"))
+  		(lambda () (task-dispatch (task)))))))
+      (task-dispatch (task)))
+  (if (output-to-file?) (print "MassMine done!"))
   
   (exit 1))
-
-(define options)
-(define operands)
-(define do-splash? #t)
-(define output-to-file? #f)
-(define max-tweets 999999999999999999)
-(define global-max-seconds 999999999999999999)
-(define task "twitter-stream")
-(define keywords "")
-(define locations "")
-(define language "")
-(define screen-name "")
 
 ;; Parse command line arguments
 (set!-values (options operands)
