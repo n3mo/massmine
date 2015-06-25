@@ -32,7 +32,7 @@
 (require-extension args clucker openssl posix oauth-client openssl extras)
 
 ;; Current version of software
-(define mm-version "0.9.0 (2015-06-24)")
+(define mm-version "0.9.1 (2015-06-25)")
 
 ;; For future command line arguments and options
 (define options)
