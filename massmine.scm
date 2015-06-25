@@ -289,10 +289,28 @@ END
 	(with-oauth
 	 twitter-app user-tokens
 	 (lambda ()
-	   (if (alist-ref (string->symbol curr-task) twitter-tasks)
-	       ;; This does the heavy lifting, calling the right procedure
-	       (eval (alist-ref (string->symbol curr-task) twitter-tasks))
-	       (display "MassMine: Unknown task\n" (current-error-port)))))))]
+	   ;; Fancy pants way of running commands as defined in the
+	   ;; twitter module. So fancy that it only works in
+	   ;; interpreted code... If I figure out how to make this
+	   ;; work in compiled code I'll switch back
+	   ;; (if (alist-ref (string->symbol curr-task) twitter-tasks)
+	   ;;     ;; This does the heavy lifting, calling the right procedure
+	   ;;     (eval (alist-ref (string->symbol curr-task) twitter-tasks))
+	   ;;     ;; (eval (alist-ref (string->symbol curr-task) twitter-tasks)
+	   ;;     ;; 	     (module-environment 'massmine-twitter))
+	   ;;     (display "MassMine: Unknown task\n" (current-error-port)))
+	   (cond
+	    [(equal? curr-task "twitter-stream")
+	     (twitter-stream (keywords) (locations) (language) (user-info))]
+	    [(equal? curr-task "twitter-sample") (twitter-sample)]
+	    [(equal? curr-task "twitter-locations") (twitter-locations)]
+	    [(equal? curr-task "twitter-trends") (twitter-trends (locations))]
+	    [(equal? curr-task "twitter-trends-nohash") (twitter-trends-nohash (locations))]
+	    [(equal? curr-task "twitter-user")
+	     (twitter-timeline (max-tweets) (user-info))]
+	    [(equal? curr-task "twitter-search")
+	     (twitter-search (max-tweets) (keywords) (locations) (language))]
+	    [else (display "MassMine: Unknown task\n" (current-error-port))])))))]
    [else (display "MassMine: Unknown task\n" (current-error-port)) (usage)])
   (exit 0))
 
