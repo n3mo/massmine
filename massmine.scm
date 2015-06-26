@@ -269,7 +269,7 @@ END
   (cond
    ;; Authentication is a special case
    [(equal? curr-task "twitter-auth")
-    (eval (alist-ref (string->symbol curr-task) twitter-tasks))]
+    (twitter-setup-auth P)]
    ;; Twitter tasks must be signed with oauth
    [(s-starts-with? "twitter" curr-task)
     (begin
