@@ -109,6 +109,8 @@ END
 			  (massmine-help options))
 	(args:make-option (v version)  #:none "Version information"
 			  (print-version))
+	(args:make-option (p project)  (required: "NAME")  "Create project"
+			  (create-project-directory))
 	(args:make-option (o output)  (required: "FILE")  "Write to file"
 			  (output-to-file? #t))
 	(args:make-option (t task)  (required: "TASK") "Task name"
@@ -231,6 +233,24 @@ END
 ;; settings, etc.
 (define (install-massmine params)
   (create-directory (alist-ref 'mm-cred-path params) #t))
+
+;; Creates a convenient, albeit not-required, directory structure for
+;; creating and managing massmine projects
+(define (create-project-directory)
+  (let ((project
+	 (let loop ((myargs (command-line-arguments)))
+	   (cond
+	    [(null? myargs) ""]
+	    [(equal? (car myargs) "-p") (car (cdr myargs))]
+	    [(s-starts-with? "--project=" (car myargs) "--project=")
+	     (cadr (string-split (car myargs) "="))]
+	    [else (loop (cdr myargs))]))))
+    (create-directory project)
+    (create-directory (string-append project "/" "research"))
+    (create-directory (string-append project "/" "data"))
+    (create-directory (string-append project "/" "log"))
+    (exit 0)))
+
 
 ;;; Helper function taken from my string "s" egg
 (define (s-starts-with? prefix s #!optional (ignore-case #f))
