@@ -28,6 +28,10 @@
   (use extras irregex data-structures posix utils srfi-1)
   (use openssl oauth-client uri-common rest-bind medea clucker)
 
+  ;; Clucker parameters that need setting to our needs here
+  (application-rate-limit-status-reader read-json)
+  (trends-available-reader generic-reader)
+
   ;; Available tasks and brief descriptions
   (define twitter-task-descriptions
     '((twitter-auth .           "Authenticate with Twitter")
@@ -396,13 +400,13 @@
 			 ;; On the first query, you cannot supply a
 			 ;; max_id, even the empty string ""
 			 (read-json
-			  (user-timeline #:screen_name screen-name
+			  (statuses-user-timeline #:screen_name screen-name
 					 #:count (car how-many)
 					 #:include_rts 1))
 			 ;; Subsequent queries we supply the max_id to
 			 ;; handle pagination of results
 			 (read-json
-			  (user-timeline #:screen_name screen-name
+			  (statuses-user-timeline #:screen_name screen-name
 					 #:count (car how-many)
 					 #:include_rts 1
 					 #:max_id max-id)))))
