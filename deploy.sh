@@ -8,7 +8,6 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]
 then
     # Do something under Linux platform
     # The executable and linked library
-    cd ~/main/development/massmine/
     csc -deploy massmine.scm
 
     # This step is currently required because of a bug in chicken/openssl
@@ -17,12 +16,8 @@ then
     # bug is reported at https://bugs.call-cc.org/ticket/1191
     chicken-install -i massmine
 
-    # Install clucker
-    cd ~/main/development/chicken/clucker/
-    chicken-install -deploy -p ~/main/development/massmine/massmine/
-    # Install additional chicken eggs not implicitly installed above.
-    cd ~/main/development/massmine/
-    chicken-install -deploy -p ./massmine args
+    # Install clucker and additional eggs
+    chicken-install -deploy -p ./massmine clucker args openssl medea
 
     # Package everything up with the current version number (zip and tarball)
     zip massmine-`./massmine/massmine -v | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+'`-linux-x86_64.zip -r ./massmine/

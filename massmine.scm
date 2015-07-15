@@ -29,7 +29,7 @@
 ;; Extensions. We need to import clucker here just so we can set! the
 ;; global variables used to sever the https connection with Twitter's
 ;; streaming API (which are defined in clucker)
-(require-extension args clucker openssl posix oauth-client openssl extras)
+(require-extension args clucker openssl posix oauth-client extras)
 
 ;; Current version of software
 (define mm-version "0.9.2 (2015-07-15)")
