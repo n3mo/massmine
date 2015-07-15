@@ -48,12 +48,11 @@
 (define user-info		(make-parameter ""))
 (define install-path		(make-parameter "~/.config/massmine"))
 (define custom-cred-path	(make-parameter #f))
+(define config-file             (make-parameter #f))
+(define output-file             (make-parameter #f))
 
 (include "./modules/twitter")
 (import massmine-twitter)
-
-;; Master parameter alist
-(define P '((mm-cred-path . "~/.config/massmine")))
 
 ;; Useful examples, displayed when 'massmine -h examples' is ran
 (define massmine-examples #<<END
@@ -114,7 +113,7 @@ END
 	(args:make-option (p project)  (required: "NAME")  "Create project"
 			  (create-project-directory))
 	(args:make-option (a auth)  (required: "FILE") "Credentials file"
-			  (custom-cred-path #f))
+			  (custom-cred-path #t))	
 	(args:make-option (o output)  (required: "FILE")  "Write to file"
 			  (output-to-file? #t))
 	(args:make-option (t task)  (required: "TASK") "Task name"
@@ -131,6 +130,8 @@ END
 			  (language #f))
 	(args:make-option (u user)  (required: "NAME") "Screen name"
 			  (user-info #f))
+	(args:make-option (config)  (required: "FILE") "Config file"
+			  (config-file #t))
 	(args:make-option (no-splash)  #:none "Inhibit splash screen"
 			  (do-splash? #f))))
 
@@ -235,7 +236,7 @@ END
 
 ;; Routine responsible for setting up massmine's configuration
 ;; settings, etc.
-(define (install-massmine params)
+(define (install-massmine)
   (create-directory (install-path) #t))
 
 ;; Creates a convenient, albeit not-required, directory structure for
@@ -256,13 +257,57 @@ END
     (exit 0)))
 
 
-;;; Helper function taken from my string "s" egg
+;; Helper function taken from my string "s" egg
 (define (s-starts-with? prefix s #!optional (ignore-case #f))
   (if ignore-case
       (let ((mymatch (substring-index-ci prefix s)))
 	(if (and mymatch (= mymatch 0)) #t #f))
       (let ((mymatch (substring-index prefix s)))
 	(if (and mymatch (= mymatch 0)) #t #f))))
+
+;; Helper function for configure-from-file. Expects a list with
+;; (option value), as described in opts. Blank lines in the config
+;; file show up as empty lists (and we skip these)
+(define (update-option! opt-value)
+  (unless (null? opt-value)
+    (let ((opt (car opt-value))
+	  (optval (cadr opt-value)))
+      (if (equal? opt "auth")
+	  (custom-cred-path optval))
+      (if (equal? opt "output")
+	  (begin
+	    (output-to-file? #t)
+	    (output-file optval)))
+      (if (equal? opt "task")
+	  (task optval))
+      (if (equal? opt "query")
+	  (keywords optval))
+      (if (equal? opt "count")
+	  (max-tweets (string->number optval)))
+      (if (equal? opt "dur")
+	  (global-max-seconds (string->number optval)))
+      (if (equal? opt "geo")
+	  (locations optval))
+      (if (equal? opt "lang")
+	  (language optval))
+      (if (equal? opt "user")
+	  (user-info optval))
+      (if (equal? opt "no-splash")
+	  (do-splash #f)))))
+
+;; Parse configuration file. User can specify a config file instead of
+;; supplying command line options. The config file must be formatted
+;; as one line per option, with each line following the format
+;; "option = value", where option must be a full command line options
+;; (e.g., task, not just t) and value is whatever you'd like to set
+;; the option as. This procedure is ran for its side effects!
+(define (configure-from-file)
+  (let* ((config-lines
+	  (with-input-from-file (config-file) (lambda () (read-lines))))
+	 (params
+	  (map (lambda (x)
+		 (map string-trim-both (string-split x "="))) config-lines)))
+    (for-each update-option! params)))
 
 ;; ##################################################################
 ;; Splash Screen
@@ -342,7 +387,7 @@ END
 (define (main)
 
   ;; Install massmine's config file(s) if missing
-  (install-massmine P)
+  (install-massmine)
 
   ;; Adjust for command line options. Update the master parameter alist
   (if (not (max-tweets))
@@ -359,8 +404,15 @@ END
       (user-info (alist-ref 'user options)))
   (if (not (task))
       (task (alist-ref 'task options)))
-  (if (not (custom-cred-path))
+  (if (custom-cred-path)
       (custom-cred-path (alist-ref 'auth options)))
+  ;; If the user has supplied configuration file path, we load it
+  ;; last. This way, the config file's behavior trumps all other
+  ;; command line arguments
+  (if (config-file)
+      (begin
+	(config-file (alist-ref 'config options))
+	(configure-from-file)))
 
   ;; Greet the user
   (if (and (do-splash?) (output-to-file?)) (splash-screen))
@@ -368,7 +420,7 @@ END
   ;; Get things done, printing to stdout or file contingent on how the
   ;; user called massmine
   (if (output-to-file?)
-      (let ((out-file (alist-ref 'output options)))
+      (let ((out-file (if (output-file) (output-file) (alist-ref 'output options))))
   	(if (file-exists? out-file)
   	    ;; Abort if the output file already exists
   	    (begin (with-output-to-port (current-error-port)
