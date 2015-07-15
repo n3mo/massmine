@@ -91,11 +91,8 @@
        (lambda ()
 	 (handle-exceptions exn
 	     (begin
-	       (newline)
-	       (display "An error occurred while verifying your credentials.")
-	       (newline)
-	       (display "Please double check your values and try again.")
-	       (newline)
+	       (display "\nAn error occurred while verifying your credentials.\n" (current-error-port))
+	       (display "Please double check your values and try again.\n" (current-error-port))
 	       (exit 1))
 	   (account-verify-credentials))))))
 

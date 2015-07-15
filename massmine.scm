@@ -412,7 +412,13 @@ END
   (if (config-file)
       (begin
 	(config-file (alist-ref 'config options))
-	(configure-from-file)))
+	(handle-exceptions exn
+	    (begin
+	      (display "An error occurred while processing file " (current-error-port))
+	      (display (config-file) (current-error-port))
+	      (display "\nCheck for malformed entries\n" (current-error-port))
+	      (exit 1))
+	    (configure-from-file))))
 
   ;; Greet the user
   (if (and (do-splash?) (output-to-file?)) (splash-screen))
