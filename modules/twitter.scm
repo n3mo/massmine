@@ -248,9 +248,12 @@
   ;; Search the twitter streaming endpoint by keyword
   (define (twitter-stream pattern geo-locations lang-code user-ids)
     (handle-exceptions exn
-  	;; Exception handler does nothing but suppress the inevitable
-  	;; error caused but terminating the connection manually
-  	#t
+	;; The clucker streaming reader closes the connection to
+	;; Twitter's API crudely, causing a guaranteed error. We catch
+	;; this harmless error but pass along any others...
+  	(if (equal?
+	     ((condition-property-accessor 'exn 'message) exn) "port already closed")
+	    #t (abort exn))
       ;; This does the real work (using clucker)
       (statuses-filter #:delimited "length"
 			      #:track pattern
