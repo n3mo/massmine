@@ -435,10 +435,22 @@ END
   			      " already exists!")))
   		   (exit 1))
   	    ;; Else, get down to business
-  	    (begin
-  	      (with-output-to-file out-file
-  		(lambda () (task-dispatch (task)))))))
-      (task-dispatch (task)))
+  	    (handle-exceptions exn
+		(begin
+		  (display "MassMine: The following error occurred:\n" (current-error-port))
+		  (display ((condition-property-accessor 'exn 'message) exn)
+			   (current-error-port))
+		  (display "\n" (current-error-port)))
+	      (with-output-to-file out-file
+		(lambda () (task-dispatch (task)))))))
+      ;; This call does the heavy lifting
+      (handle-exceptions exn
+	  (begin
+	    (display "MassMine: The following error occurred:\n" (current-error-port))
+	    (display ((condition-property-accessor 'exn 'message) exn)
+		     (current-error-port))
+	    (display "\n" (current-error-port)))
+	  (task-dispatch (task))))
   (if (output-to-file?) (print "MassMine done!"))
   
   (exit 1))
