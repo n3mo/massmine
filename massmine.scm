@@ -32,20 +32,22 @@
 (require-extension args clucker openssl posix oauth-client openssl extras)
 
 ;; Current version of software
-(define mm-version "0.9.1 (2015-06-25)")
+(define mm-version "0.9.1 (2015-07-14)")
 
 ;; For future command line arguments and options
 (define options)
 (define operands)
 
 ;; MassMine parameters
-(define do-splash?	(make-parameter #t))
-(define output-to-file? (make-parameter #f))
-(define task		(make-parameter ""))
-(define keywords	(make-parameter ""))
-(define locations	(make-parameter ""))
-(define language	(make-parameter ""))
-(define user-info	(make-parameter ""))
+(define do-splash?		(make-parameter #t))
+(define output-to-file?		(make-parameter #f))
+(define task			(make-parameter ""))
+(define keywords		(make-parameter ""))
+(define locations		(make-parameter ""))
+(define language		(make-parameter ""))
+(define user-info		(make-parameter ""))
+(define install-path		(make-parameter "~/.config/massmine"))
+(define custom-cred-path	(make-parameter #f))
 
 (include "./modules/twitter")
 (import massmine-twitter)
@@ -111,6 +113,8 @@ END
 			  (print-version))
 	(args:make-option (p project)  (required: "NAME")  "Create project"
 			  (create-project-directory))
+	(args:make-option (a auth)  (required: "FILE") "Credentials file"
+			  (custom-cred-path #f))
 	(args:make-option (o output)  (required: "FILE")  "Write to file"
 			  (output-to-file? #t))
 	(args:make-option (t task)  (required: "TASK") "Task name"
@@ -232,7 +236,7 @@ END
 ;; Routine responsible for setting up massmine's configuration
 ;; settings, etc.
 (define (install-massmine params)
-  (create-directory (alist-ref 'mm-cred-path params) #t))
+  (create-directory (install-path) #t))
 
 ;; Creates a convenient, albeit not-required, directory structure for
 ;; creating and managing massmine projects
@@ -289,13 +293,13 @@ END
   (cond
    ;; Authentication is a special case
    [(equal? curr-task "twitter-auth")
-    (twitter-setup-auth P)]
+    (twitter-setup-auth (custom-cred-path))]
    ;; Twitter tasks must be signed with oauth
    [(s-starts-with? "twitter" curr-task)
     (begin
       ;; Twitter related tasks require the same blanket authentication
       ;; prior to running
-      (let* ((creds (twitter-auth P))
+      (let* ((creds (twitter-auth (custom-cred-path)))
 	     (twitter-app
 	      (twitter-service
 	       #:consumer-key (alist-ref 'consumer-key creds)
@@ -355,6 +359,8 @@ END
       (user-info (alist-ref 'user options)))
   (if (not (task))
       (task (alist-ref 'task options)))
+  (if (not (custom-cred-path))
+      (custom-cred-path (alist-ref 'auth options)))
 
   ;; Greet the user
   (if (and (do-splash?) (output-to-file?)) (splash-screen))

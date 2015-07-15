@@ -28,6 +28,10 @@
   (use extras irregex data-structures posix utils srfi-1)
   (use openssl oauth-client uri-common rest-bind medea clucker)
 
+  ;; Twitter module parameters
+  (define twitter-cred-file
+    (make-parameter "~/.config/massmine/twitter_cred"))
+
   ;; Clucker parameters that need setting to our needs here
   (application-rate-limit-status-reader read-json)
   (trends-available-reader generic-reader)
@@ -57,17 +61,16 @@
   ;; This returns the user's twitter credentials, if available. If the
   ;; user has not provided this information previously, an error is
   ;; reported 
-  (define (twitter-auth params)
-    (let ((twitter-cred-file (string-append (alist-ref 'mm-cred-path params) "/"
-					    "twitter_cred")))
-      (if (file-exists? twitter-cred-file)
-	  ;; Return twitter credential information
-	  (with-input-from-file twitter-cred-file read)
-	  ;; Else the user needs set up their credentials
-	  (begin
-	    (display "Authenticate before using Twitter.\nRun --> 'massmine --task=twitter-auth'\n"
-		     (current-error-port))
-	    (exit 1)))))
+  (define (twitter-auth cred-path)
+    (let ((cred-file (if cred-path cred-path (twitter-cred-file))))
+	(if (file-exists? cred-file)
+	    ;; Return twitter credential information
+	    (with-input-from-file cred-file read)
+	    ;; Else the user needs set up their credentials
+	    (begin
+	      (display "Authenticate before using Twitter.\nRun --> 'massmine --task=twitter-auth'\n"
+		       (current-error-port))
+	      (exit 1)))))
 
   ;; Use this to verify the credentials supplied by the user. If this
   ;; returns, then the credentials were valid. If not, an exception is
@@ -98,15 +101,12 @@
 
   ;; This walks the user through setting up their Twitter credentials
   ;; for MassMine
-  (define (twitter-setup-auth params)
+  (define (twitter-setup-auth cred-file)
     (print "Would you like to setup your Twitter credentials?")
     (print "Warning: continuing will over-write any previous credentials")
     (if (yes-or-no? "Continue?" #:default "No" #:abort #f)
 	;; Walk the user through setting up their credentials
-	(let ((twitter-cred-file (string-append
-				  (alist-ref 'mm-cred-path params)
-				  "/"
-				  "twitter_cred")))
+	(begin
 	  (print "Please visit https://apps.twitter.com to collect")
 	  (print "the following information:")
 	  (display "Consumer key: ")
@@ -129,7 +129,7 @@
 
 	  ;; If we've made it here, the user's credentials check out.
 	  ;; Prepare a proper alist and write to disk
-	  (with-output-to-file twitter-cred-file
+	  (with-output-to-file cred-file
 	    (lambda ()
 	      (write `((consumer-key . ,c-key)
 		(consumer-secret . ,c-secret)
