@@ -53,6 +53,8 @@
 
 (include "./modules/twitter")
 (import massmine-twitter)
+(include "./modules/wikipedia")
+(import massmine-wikipedia)
 
 ;; Useful examples, displayed when 'massmine -h examples' is ran
 (define massmine-examples #<<END
@@ -183,9 +185,19 @@ END
 	(print "Available tasks:")
 	(print "----------------")
 	(for-each (lambda (task)
-		    (display (sprintf "~A \t\t-- ~A" (car task) (cdr task)))
+		    (display (sprintf "~A~A~A -- ~A"
+				      "\033[92m"
+				      (car task) "\033[0m" (cdr task)))
 		    (newline))
-		  twitter-task-descriptions))]
+		  twitter-task-descriptions)
+	(newline)
+	(for-each (lambda (task)
+		    (display (sprintf "~A~A~A -- ~A"
+				      "\033[94m"
+				      (car task) "\033[0m" (cdr task)))
+		    (newline))
+		  wikipedia-task-descriptions)
+	(newline))]
      [(equal? topic "output")
       (begin
 	(print "If included, output is written to file (otherwise, standard out)")
