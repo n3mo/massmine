@@ -32,7 +32,7 @@
 (require-extension args clucker openssl posix oauth-client extras)
 
 ;; Current version of software
-(define mm-version "0.9.2 (2015-07-15)")
+(define mm-version "0.9.3 (2015-07-20)")
 
 ;; For future command line arguments and options
 (define options)
@@ -392,6 +392,10 @@ END
 	    [(equal? curr-task "twitter-search")
 	     (twitter-search (max-tweets) (keywords) (locations) (language))]
 	    [else (display "MassMine: Unknown task\n" (current-error-port))])))))]
+   [(s-starts-with? "wikipedia" curr-task)
+    (cond
+     [(equal? curr-task "wikipedia-search") (wikipedia-search (keywords))]
+     [(equal? curr-task "wikipedia-text") (wikipedia-text (keywords))])]
    [else (display "MassMine: Unknown task\n" (current-error-port)) (usage)])
   (exit 0))
 
