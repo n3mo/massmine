@@ -28,6 +28,9 @@
   (use extras data-structures srfi-1 srfi-13)
   (use rest-bind uri-common medea http-client)
 
+  ;; user-agent header used in http-header of all calls
+  (client-software '(("MassMine" "0.9.3 (2015-07-20)" #f)))
+
   ;; Lots of web services, including Twitter, don't accept ';' separated
   ;; query strings so use '&' for encoding by default but support both
   ;; '&' and ';' for decoding.
@@ -36,7 +39,8 @@
   ;; Available tasks and brief descriptions
   (define wikipedia-task-descriptions
     '((wikipedia-search . "Search wikipedia by keyword(s)")
-      (wikipedia-text   . "Retrieve full text of wiki page")))
+      (wikipedia-text   . "Retrieve full text of wiki page")
+      (wikipedia-views  . "Retrieve daily page views for a given month")))
 
 
   ;; EXAMPLES ------------------------------------------------------------
@@ -76,6 +80,10 @@
     "https://en.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext&utf8&format=json"
     #f read-line #f)
 
+  ;; Page view statistics, courtesy of stats.grok.se
+  (define (wiki-page-views #!key date title (lang "en"))
+    (let ((url (string-append "http://stats.grok.se/json/" "en" "/" date "/" title)))
+      (call-with-input-request url #f read-json)))
 
   ;; WIKIPEDIA TASKS -------------------------------------------------
 
@@ -111,6 +119,20 @@
 	(for-each (lambda (x) (write-json x) (newline))
 		  (vector->list (alist-ref 'search (alist-ref 'query results))))
 	(if continue? (loop kwords (alist-ref 'sroffset continue?))))))
+
+  ;; Page views for a given page title and month (YYYYMM). A date
+  ;; range is also permitted YYYYMM-YYYYMM.
+  (define (wikipedia-views title date)
+    (let ((result (wiki-page-views #:title title #:date date)))
+      (let ((mytitle (alist-ref 'title result))
+	    (lang (alist-ref 'project result)))
+	(for-each
+	 (lambda (day)
+	   (write-json `((title . ,mytitle)
+			 (date  . ,(symbol->string (car day)))
+			 (views . ,(cdr day))))
+	   (newline))
+	 (alist-ref 'daily_views result)))))
 
   ) ;; end of module massmine-wikipedia
 

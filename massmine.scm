@@ -50,6 +50,7 @@
 (define custom-cred-path	(make-parameter #f))
 (define config-file             (make-parameter #f))
 (define output-file             (make-parameter #f))
+(define date                    (make-parameter "201507"))
 
 (include "./modules/twitter")
 (import massmine-twitter)
@@ -132,6 +133,8 @@ END
 			  (language #f))
 	(args:make-option (u user)  (required: "NAME") "Screen name"
 			  (user-info #f))
+	(args:make-option (date)  (required: "YYYYMMDD") "Date (or date range)"
+			  (date arg))
 	(args:make-option (config)  (required: "FILE") "Config file"
 			  (config-file #t))
 	(args:make-option (no-splash)  #:none "Inhibit splash screen"
@@ -395,7 +398,8 @@ END
    [(s-starts-with? "wikipedia" curr-task)
     (cond
      [(equal? curr-task "wikipedia-search") (wikipedia-search (keywords))]
-     [(equal? curr-task "wikipedia-text") (wikipedia-text (keywords))])]
+     [(equal? curr-task "wikipedia-text") (wikipedia-text (keywords))]
+     [(equal? curr-task "wikipedia-views") (wikipedia-views (keywords) (date))])]
    [else (display "MassMine: Unknown task\n" (current-error-port)) (usage)])
   (exit 0))
 
