@@ -25,8 +25,8 @@
 (module massmine-twitter *
 
   (import scheme chicken)
-  (use extras irregex data-structures posix utils srfi-1)
-  (use openssl oauth-client uri-common rest-bind medea clucker)
+  (use extras irregex data-structures posix utils srfi-1 srfi-13)
+  (use openssl oauth-client uri-common rest-bind medea clucker http-client)
 
   ;; user-agent header used in http-header of all calls
   (client-software '(("MassMine" "0.9.3 (2015-07-20)" #f)))
@@ -110,13 +110,13 @@
 	  (print "Please visit https://apps.twitter.com to collect")
 	  (print "the following information:")
 	  (display "Consumer key: ")
-	  (define c-key (read-line))
+	  (define c-key (string-trim-both (read-line)))
 	  (display "Consumer secret: ")
-	  (define c-secret (read-line))
+	  (define c-secret (string-trim-both (read-line)))
 	  (display "Access token: ")
-	  (define a-token (read-line))
+	  (define a-token (string-trim-both (read-line)))
 	  (display "Access token secret: ")
-	  (define a-secret (read-line))
+	  (define a-secret (string-trim-both (read-line)))
 
 	  ;; Verify the user's supplied credentials. This will return
 	  ;; if the credentials are successfully verified, otherwise
