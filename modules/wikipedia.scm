@@ -43,6 +43,41 @@
       (wikipedia-views  . "Retrieve daily page views for a given month")))
 
 
+  ;; HELPER PROCEDURES -----------------------------------------------
+
+  ;; printf-like procedure for padding numbers (in strings) so that
+  ;; they're always len numbers long. Example (left-pad 4 2) --> "04"
+  (define (left-pad number len)
+  (let* ((nstr (number->string number))
+         (diff (- len (string-length nstr)))
+         (pads (if (> diff 0) (make-string diff #\0) "")))
+    (string-append pads nstr)))
+
+  ;; Date range finder. Returns number of months between two dates
+  ;; ("2014-01-01" "2015-04-01") --> 15
+  (define (total-months date)
+    (let ((mindate (map string->number (string-split (car date) "-")))
+	  (maxdate (map string->number (string-split (cadr date) "-"))))
+      (let ((year-month(take (map - maxdate mindate) 2)))
+	(+ (* 12 (car year-month)) (cadr year-month) 1))))
+
+  ;; Turns a massmine date string spanning multiple dates (e.g.,
+  ;; "2014-01-01:2015-01-01") into a list of dates suitable for use
+  ;; with wikipedia-views (format YYYYMM)
+  (define (date-span->months date)
+    (let* ((drange (string-split date ":"))
+	   (mindate (map string->number (string-split (car drange) "-")))
+	   (minyear (car mindate))
+	   (minmonth (cadr mindate))
+	   (months (total-months drange)))
+      (map
+       (lambda (x)
+	 (let* ((num-years (inexact->exact (floor (/ x 12))))
+	       (month-num (- x (* 12 num-years))))
+	   (string-append (number->string (+ minyear num-years))
+			  (left-pad (+ minmonth month-num) 2))))
+       (iota months))))
+  
   ;; EXAMPLES ------------------------------------------------------------
 
   ;; Searching wikipedia. Here's an example GET method for searching
@@ -120,9 +155,10 @@
 		  (vector->list (alist-ref 'search (alist-ref 'query results))))
 	(if continue? (loop kwords (alist-ref 'sroffset continue?))))))
 
-  ;; Page views for a given page title and month (YYYYMM). A date
-  ;; range is also permitted YYYYMM-YYYYMM.
-  (define (wikipedia-views title date)
+  ;; Page views for a given page title and month, where the day is
+  ;; ignored (YYYY-MM-DD). This does the heavy lifting, but you should
+  ;; call wikipedia-views instead of this procedure
+  (define (find-wiki-page-views title date)
     (let ((result (wiki-page-views #:title title #:date date)))
       (let ((mytitle (alist-ref 'title result))
 	    (lang (alist-ref 'project result)))
@@ -133,6 +169,18 @@
 			 (views . ,(cdr day))))
 	   (newline))
 	 (alist-ref 'daily_views result)))))
+
+  ;; Retrieve wikipedia page views for each day of a given month or
+  ;; months (specified by a date range YYYY-MM-DD:YYYY-MM-DD)
+  (define (wikipedia-views title date)
+    (let* ((date-range
+	   (if (string-contains date ":")
+	       date
+	       (string-append date ":" date)))
+	   (months (date-span->months date-range)))
+      (for-each (lambda (x)
+		  (find-wiki-page-views title x))
+		months)))
 
   ) ;; end of module massmine-wikipedia
 
