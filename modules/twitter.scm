@@ -29,7 +29,7 @@
   (use openssl oauth-client uri-common rest-bind medea clucker http-client)
 
   ;; user-agent header used in http-header of all calls
-  (client-software '(("MassMine" "0.9.3 (2015-07-28)" #f)))
+  (client-software '(("MassMine" "0.9.4 (2015-08-19)" #f)))
 
   ;; Twitter module parameters
   (define twitter-cred-file

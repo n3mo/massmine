@@ -29,7 +29,7 @@
   (use rest-bind uri-common medea http-client)
 
   ;; user-agent header used in http-header of all calls
-  (client-software '(("MassMine" "0.9.3 (2015-07-28)" #f)))
+  (client-software '(("MassMine" "0.9.4 (2015-08-19)" #f)))
 
   ;; Lots of web services, including Twitter, don't accept ';' separated
   ;; query strings so use '&' for encoding by default but support both
