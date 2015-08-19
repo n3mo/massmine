@@ -23,9 +23,6 @@
 ;; Instructions: See www.massmine.org for complete documentation and
 ;; instructions for how to use massmine
 
-;; WARNING @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-;; You are working in the chicken branch of this git repo
-
 ;; Extensions. We need to import clucker here just so we can set! the
 ;; global variables used to sever the https connection with Twitter's
 ;; streaming API (which are defined in clucker)
