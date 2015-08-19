@@ -102,41 +102,42 @@
   ;; This walks the user through setting up their Twitter credentials
   ;; for MassMine
   (define (twitter-setup-auth cred-file)
-    (print "Would you like to setup your Twitter credentials?")
-    (print "Warning: continuing will over-write any previous credentials")
-    (if (yes-or-no? "Continue?" #:default "No" #:abort #f)
-	;; Walk the user through setting up their credentials
-	(begin
-	  (print "Please visit https://apps.twitter.com to collect")
-	  (print "the following information:")
-	  (display "Consumer key: ")
-	  (define c-key (string-trim-both (read-line)))
-	  (display "Consumer secret: ")
-	  (define c-secret (string-trim-both (read-line)))
-	  (display "Access token: ")
-	  (define a-token (string-trim-both (read-line)))
-	  (display "Access token secret: ")
-	  (define a-secret (string-trim-both (read-line)))
+    (let ((cred-path (if cred-file cred-file (twitter-cred-file))))
+      (print "Would you like to setup your Twitter credentials?")
+      (print "Warning: continuing will over-write any previous credentials")
+      (if (yes-or-no? "Continue?" #:default "No" #:abort #f)
+	  ;; Walk the user through setting up their credentials
+	  (begin
+	    (print "Please visit https://apps.twitter.com to collect")
+	    (print "the following information:")
+	    (display "Consumer key: ")
+	    (define c-key (string-trim-both (read-line)))
+	    (display "Consumer secret: ")
+	    (define c-secret (string-trim-both (read-line)))
+	    (display "Access token: ")
+	    (define a-token (string-trim-both (read-line)))
+	    (display "Access token secret: ")
+	    (define a-secret (string-trim-both (read-line)))
 
-	  ;; Verify the user's supplied credentials. This will return
-	  ;; if the credentials are successfully verified, otherwise
-	  ;; an exception (with an explanation to the user) will be
-	  ;; raised.
-	  (twitter-verify-credentials #:consumer-key c-key
-				      #:consumer-secret c-secret
-				      #:access-token a-token
-				      #:access-token-secret a-secret)
+	    ;; Verify the user's supplied credentials. This will return
+	    ;; if the credentials are successfully verified, otherwise
+	    ;; an exception (with an explanation to the user) will be
+	    ;; raised.
+	    (twitter-verify-credentials #:consumer-key c-key
+					#:consumer-secret c-secret
+					#:access-token a-token
+					#:access-token-secret a-secret)
 
-	  ;; If we've made it here, the user's credentials check out.
-	  ;; Prepare a proper alist and write to disk
-	  (with-output-to-file cred-file
-	    (lambda ()
-	      (write `((consumer-key . ,c-key)
-		(consumer-secret . ,c-secret)
-		(access-token . ,a-token)
-		(access-token-secret . ,a-secret)))))
-	  (print "\nAuthentication setup finished!"))
-	(print "Stopping!")))
+	    ;; If we've made it here, the user's credentials check out.
+	    ;; Prepare a proper alist and write to disk
+	    (with-output-to-file cred-path
+	      (lambda ()
+		(write `((consumer-key . ,c-key)
+			 (consumer-secret . ,c-secret)
+			 (access-token . ,a-token)
+			 (access-token-secret . ,a-secret)))))
+	    (print "\nAuthentication setup finished!"))
+	  (print "Stopping!"))))
 
   ;; Current rate limits are controlled through set!-able
   ;; variables. Each limit variable contains a pair: (1) the number of
