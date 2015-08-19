@@ -42,6 +42,12 @@
       (wikipedia-text   . "Retrieve full text of wiki page")
       (wikipedia-views  . "Retrieve daily page views for a given month")))
 
+  ;; Command line arguments supported by each task
+  (define wikipedia-task-options
+    '((wikipedia-search . "query*")
+      (wikipedia-text   . "query*")
+      (wikipedia-views  . "query* date* (month as YYYY-MM-DD)")))
+
 
   ;; HELPER PROCEDURES -----------------------------------------------
 

@@ -50,6 +50,17 @@
       (twitter-user .		"Fetch a user's timeline of tweets")
       (twitter-search .		"Search existing tweets by keyword(s)")))
 
+  ;; Command line arguments supported by each task
+  (define twitter-task-options
+    '((twitter-auth .           "auth")
+      (twitter-stream .		"query+ user+ geo+ lang count dur")
+      (twitter-sample .		"count dur")
+      (twitter-locations .	"<none>")
+      (twitter-trends .		"geo* (as WOEID returned by twitter-locations)")
+      (twitter-trends-nohash .	"geo* (as WOEID returned by twitter-locations)")
+      (twitter-user .		"user* count")
+      (twitter-search .		"query* count geo lang")))
+
   ;; Available tasks and their corresponding procedure calls
   (define twitter-tasks
     '((twitter-auth . (twitter-setup-auth P))

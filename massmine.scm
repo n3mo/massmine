@@ -149,6 +149,7 @@ END
      (print "Retrieve and store data from web sources")
      (newline)
      (print "See 'massmine -h <option>' to read about a specific topic")
+     (print "or  'massmine -h task-options' for options supported by each task ")
      (print "or  'massmine -h examples' for detailed examples")
      (newline)
      (print "Report bugs to nemo1211 at gmail.")))
@@ -197,6 +198,26 @@ END
 				      (car task) "\033[0m" (cdr task)))
 		    (newline))
 		  wikipedia-task-descriptions)
+	(newline))]
+     [(equal? topic "task-options")
+      (begin
+	(print "Each task supports zero or more options. Options")
+	(print "marked with a * are required. For options marked")
+	(print "with a + choose only one")
+	(newline)
+	(for-each (lambda (task)
+		    (display (sprintf "~A~A~A -- ~A"
+				      "\033[92m"
+				      (car task) "\033[0m" (cdr task)))
+		    (newline))
+		  twitter-task-options)
+	(newline)
+	(for-each (lambda (task)
+		    (display (sprintf "~A~A~A -- ~A"
+				      "\033[94m"
+				      (car task) "\033[0m" (cdr task)))
+		    (newline))
+		  wikipedia-task-options)
 	(newline))]
      [(equal? topic "output")
       (begin
