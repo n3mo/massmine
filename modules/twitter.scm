@@ -29,7 +29,7 @@
   (use openssl oauth-client uri-common rest-bind medea clucker http-client)
 
   ;; user-agent header used in http-header of all calls
-  (client-software '(("MassMine" "0.9.4 (2015-08-19)" #f)))
+  (client-software '(("MassMine" "0.9.5 (2015-08-28)" #f)))
   ;; http-client retry policy for failed connections. We could set
   ;; this to #f to make it retry indefinitely, but this will lead to
   ;; http 420 rate limit responses from Twitter. Better to be
@@ -154,16 +154,6 @@
 			 (access-token-secret . ,a-secret)))))
 	    (print "\nAuthentication setup finished!"))
 	  (print "Stopping!"))))
-
-  ;; Returns the number of seconds in local time until a given date is
-  ;; reached. Date/time should be supplied as "YYYY-MM-DD HH:MM:SS TIMEZONE"
-  ;; (define (update-max-seconds! timestr)
-  ;;   (handle-exceptions exn
-  ;; 	(abort "Invalid duration format. 'YYYY-MM-DD HH:MM:SS TIMEZONE' expected") 
-  ;;     (let ((deadline
-  ;; 	     (- (local-time->seconds (string->time timestr "%Y-%m-%d %H:%M:%S %Z"))
-  ;; 		(current-seconds))))
-  ;; 	deadline)))
 
   ;; Current rate limits are controlled through set!-able
   ;; variables. Each limit variable contains a pair: (1) the number of

@@ -26,10 +26,10 @@
 ;; Extensions. We need to import clucker here just so we can set! the
 ;; global variables used to sever the https connection with Twitter's
 ;; streaming API (which are defined in clucker)
-(require-extension args clucker openssl posix oauth-client extras)
+(require-extension args clucker openssl posix oauth-client extras srfi-19)
 
 ;; Current version of software
-(define mm-version "0.9.4 (2015-08-19)")
+(define mm-version "0.9.5 (2015-08-28)")
 
 ;; For future command line arguments and options
 (define options)
@@ -298,6 +298,36 @@ END
       (let ((mymatch (substring-index prefix s)))
 	(if (and mymatch (= mymatch 0)) #t #f))))
 
+;; Returns the number of seconds in local time until a given date is
+;; reached. Date/time should be supplied as "YYYY-MM-DD HH:MM:SS"
+
+;; There is currently a bug in Chicken (caused by differences in the
+;; behavior of strptime on Linux vs OS X... see my ticket here:
+;; https://bugs.call-cc.org/ticket/1217 . Until this is fixed, I
+;; have different code for each OS
+
+;; OS X version. This version is hopefully safe to remove now that
+;; we're using the srfi-19 date procedures
+;; (define (update-max-seconds! timestr)
+;;   (handle-exceptions exn
+;; 	(abort "Invalid duration format. 'YYYY-MM-DD HH:MM:SS TIMEZONE' expected") 
+;;     (let ((deadline
+;; 	     (- (local-time->seconds (string->time timestr "%Y-%m-%d %H:%M:%S %Z"))
+;; 		(current-seconds))))
+;; 	deadline)))
+
+;; srfi-19 version
+(define (date-string->seconds timestr)
+  (handle-exceptions exn
+      (begin
+	(display "\nInvalid duration format. 'YYYY-MM-DD HH:MM:SS'expected\n"
+		 (current-error-port))
+	(exit 1)) 
+    (time->seconds (date-difference
+		    (string->date timestr "~Y-~m-~d ~H:~M:~S")
+		    (seconds->date (current-seconds))))))
+
+
 ;; Helper function for configure-from-file. Expects a list with
 ;; (option value), as described in opts. Blank lines in the config
 ;; file show up as empty lists (and we skip these)
@@ -318,7 +348,7 @@ END
       (if (equal? opt "count")
 	  (max-tweets (string->number optval)))
       (if (equal? opt "dur")
-	  (global-max-seconds (string->number optval)))
+	  (global-max-seconds (date-string->seconds optval)))
       (if (equal? opt "geo")
 	  (locations optval))
       (if (equal? opt "lang")
@@ -433,7 +463,7 @@ END
   (if (not (keywords))
       (keywords (alist-ref 'query options)))
   (if (not (global-max-seconds))
-      (global-max-seconds (string->number (alist-ref 'dur options))))
+      (global-max-seconds (date-string->seconds (alist-ref 'dur options))))
   (if (not (locations))
       (locations (alist-ref 'geo options)))
   (if (not (language))
