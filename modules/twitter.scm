@@ -58,8 +58,8 @@
   ;; Command line arguments supported by each task
   (define twitter-task-options
     '((twitter-auth .           "auth")
-      (twitter-stream .		"query+ user+ geo+ lang count dur")
-      (twitter-sample .		"count dur")
+      (twitter-stream .		"query+ user+ geo+ lang count dur ('YYYY-MM-DD HH:MM:SS')")
+      (twitter-sample .		"count dur ('YYYY-MM-DD HH:MM:SS')")
       (twitter-locations .	"<none>")
       (twitter-trends .		"geo* (as WOEID returned by twitter-locations)")
       (twitter-trends-nohash .	"geo* (as WOEID returned by twitter-locations)")
