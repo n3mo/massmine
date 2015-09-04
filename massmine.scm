@@ -457,6 +457,20 @@ END
   ;; Install massmine's config file(s) if missing
   (install-massmine)
 
+  ;; If the user has supplied configuration file path, we load it
+  ;; last. This way, the config file's behavior is trumped by any
+  ;; command line arguments
+  (if (config-file)
+      (begin
+	(config-file (alist-ref 'config options))
+	(handle-exceptions exn
+	    (begin
+	      (display "An error occurred while processing file " (current-error-port))
+	      (display (config-file) (current-error-port))
+	      (display "\nCheck for malformed entries\n" (current-error-port))
+	      (exit 1))
+	    (configure-from-file))))
+
   ;; Adjust for command line options. Update the master parameter alist
   (if (not (max-tweets))
       (max-tweets (string->number (alist-ref 'count options))))
@@ -474,19 +488,6 @@ END
       (task (alist-ref 'task options)))
   (if (custom-cred-path)
       (custom-cred-path (alist-ref 'auth options)))
-  ;; If the user has supplied configuration file path, we load it
-  ;; last. This way, the config file's behavior trumps all other
-  ;; command line arguments
-  (if (config-file)
-      (begin
-	(config-file (alist-ref 'config options))
-	(handle-exceptions exn
-	    (begin
-	      (display "An error occurred while processing file " (current-error-port))
-	      (display (config-file) (current-error-port))
-	      (display "\nCheck for malformed entries\n" (current-error-port))
-	      (exit 1))
-	    (configure-from-file))))
 
   ;; Greet the user
   (if (and (do-splash?) (output-to-file?)) (splash-screen))
