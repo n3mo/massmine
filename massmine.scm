@@ -53,6 +53,8 @@
 (import massmine-twitter)
 (include "./modules/wikipedia")
 (import massmine-wikipedia)
+(include "./modules/google")
+(import massmine-google)
 
 ;; Useful examples, displayed when 'massmine -h examples' is ran
 (define massmine-examples #<<END
@@ -198,6 +200,13 @@ END
 				      (car task) "\033[0m" (cdr task)))
 		    (newline))
 		  wikipedia-task-descriptions)
+	(newline)
+	(for-each (lambda (task)
+		    (display (sprintf "~A~A~A -- ~A"
+				      "\033[92m"
+				      (car task) "\033[0m" (cdr task)))
+		    (newline))
+		  google-task-descriptions)
 	(newline))]
      [(equal? topic "task-options")
       (begin
@@ -218,6 +227,13 @@ END
 				      (car task) "\033[0m" (cdr task)))
 		    (newline))
 		  wikipedia-task-options)
+	(newline)
+	(for-each (lambda (task)
+		    (display (sprintf "~A~A~A -- ~A"
+				      "\033[92m"
+				      (car task) "\033[0m" (cdr task)))
+		    (newline))
+		  google-task-options)
 	(newline))]
      [(equal? topic "output")
       (begin
@@ -448,6 +464,9 @@ END
      [(equal? curr-task "wikipedia-search") (wikipedia-search (keywords))]
      [(equal? curr-task "wikipedia-text") (wikipedia-text (keywords))]
      [(equal? curr-task "wikipedia-views") (wikipedia-views (keywords) (date))])]
+   [(s-starts-with? "google" curr-task)
+    (cond
+     [(equal? curr-task "google-trends") (google-trends)])]
    [else (display "MassMine: Unknown task\n" (current-error-port)) (usage)])
   (exit 0))
 
