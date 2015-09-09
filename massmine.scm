@@ -132,7 +132,7 @@ END
 			  (language #f))
 	(args:make-option (u user)  (required: "NAME") "Screen name"
 			  (user-info #f))
-	(args:make-option (date)  (required: "YYYYMMDD") "Date (or date range)"
+	(args:make-option (date)  (required: "YYYY-MM-DD") "Date (or date range)"
 			  (date arg))
 	(args:make-option (config)  (required: "FILE") "Config file"
 			  (config-file #t))
