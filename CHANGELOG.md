@@ -21,7 +21,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - twitter-auth bug that prevented new users from authenticating
 
 ### Added
-- Required option for each task now listed with the task-options help display
+- Required options for each task now listed with the task-options help display
 
 
 ## [0.9.3] - 2015-07-28
