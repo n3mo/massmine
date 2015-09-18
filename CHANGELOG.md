@@ -13,15 +13,18 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [0.9.5] - 2015-08-28
 
+### Added
+- Required options for each task now listed with the task-options help display
+- wikipedia-search task: Returns information about wiki articles containing a given search query
+- wikipedia-text task: Returns the full plain text of a requested wiki article
+- wikipedia-views task: Returns daily page views for a requested article for a given date range
+
 ### Changed
 - Increased number of retry attempts for failed/dropped connections to Twitter
 - Duration (e.g., for twitter-stream) now controlled via date/time stamps instead of seconds
 
 ### Fixed
 - twitter-auth bug that prevented new users from authenticating
-
-### Added
-- Required options for each task now listed with the task-options help display
 
 
 ## [0.9.3] - 2015-07-28
