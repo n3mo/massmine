@@ -10,6 +10,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 - Command line arguments now take precedence over configuration file options
+- twitter-user now optionally accepts multiple user names separated by commas. This allows for batch collection of lists of user names
 
 ## [0.9.5] - 2015-08-28
 

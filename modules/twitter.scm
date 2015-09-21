@@ -395,58 +395,63 @@
     (let* ((num-counts (inexact->exact (floor (/ num-tweets 200))))
 	   (raw-counts (reverse (cons (- num-tweets (* num-counts 200))
 				      (take (circular-list '200) num-counts))))
-	   (counts (filter (lambda (x) (not (= x 0))) raw-counts)))
-      ;; counts is a list of numbers. The length of the list
-      ;; corresponds to the number of times we have to query the api
-      ;; (200 tweets can be returned max per query). Each individual
-      ;; number corresponds to the number of requested tweets on a
-      ;; given query. The sum of the list equals the requested number
-      ;; of tweets from the user. E.g., if the user asked for 550
-      ;; tweets, counts will be (200 200 150)
+	   (counts (filter (lambda (x) (not (= x 0))) raw-counts))
+	   (user-names (map string-trim-both (string-split screen-name ","))))
+      ;; twitter-timeline accepts either a single user name, or
+      ;; multiple user names separated by commas. Up to num-tweets of
+      ;; records are returned for each user successively
+      (for-each (lambda (curr-user)
+		  ;; counts is a list of numbers. The length of the list
+		  ;; corresponds to the number of times we have to query the api
+		  ;; (200 tweets can be returned max per query). Each individual
+		  ;; number corresponds to the number of requested tweets on a
+		  ;; given query. The sum of the list equals the requested number
+		  ;; of tweets from the user. E.g., if the user asked for 550
+		  ;; tweets, counts will be (200 200 150)
 
-      ;; Twitter provides a mechanism for paginating results through
-      ;; the parameter max_id. On the first call we supply no max_id
-      ;; param. On subsequent calls, we must update and manage this
-      ;; parameter to ensure that different tweets are returned on
-      ;; each call
-      (let query-api ((how-many counts) (max-id ""))
-	(begin
-	  ;; Put the brakes on if necessary
-	  (twitter-rate-limit "timeline")
-	  ;; We've passed the rate limit check, continue
-	  (if (not (null? how-many))
-	      (let ((results
-		     (if (equal? max-id "")
-			 ;; On the first query, you cannot supply a
-			 ;; max_id, even the empty string ""
-			 (read-json
-			  (statuses-user-timeline #:screen_name screen-name
-					 #:count (car how-many)
-					 #:include_rts 1))
-			 ;; Subsequent queries we supply the max_id to
-			 ;; handle pagination of results
-			 (read-json
-			  (statuses-user-timeline #:screen_name screen-name
-					 #:count (car how-many)
-					 #:include_rts 1
-					 #:max_id max-id)))))
+		  ;; Twitter provides a mechanism for paginating results through
+		  ;; the parameter max_id. On the first call we supply no max_id
+		  ;; param. On subsequent calls, we must update and manage this
+		  ;; parameter to ensure that different tweets are returned on
+		  ;; each call
+		  (let query-api ((how-many counts) (max-id ""))
+		    (begin
+		      ;; Put the brakes on if necessary
+		      (twitter-rate-limit "timeline")
+		      ;; We've passed the rate limit check, continue
+		      (if (not (null? how-many))
+			  (let ((results
+				 (if (equal? max-id "")
+				     ;; On the first query, you cannot supply a
+				     ;; max_id, even the empty string ""
+				     (read-json
+				      (statuses-user-timeline #:screen_name curr-user
+							      #:count (car how-many)
+							      #:include_rts 1))
+				     ;; Subsequent queries we supply the max_id to
+				     ;; handle pagination of results
+				     (read-json
+				      (statuses-user-timeline #:screen_name curr-user
+							      #:count (car how-many)
+							      #:include_rts 1
+							      #:max_id max-id)))))
 
-		;; The remaining code should only run if we
-		;; successfully received tweets on the last query. If
-		;; twitter returned nothing, we're done here
-		(unless (or (not results) (= (vector-length results) 0))
-		  ;;We have the current batch of tweets, with meta-data
-		  ;;in results. Write out the current tweets
-		  (write-json results)
-		  (newline)
-		  ;; Now bookkeeping begins. We save the current max_id
-		  ;; param, substract to avoid getting the same tweet back
-		  ;; on our next call. 
-		  (query-api
-		   (cdr how-many)
-		   (- (alist-ref 'id (car (reverse (vector->list results))))
-		      1)))))))))
-
+			    ;; The remaining code should only run if we
+			    ;; successfully received tweets on the last query. If
+			    ;; twitter returned nothing, we're done here
+			    (unless (or (not results) (= (vector-length results) 0))
+			      ;;We have the current batch of tweets, with meta-data
+			      ;;in results. Write out the current tweets
+			      (write-json results)
+			      (newline)
+			      ;; Now bookkeeping begins. We save the current max_id
+			      ;; param, substract to avoid getting the same tweet back
+			      ;; on our next call. 
+			      (query-api
+			       (cdr how-many)
+			       (- (alist-ref 'id (car (reverse (vector->list results))))
+				  1))))))))
+		user-names)))
 
 ) ;; end of module massmine-twitter
 
