@@ -463,7 +463,8 @@ END
     (cond
      [(equal? curr-task "wikipedia-search") (wikipedia-search (keywords))]
      [(equal? curr-task "wikipedia-text") (wikipedia-text (keywords))]
-     [(equal? curr-task "wikipedia-views") (wikipedia-views (keywords) (date))])]
+     [(equal? curr-task "wikipedia-views") (wikipedia-views (keywords) (date))]
+     [(equal? curr-task "wikipedia-page-links") (wikipedia-page-links (keywords))])]
    [(s-starts-with? "google" curr-task)
     (cond
      [(equal? curr-task "google-trends") (google-trends (date))]

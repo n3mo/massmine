@@ -40,14 +40,15 @@
   (define wikipedia-task-descriptions
     '((wikipedia-search . "Search wikipedia by keyword(s)")
       (wikipedia-text   . "Retrieve full text of wiki page")
-      (wikipedia-views  . "Retrieve daily page views for a given month")))
+      (wikipedia-views  . "Retrieve daily page views for a given month")
+      (wikipedia-page-links . "Retrieve links embedded in a given wiki page")))
 
   ;; Command line arguments supported by each task
   (define wikipedia-task-options
     '((wikipedia-search . "query*")
       (wikipedia-text   . "query*")
-      (wikipedia-views  . "query* date* (month as YYYY-MM-DD)")))
-
+      (wikipedia-views  . "query* date* (month as YYYY-MM-DD)")
+      (wikipedia-page-links . "query*")))
 
   ;; HELPER PROCEDURES -----------------------------------------------
 
@@ -126,6 +127,12 @@
     (let ((url (string-append "http://stats.grok.se/json/" "en" "/" date "/" title)))
       (call-with-input-request url #f read-json)))
 
+  ;; Extract links from a wiki page
+  (define-method (wiki-page-links #!key titles plnamespace pllimit
+				  plcontinue)
+    "https://en.wikipedia.org/w/api.php?action=query&prop=links&format=json"
+    #f read-line #f)
+
   ;; WIKIPEDIA TASKS -------------------------------------------------
 
   ;; Returns the full text of a wikipedia page given its title. If
@@ -160,6 +167,23 @@
 	(for-each (lambda (x) (write-json x) (newline))
 		  (vector->list (alist-ref 'search (alist-ref 'query results))))
 	(if continue? (loop kwords (alist-ref 'sroffset continue?))))))
+
+  ;; Retrieve links embedded in a given wiki page
+  (define (wikipedia-page-links query)
+    (let loop ((page-title query) (offset "") (first? #t))
+      (let* ((results
+	      (if first?
+		  (read-json (wiki-page-links #:titles page-title
+					      #:pllimit 500))
+		  (read-json (wiki-page-links #:titles page-title
+					      #:pllimit 500
+					      #:plcontinue offset))))
+	     (continue? (alist-ref 'continue results)))
+	(for-each (lambda (x) (write-json (cons `(source . ,page-title) x)) (newline))
+		  (vector->list
+		   (alist-ref 'links (cdr (car (alist-ref 'pages (alist-ref 'query results)))))))
+	(if continue?
+	    (loop page-title (alist-ref 'plcontinue (alist-ref 'continue results)) #f)))))
 
   ;; Page views for a given page title and month, where the day is
   ;; ignored (YYYY-MM-DD). This does the heavy lifting, but you should

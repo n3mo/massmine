@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - google-trends task: Reports top-20 trending searches in the USA. Lots of extra info related to each entry is returned, including estimates of the number of searches (e.g., >500,000)
 - google-country-trends: Reports top-20 trending search phrases for every country supported by Google trends
+- wikipedia-page-links: Reports links embedded in a given wiki page. Returns the source page, namespace (ns), and the page title of each link
 
 ### Changed
 - Command line arguments now take precedence over configuration file options
