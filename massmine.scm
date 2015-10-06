@@ -189,6 +189,13 @@ END
 	(print "----------------")
 	(for-each (lambda (task)
 		    (display (sprintf "~A~A~A -- ~A"
+				      "\033[94m"
+				      (car task) "\033[0m" (cdr task)))
+		    (newline))
+		  google-task-descriptions)
+	(newline)
+	(for-each (lambda (task)
+		    (display (sprintf "~A~A~A -- ~A"
 				      "\033[92m"
 				      (car task) "\033[0m" (cdr task)))
 		    (newline))
@@ -200,19 +207,19 @@ END
 				      (car task) "\033[0m" (cdr task)))
 		    (newline))
 		  wikipedia-task-descriptions)
-	(newline)
-	(for-each (lambda (task)
-		    (display (sprintf "~A~A~A -- ~A"
-				      "\033[92m"
-				      (car task) "\033[0m" (cdr task)))
-		    (newline))
-		  google-task-descriptions)
 	(newline))]
      [(equal? topic "task-options")
       (begin
 	(print "Each task supports zero or more options. Options")
 	(print "marked with a * are required. For options marked")
 	(print "with a + choose only one")
+	(newline)
+	(for-each (lambda (task)
+		    (display (sprintf "~A~A~A -- ~A"
+				      "\033[94m"
+				      (car task) "\033[0m" (cdr task)))
+		    (newline))
+		  google-task-options)
 	(newline)
 	(for-each (lambda (task)
 		    (display (sprintf "~A~A~A -- ~A"
@@ -227,13 +234,6 @@ END
 				      (car task) "\033[0m" (cdr task)))
 		    (newline))
 		  wikipedia-task-options)
-	(newline)
-	(for-each (lambda (task)
-		    (display (sprintf "~A~A~A -- ~A"
-				      "\033[92m"
-				      (car task) "\033[0m" (cdr task)))
-		    (newline))
-		  google-task-options)
 	(newline))]
      [(equal? topic "output")
       (begin

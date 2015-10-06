@@ -38,17 +38,17 @@
 
   ;; Available tasks and brief descriptions
   (define wikipedia-task-descriptions
-    '((wikipedia-search . "Search wikipedia by keyword(s)")
+    '((wikipedia-page-links . "Retrieve links embedded in a given wiki page")
+      (wikipedia-search . "Search wikipedia by keyword(s)")
       (wikipedia-text   . "Retrieve full text of wiki page")
-      (wikipedia-views  . "Retrieve daily page views for a given month")
-      (wikipedia-page-links . "Retrieve links embedded in a given wiki page")))
+      (wikipedia-views  . "Retrieve daily page views for a given month")))
 
   ;; Command line arguments supported by each task
   (define wikipedia-task-options
-    '((wikipedia-search . "query*")
+    '((wikipedia-page-links . "query*")
+      (wikipedia-search . "query*")
       (wikipedia-text   . "query*")
-      (wikipedia-views  . "query* date* (month as YYYY-MM-DD)")
-      (wikipedia-page-links . "query*")))
+      (wikipedia-views  . "query* date* (month as YYYY-MM-DD)")))
 
   ;; HELPER PROCEDURES -----------------------------------------------
 

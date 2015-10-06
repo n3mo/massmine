@@ -47,24 +47,26 @@
   ;; Available tasks and brief descriptions
   (define twitter-task-descriptions
     '((twitter-auth .           "Authenticate with Twitter")
-      (twitter-stream .		"Get tweets by keyword in real time")
-      (twitter-sample .		"Get random sample of tweets in real time")
+      (twitter-friends .        "Get friends list for a specific user")
       (twitter-locations .	"Available geo locations (WOEIDS)")
+      (twitter-sample .		"Get random sample of tweets in real time")
+      (twitter-search .		"Search existing tweets by keyword(s)")
+      (twitter-stream .		"Get tweets by keyword in real time")
       (twitter-trends .		"Top-10 trends for a given location")
       (twitter-trends-nohash .	"Top-10 trends (no #hashtags)")
-      (twitter-user .		"Fetch a user's timeline of tweets")
-      (twitter-search .		"Search existing tweets by keyword(s)")))
+      (twitter-user .		"Fetch a user's timeline of tweets")))
 
   ;; Command line arguments supported by each task
   (define twitter-task-options
     '((twitter-auth .           "auth")
-      (twitter-stream .		"query+ user+ geo+ lang count dur ('YYYY-MM-DD HH:MM:SS')")
-      (twitter-sample .		"count dur ('YYYY-MM-DD HH:MM:SS')")
+      (twitter-friends .        "user*")
       (twitter-locations .	"<none>")
+      (twitter-sample .		"count dur ('YYYY-MM-DD HH:MM:SS')")
+      (twitter-search .		"query* count geo lang")
+      (twitter-stream .		"query+ user+ geo+ lang count dur ('YYYY-MM-DD HH:MM:SS')")
       (twitter-trends .		"geo* (as WOEID returned by twitter-locations)")
       (twitter-trends-nohash .	"geo* (as WOEID returned by twitter-locations)")
-      (twitter-user .		"user* count")
-      (twitter-search .		"query* count geo lang")))
+      (twitter-user .		"user* count")))
 
   ;; Available tasks and their corresponding procedure calls
   (define twitter-tasks
@@ -162,16 +164,21 @@
   (define search-rate-limit `(0 0))
   (define trends-rate-limit `(0 0))
   (define timeline-rate-limit `(0 0))
+  (define friends-rate-limit `(0 0))
   
   ;; These values are reset with this procedure
   (define (twitter-update-rate-limits!)
-    (let* ((result (application-rate-limit-status #:resources "search,trends,statuses"))
+    (let* ((result (application-rate-limit-status #:resources "search,trends,statuses,friends"))
 	   (search-rate (flatten (alist-ref 'search (alist-ref 'resources result))))
+	   (friends-rate
+	    (alist-ref '/friends/list (flatten (alist-ref 'friends (alist-ref 'resources result)))))
 	   (trends-rate (flatten (alist-ref 'trends (alist-ref 'resources result))))
 	   (timeline-rate
 	    (alist-ref '/statuses/user_timeline (alist-ref 'statuses (alist-ref 'resources result)))))
       (set! search-rate-limit `(,(cdr (third search-rate))
 				,(cdr (fourth search-rate))))
+      (set! friends-rate-limit `(,(cdr (third friends-rate))
+				,(cdr (fourth friends-rate))))
       (set! trends-rate-limit `(,(cdr (third trends-rate))
 				,(cdr (fourth trends-rate))))
       (set! timeline-rate-limit `(,(cdr (second trends-rate))
@@ -192,7 +199,7 @@
   ;; requested API resource, otherwise #f is returned. This procedure
   ;; can only be called with oauth, so it should only be called by
   ;; twitter tasks that have such bindings. "resource" can be either
-  ;; "search", "trends", or "timeline"
+  ;; "search", "friends", "trends", or "timeline"
   (define (twitter-rate-limit resource)
     (cond
      ;; REST API: Search
@@ -241,6 +248,29 @@
 	  ;; return to sender
 	  (set! trends-rate-limit `(,(- (first trends-rate-limit) 1)
 				    ,(second trends-rate-limit))))]
+     ;; REST API: Friends
+     [(equal? resource "friends")
+      (if (<= (first friends-rate-limit) 0)
+	  ;; We have run out of api calls (or this is the first time
+	  ;; we've called this procedure, in which case the delay
+	  ;; below will be zero seconds). Wait until the our rate
+	  ;; limit is reset by twitter, and then continue.
+	  (begin
+	    ;; Update our rate limits
+	    (twitter-update-rate-limits!)
+	    ;; Begin waiting (if necessary)
+	    (if (<= (first friends-rate-limit) 0)
+		(begin
+		  (sleep (inexact->exact (max (- (second friends-rate-limit) (current-seconds)))))
+		  ;; We're done waiting. Query twitter to ensure that our API
+		  ;; limits have been reset. Set! our rate limit variables accordingly
+		  (twitter-update-rate-limits!)))
+	    ;; Try again
+	    (twitter-rate-limit resource))
+	  ;; We have api calls available. Decrement our counter and
+	  ;; return to sender
+	  (set! friends-rate-limit `(,(- (first friends-rate-limit) 1)
+				    ,(second friends-rate-limit))))]
      ;; REST API: User timelines
      [(equal? resource "timeline")
       (if (<= (first timeline-rate-limit) 0)
@@ -452,6 +482,21 @@
 			       (- (alist-ref 'id (car (reverse (vector->list results))))
 				  1))))))))
 		user-names)))
+
+  ;; Retrieves the entire friends list for a specified user
+  (define (twitter-friends-list user-name)
+    (begin
+      ;; Put the brakes on if necessary
+      (twitter-rate-limit "friends")
+      ;; Get down to business
+      (let loop ((cursor -1))
+       (let ((results (read-json (friends-list #:screen_name user-name #:count 200))))
+	 (for-each (lambda (user-data)
+		     (write-json user-data)
+		     (newline))
+		   (vector->list (alist-ref 'users results)))
+	 (if (= (alist-ref 'next_cursor results) 0)
+	     (loop (alist-ref 'next_cursor results)))))))
 
 ) ;; end of module massmine-twitter
 

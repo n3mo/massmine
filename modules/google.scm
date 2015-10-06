@@ -31,13 +31,13 @@
 
   ;; Available tasks and brief descriptions
   (define google-task-descriptions
-    '((google-trends . "Trending US search phrases")
-      (google-country-trends . "Trending phrases by country")))
+    '((google-country-trends . "Trending phrases by country")
+      (google-trends . "Trending US search phrases")))
 
   ;; Command line arguments supported by each task
   (define google-task-options
-    '((google-trends . "date* (YYYY-MM-DD)")
-      (google-country-trends . "<none>")))
+    '((google-country-trends . "<none>")
+      (google-trends . "date* (YYYY-MM-DD)")))
 
 
   ;; HELPER PROCEDURES -----------------------------------------------
