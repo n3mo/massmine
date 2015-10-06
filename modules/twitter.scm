@@ -171,7 +171,8 @@
     (let* ((result (application-rate-limit-status #:resources "search,trends,statuses,friends"))
 	   (search-rate (flatten (alist-ref 'search (alist-ref 'resources result))))
 	   (friends-rate
-	    (alist-ref '/friends/list (flatten (alist-ref 'friends (alist-ref 'resources result)))))
+	    (cons '/friends/list
+		  (alist-ref '/friends/list (alist-ref 'friends (alist-ref 'resources result)))))
 	   (trends-rate (flatten (alist-ref 'trends (alist-ref 'resources result))))
 	   (timeline-rate
 	    (alist-ref '/statuses/user_timeline (alist-ref 'statuses (alist-ref 'resources result)))))
@@ -485,18 +486,21 @@
 
   ;; Retrieves the entire friends list for a specified user
   (define (twitter-friends-list user-name)
-    (begin
+    ;; Initial cursor set to -1 per twitter docs (-1 requests first
+    ;; "page" of results)
+    (let loop ((cursor -1))
       ;; Put the brakes on if necessary
       (twitter-rate-limit "friends")
-      ;; Get down to business
-      (let loop ((cursor -1))
-       (let ((results (read-json (friends-list #:screen_name user-name #:count 200))))
-	 (for-each (lambda (user-data)
-		     (write-json user-data)
-		     (newline))
-		   (vector->list (alist-ref 'users results)))
-	 (if (= (alist-ref 'next_cursor results) 0)
-	     (loop (alist-ref 'next_cursor results)))))))
+      ;; Get down to business  
+      (let ((results (read-json (friends-list #:screen_name user-name
+					      #:count 200
+					      #:cursor cursor))))
+	(for-each (lambda (user-data)
+		    (write-json user-data)
+		    (newline))
+		  (vector->list (alist-ref 'users results)))
+	(if (= (alist-ref 'next_cursor results) 0)
+	    (loop (alist-ref 'next_cursor results))))))
 
 ) ;; end of module massmine-twitter
 

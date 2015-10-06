@@ -456,6 +456,8 @@ END
 	    [(equal? curr-task "twitter-trends-nohash") (twitter-trends-nohash (locations))]
 	    [(equal? curr-task "twitter-user")
 	     (twitter-timeline (max-tweets) (user-info))]
+	    [(equal? curr-task "twitter-friends")
+	     (twitter-friends-list (user-info))]
 	    [(equal? curr-task "twitter-search")
 	     (twitter-search (max-tweets) (keywords) (locations) (language))]
 	    [else (display "MassMine: Unknown task\n" (current-error-port))])))))]
