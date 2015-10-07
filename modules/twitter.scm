@@ -499,7 +499,7 @@
 		    (write-json user-data)
 		    (newline))
 		  (vector->list (alist-ref 'users results)))
-	(if (= (alist-ref 'next_cursor results) 0)
+	(unless (= (alist-ref 'next_cursor results) 0)
 	    (loop (alist-ref 'next_cursor results))))))
 
 ) ;; end of module massmine-twitter
