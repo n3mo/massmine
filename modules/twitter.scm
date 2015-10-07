@@ -47,6 +47,7 @@
   ;; Available tasks and brief descriptions
   (define twitter-task-descriptions
     '((twitter-auth .           "Authenticate with Twitter")
+      (twitter-followers .      "Get followers list for a specific user")
       (twitter-friends .        "Get friends list for a specific user")
       (twitter-locations .	"Available geo locations (WOEIDS)")
       (twitter-sample .		"Get random sample of tweets in real time")
@@ -59,6 +60,7 @@
   ;; Command line arguments supported by each task
   (define twitter-task-options
     '((twitter-auth .           "auth")
+      (twitter-followers .      "user*")
       (twitter-friends .        "user*")
       (twitter-locations .	"<none>")
       (twitter-sample .		"count dur ('YYYY-MM-DD HH:MM:SS')")
