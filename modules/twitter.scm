@@ -165,21 +165,27 @@
   (define trends-rate-limit `(0 0))
   (define timeline-rate-limit `(0 0))
   (define friends-rate-limit `(0 0))
+  (define followers-rate-limit `(0 0))
   
   ;; These values are reset with this procedure
   (define (twitter-update-rate-limits!)
-    (let* ((result (application-rate-limit-status #:resources "search,trends,statuses,friends"))
+    (let* ((result (application-rate-limit-status #:resources "search,trends,statuses,friends,followers"))
 	   (search-rate (flatten (alist-ref 'search (alist-ref 'resources result))))
 	   (friends-rate
 	    (cons '/friends/list
 		  (alist-ref '/friends/list (alist-ref 'friends (alist-ref 'resources result)))))
+	   (followers-rate
+	    (cons '/followers/list
+		  (alist-ref '/followers/list (alist-ref 'followers (alist-ref 'resources result)))))
 	   (trends-rate (flatten (alist-ref 'trends (alist-ref 'resources result))))
 	   (timeline-rate
 	    (alist-ref '/statuses/user_timeline (alist-ref 'statuses (alist-ref 'resources result)))))
       (set! search-rate-limit `(,(cdr (third search-rate))
 				,(cdr (fourth search-rate))))
       (set! friends-rate-limit `(,(cdr (third friends-rate))
-				,(cdr (fourth friends-rate))))
+				 ,(cdr (fourth friends-rate))))
+      (set! followers-rate-limit `(,(cdr (third followers-rate))
+				   ,(cdr (fourth followers-rate))))
       (set! trends-rate-limit `(,(cdr (third trends-rate))
 				,(cdr (fourth trends-rate))))
       (set! timeline-rate-limit `(,(cdr (second trends-rate))
@@ -200,7 +206,7 @@
   ;; requested API resource, otherwise #f is returned. This procedure
   ;; can only be called with oauth, so it should only be called by
   ;; twitter tasks that have such bindings. "resource" can be either
-  ;; "search", "friends", "trends", or "timeline"
+  ;; "search", "friends", "followers", "trends", or "timeline"
   (define (twitter-rate-limit resource)
     (cond
      ;; REST API: Search
@@ -271,7 +277,30 @@
 	  ;; We have api calls available. Decrement our counter and
 	  ;; return to sender
 	  (set! friends-rate-limit `(,(- (first friends-rate-limit) 1)
-				    ,(second friends-rate-limit))))]
+				     ,(second friends-rate-limit))))]
+     ;; REST API: Followers
+     [(equal? resource "followers")
+      (if (<= (first followers-rate-limit) 0)
+	  ;; We have run out of api calls (or this is the first time
+	  ;; we've called this procedure, in which case the delay
+	  ;; below will be zero seconds). Wait until the our rate
+	  ;; limit is reset by twitter, and then continue.
+	  (begin
+	    ;; Update our rate limits
+	    (twitter-update-rate-limits!)
+	    ;; Begin waiting (if necessary)
+	    (if (<= (first followers-rate-limit) 0)
+		(begin
+		  (sleep (inexact->exact (max (- (second followers-rate-limit) (current-seconds)))))
+		  ;; We're done waiting. Query twitter to ensure that our API
+		  ;; limits have been reset. Set! our rate limit variables accordingly
+		  (twitter-update-rate-limits!)))
+	    ;; Try again
+	    (twitter-rate-limit resource))
+	  ;; We have api calls available. Decrement our counter and
+	  ;; return to sender
+	  (set! followers-rate-limit `(,(- (first followers-rate-limit) 1)
+				       ,(second followers-rate-limit))))]
      ;; REST API: User timelines
      [(equal? resource "timeline")
       (if (<= (first timeline-rate-limit) 0)
@@ -501,6 +530,25 @@
 		  (vector->list (alist-ref 'users results)))
 	(unless (= (alist-ref 'next_cursor results) 0)
 	    (loop (alist-ref 'next_cursor results))))))
+
+  ;; Retrieves the entire list of users that a specified user is
+  ;; following 
+  (define (twitter-followers-list user-name)
+    ;; Initial cursor set to -1 per twitter docs (-1 requests first
+    ;; "page" of results)
+    (let loop ((cursor -1))
+      ;; Put the brakes on if necessary
+      (twitter-rate-limit "followers")
+      ;; Get down to business  
+      (let ((results (read-json (followers-list #:screen_name user-name
+						#:count 200
+						#:cursor cursor))))
+	(for-each (lambda (user-data)
+		    (write-json user-data)
+		    (newline))
+		  (vector->list (alist-ref 'users results)))
+	(unless (= (alist-ref 'next_cursor results) 0)
+	  (loop (alist-ref 'next_cursor results))))))
 
 ) ;; end of module massmine-twitter
 

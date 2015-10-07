@@ -458,6 +458,8 @@ END
 	     (twitter-timeline (max-tweets) (user-info))]
 	    [(equal? curr-task "twitter-friends")
 	     (twitter-friends-list (user-info))]
+	    [(equal? curr-task "twitter-followers")
+	     (twitter-followers-list (user-info))]
 	    [(equal? curr-task "twitter-search")
 	     (twitter-search (max-tweets) (keywords) (locations) (language))]
 	    [else (display "MassMine: Unknown task\n" (current-error-port))])))))]
