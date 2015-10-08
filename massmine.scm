@@ -55,6 +55,8 @@
 (import massmine-wikipedia)
 (include "./modules/google")
 (import massmine-google)
+(include "./modules/tumblr")
+(import massmine-tumblr)
 
 ;; Useful examples, displayed when 'massmine -h examples' is ran
 (define massmine-examples #<<END
@@ -199,15 +201,23 @@ END
 				      "\033[92m"
 				      (car task) "\033[0m" (cdr task)))
 		    (newline))
-		  twitter-task-descriptions)
+		  tumblr-task-descriptions)
 	(newline)
 	(for-each (lambda (task)
 		    (display (sprintf "~A~A~A -- ~A"
 				      "\033[94m"
 				      (car task) "\033[0m" (cdr task)))
 		    (newline))
+		  twitter-task-descriptions)
+	(newline)
+	(for-each (lambda (task)
+		    (display (sprintf "~A~A~A -- ~A"
+				      "\033[92m"
+				      (car task) "\033[0m" (cdr task)))
+		    (newline))
 		  wikipedia-task-descriptions)
 	(newline))]
+
      [(equal? topic "task-options")
       (begin
 	(print "Each task supports zero or more options. Options")
@@ -226,11 +236,18 @@ END
 				      "\033[92m"
 				      (car task) "\033[0m" (cdr task)))
 		    (newline))
-		  twitter-task-options)
+		  tumblr-task-options)
 	(newline)
 	(for-each (lambda (task)
 		    (display (sprintf "~A~A~A -- ~A"
 				      "\033[94m"
+				      (car task) "\033[0m" (cdr task)))
+		    (newline))
+		  twitter-task-options)
+	(newline)
+	(for-each (lambda (task)
+		    (display (sprintf "~A~A~A -- ~A"
+				      "\033[92m"
 				      (car task) "\033[0m" (cdr task)))
 		    (newline))
 		  wikipedia-task-options)
@@ -418,6 +435,8 @@ END
    ;; Authentication is a special case
    [(equal? curr-task "twitter-auth")
     (twitter-setup-auth (custom-cred-path))]
+   [(equal? curr-task "tumblr-auth")
+    (tumblr-setup-auth (custom-cred-path))]
    ;; Twitter tasks must be signed with oauth
    [(s-starts-with? "twitter" curr-task)
     (begin
@@ -463,6 +482,32 @@ END
 	    [(equal? curr-task "twitter-search")
 	     (twitter-search (max-tweets) (keywords) (locations) (language))]
 	    [else (display "MassMine: Unknown task\n" (current-error-port))])))))]
+
+   ;; Tumblr tasks must be signed with oauth
+   [(s-starts-with? "tumblr" curr-task)
+    (begin
+      ;; Tumblr related tasks require the same blanket authentication
+      ;; prior to running (not entirely true. Some require oauth, some
+      ;; do not. But signing everything with oauth works fine).
+      (let* ((creds (tumblr-auth (custom-cred-path)))
+	     (tumblr-app
+	      (tumblr-service
+	       #:consumer-key (alist-ref 'consumer-key creds)
+	       #:consumer-secret (alist-ref 'consumer-secret creds)))
+	     (user-tokens
+	      (tumblr-token-credential
+	       #:access-token (alist-ref 'access-token creds)
+	       #:access-token-secret (alist-ref 'access-token-secret creds))))
+	;; This intercepts all calls to Tumblr and signs them with
+	;; the user's oauth credentials
+	(with-oauth
+	 tumblr-app user-tokens
+	 (lambda ()
+	   (cond
+	    [(equal? curr-task "tumblr-blog-info")
+	     (tumblr-blog-info (keywords) (alist-ref 'consumer-key creds))]
+	    [else (display "MassMine: Unknown task\n" (current-error-port))])))))]
+   
    [(s-starts-with? "wikipedia" curr-task)
     (cond
      [(equal? curr-task "wikipedia-search") (wikipedia-search (keywords))]

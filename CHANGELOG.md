@@ -10,6 +10,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - wikipedia-page-links: Reports links embedded in a given wiki page. Returns the source page, namespace (ns), and the page title of each link
 - twitter-followers task: Returns information on all followers of a specified user
 - twitter-friends task: Returns information on all friends of a specified user
+- tumblr-auth: Tumblr is now accessible! This task sets up the user's credentials for future data pulls.
+- tumblr-blog-info: Retrieves blog information (title, description, number of posts, and more) for a given blog. Also accepts a comma-separated list of blog names, fetching each in turn.
 
 ### Changed
 - Command line arguments now take precedence over configuration file options
