@@ -22,7 +22,7 @@
 
 ;; After users create an app with their Tumblr account, they must
 ;; visit https://api.tumblr.com/console/calls/user/info to generate
-;; their 
+;; their token and token secret
 
 (module massmine-tumblr *
 
@@ -47,12 +47,14 @@
   ;; Available tasks and brief descriptions
   (define tumblr-task-descriptions
     '((tumblr-auth .           "Authenticate with Tumblr")
-      (tumblr-blog-info .      "Retrieve info for 1+ blogs")))
+      (tumblr-blog-info .      "Retrieve info for 1+ blogs")
+      (tumblr-posts .          "Retrieve all posts for 1+ blog")))
 
   ;; Command line arguments supported by each task
   (define tumblr-task-options
     '((tumblr-auth .           "auth")
-      (tumblr-blog-info .      "query*")))
+      (tumblr-blog-info .      "query*")
+      (tumblr-posts .          "query*")))
 
   ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
   ;; Oauth Procedures
@@ -148,6 +150,34 @@
 				 read-json)))
 		    (write-json (alist-ref 'blog (alist-ref 'response result)))
 		    (newline)))
+		blog-names)))
+
+  ;; Returns all posts (in plain text format) for a given blog (or
+  ;; comma-separated list of blogs)
+  (define (tumblr-posts blog api-key)
+    (let ((blog-names (map string-trim-both (string-split blog ","))))
+      (for-each (lambda (curr-blog)
+		  (let loop ((offset 0))
+		    (let ((result (call-with-input-request
+				   (string-append "http://api.tumblr.com/v2/blog/"
+						  curr-blog
+						  "/posts/?api_key="
+						  api-key
+						  "&filter=text&offset="
+						  (number->string offset))
+				   #f
+				   read-json)))
+		      ;; Write each post
+		      (for-each (lambda (curr-post)
+				  (write-json curr-post)
+				  (newline))
+				(vector->list (alist-ref 'posts (alist-ref 'response result))))
+		      ;; The api endpoint returns 20 posts max each
+		      ;; pull. The field respons.total_posts reveals
+		      ;; how many are available. If we haven't reached
+		      ;; that number, we make another pull
+		      (unless (>= (+ 20 offset) (alist-ref 'total_posts (alist-ref 'response result)))
+			(loop (+ offset 20))))))
 		blog-names)))
 
   ) ;; end of module massmine-tumblr
