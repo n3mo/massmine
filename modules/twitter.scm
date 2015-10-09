@@ -29,7 +29,7 @@
   (use openssl oauth-client uri-common rest-bind medea clucker http-client)
 
   ;; user-agent header used in http-header of all calls
-  (client-software '(("MassMine" "0.9.5 (2015-08-28)" #f)))
+  (client-software '(("MassMine" "0.10.0 (2015-10-09)" #f)))
   ;; http-client retry policy for failed connections. We could set
   ;; this to #f to make it retry indefinitely, but this will lead to
   ;; http 420 rate limit responses from Twitter. Better to be

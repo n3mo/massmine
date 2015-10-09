@@ -29,7 +29,7 @@
 (require-extension args clucker openssl posix oauth-client extras srfi-19)
 
 ;; Current version of software
-(define mm-version "0.9.5 (2015-08-28)")
+(define mm-version "0.10.0 (2015-10-09)")
 
 ;; For future command line arguments and options
 (define options)

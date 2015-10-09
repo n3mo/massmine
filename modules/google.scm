@@ -27,7 +27,7 @@
   (use http-client medea)
 
   ;; user-agent header used in http-header of all calls
-  (client-software '(("MassMine" "0.9.5 (2015-08-28)" #f)))
+  (client-software '(("MassMine" "0.10.0 (2015-10-09)" #f)))
 
   ;; Available tasks and brief descriptions
   (define google-task-descriptions
