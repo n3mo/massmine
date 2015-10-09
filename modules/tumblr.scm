@@ -48,13 +48,15 @@
   (define tumblr-task-descriptions
     '((tumblr-auth .           "Authenticate with Tumblr")
       (tumblr-blog-info .      "Retrieve info for 1+ blogs")
-      (tumblr-posts .          "Retrieve all posts for 1+ blog")))
+      (tumblr-posts .          "Retrieve all posts for 1+ blog")
+      (tumblr-tag .            "Retrieve posts matching 1+ tags")))
 
   ;; Command line arguments supported by each task
   (define tumblr-task-options
     '((tumblr-auth .           "auth")
       (tumblr-blog-info .      "query*")
-      (tumblr-posts .          "query*")))
+      (tumblr-posts .          "query* count*")
+      (tumblr-tag .            "query* count*")))
 
   ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
   ;; Oauth Procedures
@@ -134,16 +136,27 @@
 	    (print "\nAuthentication setup finished!"))
 	  (print "Stopping!"))))
 
-  ;; Returns info about 1 or more blogs. blog should follow Tumblr's
-  ;; "standard" or "custom" hostname format (e.g., greentype.tumblr.com
-  ;; or www.davidslog.com , respectively). Multiple blogs can be passed
-  ;; by separating with commas. api-key is (car (alist-ref 'client-credential tumblr-app))
+  ;; Hostname helper procedure. blog names (used in other procedures
+  ;; below) should follow Tumblr's "standard" or "custom" hostname
+  ;; format (e.g., greentype.tumblr.com or www.davidslog.com ,
+  ;; respectively). The "standard" format is more common, and we don't
+  ;; want users to have to include the ".tumblr.com" suffix every
+  ;; time. This procedure detects if a "custom" hostname has been
+  ;; passed. If not, the suffix ".tumblr.com" is appended and returned
+  (define (format-tumblr-hostname blog-name)
+    (if (string-contains blog-name ".")
+	blog-name
+	(string-append blog-name ".tumblr.com")))
+  
+  ;; Returns info about 1 or more blogs. Multiple blogs can be passed
+  ;; by separating with commas. api-key is (car (alist-ref
+  ;; 'client-credential tumblr-app))
   (define (tumblr-blog-info blog api-key)
     (let ((blog-names (map string-trim-both (string-split blog ","))))
       (for-each (lambda (curr-blog)
 		  (let ((result (call-with-input-request
 				 (string-append "https://api.tumblr.com/v2/blog/"
-						curr-blog
+						(format-tumblr-hostname curr-blog)
 						"/info?api_key="
 						api-key)
 				 #f
@@ -154,31 +167,67 @@
 
   ;; Returns all posts (in plain text format) for a given blog (or
   ;; comma-separated list of blogs)
-  (define (tumblr-posts blog api-key)
+  (define (tumblr-posts blog max-posts api-key)
     (let ((blog-names (map string-trim-both (string-split blog ","))))
       (for-each (lambda (curr-blog)
 		  (let loop ((offset 0))
-		    (let ((result (call-with-input-request
-				   (string-append "http://api.tumblr.com/v2/blog/"
-						  curr-blog
-						  "/posts/?api_key="
-						  api-key
-						  "&filter=text&offset="
-						  (number->string offset))
-				   #f
-				   read-json)))
+		    (let* ((result (call-with-input-request
+				    (string-append "https://api.tumblr.com/v2/blog/"
+						   (format-tumblr-hostname curr-blog)
+						   "/posts/?api_key="
+						   api-key
+						   "&filter=text&offset="
+						   (number->string offset))
+				    #f
+				    read-json))
+			   (all-posts (alist-ref 'posts (alist-ref 'response result)))
+			   (num-posts (vector-length all-posts)))
 		      ;; Write each post
 		      (for-each (lambda (curr-post)
 				  (write-json curr-post)
 				  (newline))
-				(vector->list (alist-ref 'posts (alist-ref 'response result))))
+				(vector->list all-posts))
 		      ;; The api endpoint returns 20 posts max each
 		      ;; pull. The field respons.total_posts reveals
 		      ;; how many are available. If we haven't reached
 		      ;; that number, we make another pull
-		      (unless (>= (+ 20 offset) (alist-ref 'total_posts (alist-ref 'response result)))
-			(loop (+ offset 20))))))
+		      (unless (or (>= (+ offset num-posts) (alist-ref 'total_posts (alist-ref 'response result)))
+				  (>= (+ offset num-posts) max-posts))
+			(loop (+ offset num-posts))))))
 		blog-names)))
+
+  ;; Returns all posts (in plain text format) that match a given tag,
+  ;; up to max-posts number of posts
+  (define (tumblr-tag tag max-posts api-key)
+    (let ((tag-names (map string-trim-both (string-split tag ","))))
+      (for-each (lambda (curr-tag)
+		  (let loop ((before-timestamp (current-seconds))
+			     (total-count 0))
+		    (let* ((result (call-with-input-request
+				    (string-append "https://api.tumblr.com/v2/tagged?tag="
+						   curr-tag
+						   "&api_key="
+						   api-key
+						   "&filter=text&before="
+						   (number->string before-timestamp))
+				    #f
+				    read-json))
+			   (num-posts (vector-length (alist-ref 'response result)))
+			   (next-timestamp (alist-ref
+					    'featured_timestamp
+					    (vector-ref (alist-ref
+							 'response result) (- num-posts 1)))))
+		      ;; Write each post
+		      (for-each (lambda (curr-post)
+				  (write-json curr-post)
+				  (newline))
+				(vector->list (alist-ref 'response result)))
+		      ;; The api endpoint returns 20 posts max each
+		      ;; pull. If we haven't reached max-posts, pull again
+		      (unless (>= (+ total-count num-posts) max-posts)
+			(loop next-timestamp (+ total-count num-posts))))))
+		tag-names)))
+
 
   ) ;; end of module massmine-tumblr
 

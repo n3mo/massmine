@@ -12,6 +12,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - twitter-friends task: Returns information on all friends of a specified user
 - tumblr-auth: Tumblr is now accessible! This task sets up the user's credentials for future data pulls.
 - tumblr-blog-info: Retrieves blog information (title, description, number of posts, and more) for a given blog. Also accepts a comma-separated list of blog names, fetching each in turn.
+- tumblr-posts: Retrieves posts for a given blog, up to any number requested. With a large number, you can easily grab a blog's entire post history. Also accepts a comma-separated list of blog names, fetching each in turn.
+- tumblr-tag: Search tumblr by tag (keyword), returning matching posts up to a specified number. Also accepts a comma-separated list of tags, fetching each in turn.
 
 ### Changed
 - Command line arguments now take precedence over configuration file options

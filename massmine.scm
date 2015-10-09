@@ -507,7 +507,9 @@ END
 	    [(equal? curr-task "tumblr-blog-info")
 	     (tumblr-blog-info (keywords) (alist-ref 'consumer-key creds))]
 	    [(equal? curr-task "tumblr-posts")
-	     (tumblr-posts (keywords) (alist-ref 'consumer-key creds))]
+	     (tumblr-posts (keywords) (max-tweets) (alist-ref 'consumer-key creds))]
+	    [(equal? curr-task "tumblr-tag")
+	     (tumblr-tag (keywords) (max-tweets) (alist-ref 'consumer-key creds))]
 	    [else (display "MassMine: Unknown task\n" (current-error-port))])))))]
    
    [(s-starts-with? "wikipedia" curr-task)
