@@ -1,6 +1,11 @@
 #!/bin/bash
 
 # Produces compressed directories containing binary distributions for massmine
+
+# The linux deployment script should work on any properly set-up Linux
+# computer when ran from inside the root massmine/ directory. The Mac
+# OS X script won't work on other user's computers
+
 if [ "$(uname)" == "Darwin" ]
 then
     # The executable and linked library
