@@ -1,6 +1,6 @@
 # MassMine
 
-*WARNING: This project is currently in pre-release form. Day to day changes are likely to break existing functionality. Upcoming version 1.0.0 will mark the first stable release*
+*WARNING: This project is currently in beta form. Although compatibility-breaking changes are unlikely to occur, upcoming version 1.0.0 will mark the first stable release*
 
 ![Splash Screen](https://github.com/n3mo/massmine/raw/master/img/splash.png)
 
