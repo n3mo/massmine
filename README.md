@@ -1,5 +1,7 @@
 # MassMine
 
+*Current Version: 0.10.0 (2015-10-09)*
+
 *WARNING: This project is currently in beta form. Although compatibility-breaking changes are unlikely to occur, upcoming version 1.0.0 will mark the first stable release*
 
 ![Splash Screen](https://github.com/n3mo/massmine/raw/master/img/splash.png)
