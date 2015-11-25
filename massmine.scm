@@ -18,8 +18,6 @@
 ;;  You should have received a copy of the GNU General Public License
 ;;  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;
-;; x.x.x 2015-05-01 NVH: Initial chicken version
-;;
 ;; Instructions: See www.massmine.org for complete documentation and
 ;; instructions for how to use massmine
 
@@ -57,6 +55,8 @@
 (import massmine-google)
 (include "./modules/tumblr")
 (import massmine-tumblr)
+(include "./modules/web")
+(import massmine-web)
 
 ;; Useful examples, displayed when 'massmine -h examples' is ran
 (define massmine-examples #<<END
@@ -215,6 +215,13 @@ END
 				      "\033[92m"
 				      (car task) "\033[0m" (cdr task)))
 		    (newline))
+		  web-task-descriptions)
+	(newline)
+	(for-each (lambda (task)
+		    (display (sprintf "~A~A~A -- ~A"
+				      "\033[94m"
+				      (car task) "\033[0m" (cdr task)))
+		    (newline))
 		  wikipedia-task-descriptions)
 	(newline))]
 
@@ -248,6 +255,13 @@ END
 	(for-each (lambda (task)
 		    (display (sprintf "~A~A~A -- ~A"
 				      "\033[92m"
+				      (car task) "\033[0m" (cdr task)))
+		    (newline))
+		  web-task-options)
+	(newline)
+	(for-each (lambda (task)
+		    (display (sprintf "~A~A~A -- ~A"
+				      "\033[94m"
 				      (car task) "\033[0m" (cdr task)))
 		    (newline))
 		  wikipedia-task-options)
@@ -511,7 +525,11 @@ END
 	    [(equal? curr-task "tumblr-tag")
 	     (tumblr-tag (keywords) (max-tweets) (alist-ref 'consumer-key creds))]
 	    [else (display "MassMine: Unknown task\n" (current-error-port))])))))]
-   
+
+   [(s-starts-with? "web" curr-task)
+    (cond
+     [(equal? curr-task "web-text") (web-text (keywords))])]
+
    [(s-starts-with? "wikipedia" curr-task)
     (cond
      [(equal? curr-task "wikipedia-search") (wikipedia-search (keywords))]

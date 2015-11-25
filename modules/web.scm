@@ -23,18 +23,18 @@
 (module massmine-web *
 
   (import scheme chicken)
-  (use extras data-structures srfi-1 srfi-13)
-  (use rest-bind uri-common medea http-client html-parser)
+  (use extras posix data-structures ports)
+  (use medea http-client html-parser)
 
   ;; user-agent header used in http-header of all calls
   (client-software '(("MassMine" "0.10.0 (2015-10-09)" #f)))
 
   ;; Available tasks and brief descriptions
   (define web-task-descriptions
-    '((web-text . "Extract all text from a given web page (url)")))
+    '((web-text . "Extract all text from one or more web pages (urls)")))
 
   ;; Command line arguments supported by each task
-  (define wikipedia-task-options
+  (define web-task-options
     '((web-text . "query* (one or more URLs separated by spaces)")))
 
   ;; Core url fetcher. Content retrieved from url is returned as a
@@ -60,8 +60,7 @@
        (let ((raw-text (with-input-from-string (url-content->string curr-url)
 			 (lambda () (html-strip)))))
 	 (write-json `((url . ,curr-url)
-		       (timestamp . ,(time->string (seconds->local-time
-						    (current-seconds))))
+		       (timestamp . ,(time->string (seconds->local-time (current-seconds))))
 		       (text . ,raw-text)))
 	 (newline)))
      (string-split url-string)))
