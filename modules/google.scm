@@ -1,6 +1,6 @@
 ;; ##################################################################
 ;;
-;; MassMine: Your Access To Big Data
+;; MassMine: Your Access To Data
 ;; Copyright (C) 2014-2015  Nicholas M. Van Horn & Aaron Beveridge
 ;; Author: Nicholas M. Van Horn
 ;; 

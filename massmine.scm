@@ -1,7 +1,7 @@
 #! /usr/local/bin/csi -s
 ;; ##################################################################
 ;;
-;; MassMine: Your Access To Big Data
+;; MassMine: Your Access To Data
 ;; Copyright (C) 2014-2015  Nicholas M. Van Horn & Aaron Beveridge
 ;; Author: Nicholas M. Van Horn
 ;; 
@@ -431,7 +431,7 @@ END
 	 "       | |  | | (_| \\__ \\__ \\ |  | | | | | |  __/      \n"
 	 "       |_|  |_|\\__,_|___/___/_|  |_|_|_| |_|\\___|       \n"
 	 "                                                          \n"
-	 "                Your Access To Big Data                   \n"
+	 "                    Your Access To Data                   \n"
 	 "\n\n"
 	 "MassMine version " mm-version "\n"
 	 "https://github.com/n3mo/massmine\n\n"

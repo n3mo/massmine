@@ -8,6 +8,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Web (url) scraping!
 - web-text: Retrieves one or more urls and returns the text stripped of all html markup, the url itself, and a timestamp.
 
+### Changed
+- MassMine tagline changed
+
 ## [0.10.0] - 2015-10-09
 
 ### Added
