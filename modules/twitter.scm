@@ -368,8 +368,9 @@
       (write-json
        (list->vector
 	(map (lambda (x)
-	       (cons `(woeid . ,(alist-ref 'woeid metadata))
-		     (cons `(location . ,(alist-ref 'name metadata)) x))) trends)))
+	       (cons `(timestamp . ,(time->string (seconds->local-time (current-seconds))))
+		     (cons `(woeid . ,(alist-ref 'woeid metadata))
+			   (cons `(location . ,(alist-ref 'name metadata)) x)))) trends)))
       (newline)))
 
   ;; Top-10 trends. Returns the current top-10 trends for a given
@@ -383,8 +384,9 @@
       (write-json
        (list->vector
 	(map (lambda (x)
-	       (cons `(woeid . ,(alist-ref 'woeid metadata))
-		     (cons `(location . ,(alist-ref 'name metadata)) x))) trends)))
+	       (cons `(timestamp . ,(time->string (seconds->local-time (current-seconds))))
+		     (cons `(woeid . ,(alist-ref 'woeid metadata))
+			   (cons `(location . ,(alist-ref 'name metadata)) x)))) trends)))
       (newline)))
 
   ;; Search the twitter REST API. This is a rate-limited API endpoint,
