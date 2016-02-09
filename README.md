@@ -16,7 +16,7 @@ For detailed information, including installation instructions, please see [www.m
 
 ## License
 
-Copyright (C) 2014-2015 Nicholas M. Van Horn & Aaron Beveridge
+Copyright (C) 2014-2016 Nicholas M. Van Horn & Aaron Beveridge
 
 Author: Nicholas M. Van Horn <nvanhorn@nicholasvanhorn.com>
 
