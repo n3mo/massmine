@@ -11,6 +11,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 - MassMine tagline changed
+- Copyright year updated
 
 ## [0.10.0] - 2015-10-09
 
