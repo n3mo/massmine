@@ -402,6 +402,8 @@ END
 	  (language optval))
       (if (equal? opt "user")
 	  (user-info optval))
+      (if (equal? opt "date")
+	  (date optval))
       (if (equal? opt "no-splash")
 	  (do-splash #f)))))
 

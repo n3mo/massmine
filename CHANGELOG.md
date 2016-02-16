@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Web (url) scraping!
 - web-text: Retrieves one or more urls and returns the text stripped of all html markup, the url itself, and a timestamp.
 - Timestamp added to each output entry from twitter-trends and twitter-trends-nohash
+- Added missing(!) support for the --date CL option to config file mode
 
 ### Changed
 - MassMine tagline changed
