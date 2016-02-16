@@ -45,7 +45,7 @@
 (define custom-cred-path	(make-parameter #f))
 (define config-file             (make-parameter #f))
 (define output-file             (make-parameter #f))
-(define date                    (make-parameter "201507"))
+(define date                    (make-parameter "2100-01-01"))
 
 (include "./modules/twitter")
 (import massmine-twitter)
