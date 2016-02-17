@@ -1,7 +1,7 @@
 ;; ##################################################################
 ;;
 ;; MassMine: Your Access To Data
-;; Copyright (C) 2014-2015  Nicholas M. Van Horn & Aaron Beveridge
+;; Copyright (C) 2014-2016  Nicholas M. Van Horn & Aaron Beveridge
 ;; Author: Nicholas M. Van Horn
 ;; 
 ;;  This program is free software: you can redistribute it and/or modify
@@ -16,8 +16,6 @@
 ;;
 ;;  You should have received a copy of the GNU General Public License
 ;;  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-;;
-;; x.x.x 2015-05-01 NVH: Initial chicken version
 ;;
 ;; Instructions: See www.massmine.org for complete documentation and
 ;; instructions for how to use massmine
