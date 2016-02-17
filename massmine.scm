@@ -24,7 +24,7 @@
 ;; Extensions. We need to import clucker here just so we can set! the
 ;; global variables used to sever the https connection with Twitter's
 ;; streaming API (which are defined in clucker)
-(require-extension args clucker openssl posix oauth-client extras srfi-19)
+(require-extension args clucker openssl posix oauth-client extras srfi-19 pathname-expand)
 
 ;; Current version of software
 (define mm-version "0.10.0 (2015-10-09)")
@@ -41,7 +41,7 @@
 (define locations		(make-parameter ""))
 (define language		(make-parameter ""))
 (define user-info		(make-parameter ""))
-(define install-path		(make-parameter "~/.config/massmine"))
+(define install-path		(make-parameter (pathname-expand "~/.config/massmine")))
 (define custom-cred-path	(make-parameter #f))
 (define config-file             (make-parameter #f))
 (define output-file             (make-parameter #f))
@@ -383,7 +383,7 @@ END
     (let ((opt (car opt-value))
 	  (optval (cadr opt-value)))
       (if (equal? opt "auth")
-	  (custom-cred-path optval))
+	  (custom-cred-path (pathname-expand optval)))
       (if (equal? opt "output")
 	  (begin
 	    (output-to-file? #t)

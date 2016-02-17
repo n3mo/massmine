@@ -14,6 +14,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - MassMine tagline changed
 - Copyright year updated
 - Default --date param set to valid date far into the future
+- Implicit home directory expansion in file paths now explicit via pathname-expand (to reflect Chicken 4.10+ behavior)
 
 ## [0.10.0] - 2015-10-09
 

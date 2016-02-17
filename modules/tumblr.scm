@@ -42,7 +42,7 @@
 
   ;; Tumblr module parameters
   (define tumblr-cred-file
-    (make-parameter "~/.config/massmine/tumblr_cred"))
+    (make-parameter (pathname-expand "~/.config/massmine/tumblr_cred")))
 
   ;; Available tasks and brief descriptions
   (define tumblr-task-descriptions

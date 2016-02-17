@@ -26,7 +26,8 @@
 
   (import scheme chicken)
   (use extras irregex data-structures posix utils srfi-1 srfi-13)
-  (use openssl oauth-client uri-common rest-bind medea clucker http-client)
+  (use openssl oauth-client uri-common rest-bind medea clucker
+       http-client pathname-expand)
 
   ;; user-agent header used in http-header of all calls
   (client-software '(("MassMine" "0.10.0 (2015-10-09)" #f)))
@@ -38,7 +39,7 @@
 
   ;; Twitter module parameters
   (define twitter-cred-file
-    (make-parameter "~/.config/massmine/twitter_cred"))
+    (make-parameter (pathname-expand "~/.config/massmine/twitter_cred")))
 
   ;; Clucker parameters that need setting to our needs here
   (application-rate-limit-status-reader read-json)
