@@ -28,7 +28,7 @@
 
   (import scheme chicken)
   (use srfi-13 data-structures extras utils)
-  (use medea openssl oauth-client uri-common http-client)
+  (use medea openssl oauth-client uri-common http-client pathname-expand)
 
   (form-urlencoded-separator "&;")
 
