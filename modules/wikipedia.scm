@@ -36,6 +36,15 @@
   ;; '&' and ';' for decoding.
   (form-urlencoded-separator "&;")
 
+  ;; Wikipedia URL. Different languages begin with different URLs. For
+  ;; example, English Wikipedia pages begin with en.wikipedia.org
+  ;; whereas Japanses Wikipedia pages begin with
+  ;; ja.wikipedia.org. Users that set the --lang option at runtime can
+  ;; specify the prefix LANG in the URL LANG.wikipedia.org
+  (define wiki-language (make-parameter "en"))
+  (define (wikipedia-url)
+    (string-append "https://" (wiki-language) ".wikipedia.org"))
+
   ;; Available tasks and brief descriptions
   (define wikipedia-task-descriptions
     '((wikipedia-page-links . "Retrieve links embedded in a given wiki page")
@@ -45,10 +54,10 @@
 
   ;; Command line arguments supported by each task
   (define wikipedia-task-options
-    '((wikipedia-page-links . "query*")
-      (wikipedia-search . "query*")
-      (wikipedia-text   . "query*")
-      (wikipedia-views  . "query* date* (month as YYYY-MM-DD)")))
+    '((wikipedia-page-links . "query* lang")
+      (wikipedia-search . "query* lang")
+      (wikipedia-text   . "query* lang")
+      (wikipedia-views  . "query* date* (month as YYYY-MM-DD) lang")))
 
   ;; HELPER PROCEDURES -----------------------------------------------
 
@@ -114,23 +123,28 @@
   (define-method (wiki-search #!key srsearch srnamespace srwhat srinfo
 			      srprop srredirects sroffset srlimit
 			      srinterwiki srbackend)
-    "https://en.wikipedia.org/w/api.php?action=query&list=search&utf8&continue=&format=json"
+    (string-append (wikipedia-url) "/w/api.php?action=query&list=search&utf8&continue=&format=json")
     #f read-line #f)
 
   ;; Fetch plain text of page by title
-  (define-method (wiki-page-text #!key titles)
-    "https://en.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext&utf8&format=json"
-    #f read-line #f)
+  ;; (define-method (wiki-page-text #!key titles)
+  ;;   (string-append (wikipedia-url) "/w/api.php?action=query&prop=extracts&explaintext&utf8&format=json")
+  ;;   #f read-line #f)
+  (define (wiki-page-text #!key titles)
+    (let ((url (string-append (wikipedia-url)
+			      "/w/api.php?action=query&prop=extracts&explaintext&utf8&format=json&titles="
+			      titles)))
+      (call-with-input-request url #f read-line)))
 
   ;; Page view statistics, courtesy of stats.grok.se
   (define (wiki-page-views #!key date title (lang "en"))
-    (let ((url (string-append "http://stats.grok.se/json/" "en" "/" date "/" title)))
+    (let ((url (string-append "http://stats.grok.se/json/" lang "/" date "/" title)))
       (call-with-input-request url #f read-json)))
 
   ;; Extract links from a wiki page
   (define-method (wiki-page-links #!key titles plnamespace pllimit
 				  plcontinue)
-    "https://en.wikipedia.org/w/api.php?action=query&prop=links&format=json"
+    (string-append (wikipedia-url) "/w/api.php?action=query&prop=links&format=json")
     #f read-line #f)
 
   ;; WIKIPEDIA TASKS -------------------------------------------------
@@ -138,7 +152,9 @@
   ;; Returns the full text of a wikipedia page given its title. If
   ;; pagetitle is a comma-separated list of wiki pages, each page's
   ;; data is returned.
-  (define (wikipedia-text pagetitle)
+  (define (wikipedia-text pagetitle lang)
+    (print (string? lang))
+    (if lang (wiki-language lang))
     (if (string-contains pagetitle ",")
 	(let ((titles (string-split pagetitle ",")))
 	  (for-each
@@ -159,7 +175,8 @@
   ;; Search wikipedia. This returns either all search results (paging
   ;; through results as necessary) matching a query, or --count many
   ;; matches
-  (define (wikipedia-search query)
+  (define (wikipedia-search query lang)
+    (if lang (wiki-language lang))
     (let loop ((kwords query) (offset 0))
       (let* ((results
 	      (read-json (wiki-search #:srsearch kwords #:srlimit 50 #:sroffset offset)))
@@ -169,7 +186,8 @@
 	(if continue? (loop kwords (alist-ref 'sroffset continue?))))))
 
   ;; Retrieve links embedded in a given wiki page
-  (define (wikipedia-page-links query)
+  (define (wikipedia-page-links query lang)
+    (if lang (wiki-language lang))
     (let loop ((page-title query) (offset "") (first? #t))
       (let* ((results
 	      (if first?
@@ -188,8 +206,8 @@
   ;; Page views for a given page title and month, where the day is
   ;; ignored (YYYY-MM-DD). This does the heavy lifting, but you should
   ;; call wikipedia-views instead of this procedure
-  (define (find-wiki-page-views title date)
-    (let ((result (wiki-page-views #:title title #:date date)))
+  (define (find-wiki-page-views title date lang)
+    (let ((result (wiki-page-views #:title title #:date date #:lang lang)))
       (let ((mytitle (alist-ref 'title result))
 	    (lang (alist-ref 'project result)))
 	(for-each
@@ -202,14 +220,14 @@
 
   ;; Retrieve wikipedia page views for each day of a given month or
   ;; months (specified by a date range YYYY-MM-DD:YYYY-MM-DD)
-  (define (wikipedia-views title date)
+  (define (wikipedia-views title date lang)
     (let* ((date-range
 	   (if (string-contains date ":")
 	       date
 	       (string-append date ":" date)))
 	   (months (date-span->months date-range)))
       (for-each (lambda (x)
-		  (find-wiki-page-views title x))
+		  (find-wiki-page-views title x lang))
 		months)))
 
   ) ;; end of module massmine-wikipedia
