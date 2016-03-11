@@ -29,13 +29,13 @@ then
     sudo chicken-install -deploy -p ./massmine clucker args medea openssl srfi-19 pathname-expand html-parser
 
     # Package everything up with the current version number (zip and tarball)
-    zip massmine-`./massmine/massmine -v | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+'`-OSX-10.10.zip -r ./massmine/
+    zip massmine-`./massmine/massmine -v | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+'`-OSX-10.11.zip -r ./massmine/
 
-    tar czf massmine-`./massmine/massmine -v | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+'`-OSX-10.10.tar.gz ./massmine/
+    tar czf massmine-`./massmine/massmine -v | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+'`-OSX-10.11.tar.gz ./massmine/
 
     # Clean up by moving the results out of the development directory
-    mv massmine-`./massmine/massmine -v | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+'`-OSX-10.10.zip ~/deploy
-    mv massmine-`./massmine/massmine -v | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+'`-OSX-10.10.tar.gz ~/deploy
+    mv massmine-`./massmine/massmine -v | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+'`-OSX-10.11.zip ~/deploy
+    mv massmine-`./massmine/massmine -v | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+'`-OSX-10.11.tar.gz ~/deploy
 
     # Remove the build directory
     rm -rf massmine/
