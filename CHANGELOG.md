@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - [unreleased]
 
+Forthcoming changes...
+
+## [0.11.0] - 2016-03-11
+
 ### Added
 - Web (url) scraping!
 - web-text: Retrieves one or more urls and returns the text stripped of all html markup, the url itself, and a timestamp.
