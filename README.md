@@ -18,7 +18,7 @@ For detailed information, including installation instructions, please see [www.m
 
 Copyright (C) 2014-2016 Nicholas M. Van Horn & Aaron Beveridge
 
-Author: Nicholas M. Van Horn <nvanhorn@nicholasvanhorn.com>
+Author: Nicholas M. Van Horn <nvanhorn@capital.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
