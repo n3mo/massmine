@@ -52,8 +52,8 @@
       (twitter-sample .		"Get random sample of tweets in real time")
       (twitter-search .		"Search existing tweets by keyword(s)")
       (twitter-stream .		"Get tweets by keyword in real time")
-      (twitter-trends .		"Top-10 trends for a given location")
-      (twitter-trends-nohash .	"Top-10 trends (no #hashtags)")
+      (twitter-trends .		"Top-50 trends for a given location")
+      (twitter-trends-nohash .	"Top-50 trends (no #hashtags)")
       (twitter-user .		"Fetch a user's timeline of tweets")))
 
   ;; Command line arguments supported by each task
@@ -356,7 +356,7 @@
   (define (twitter-locations)
     (trends-available))
 
-  ;; Top-10 trends. Returns the current top-10 trends for a given
+  ;; Top-50 trends. Returns the current top-50 trends for a given
   ;; WOEID location. This method includes hashtags
   (define (twitter-trends woeid)
     ;; Check rate limits and pause if necessary
@@ -373,7 +373,7 @@
       (for-each (lambda (trend) (write-json trend) (newline))
 		full-data)))
 
-  ;; Top-10 trends. Returns the current top-10 trends for a given
+  ;; Top-50 trends. Returns the current top-50 trends for a given
   ;; WOEID location. This method EXCLUDES hashtags
   (define (twitter-trends-nohash woeid)
     ;; Check rate limits and pause if necessary

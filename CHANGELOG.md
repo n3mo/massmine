@@ -11,6 +11,7 @@ Forthcoming changes...
 - twitter-user no longer writes arrays of tweets. For consistency with other tasks, it now writes one tweet per line
 - twitter-trends no longer writes arrays of tweets. For consistency with other tasks, it now writes one tweet per line
 - twitter-trends-nohash no longer writes arrays of tweets. For consistency with other tasks, it now writes one tweet per line
+- Updated documentation to reflect that Twitter now returns top 50 trends instead of top 10
 
 ## [0.11.0] - 2016-03-11
 
