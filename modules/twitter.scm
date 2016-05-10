@@ -363,14 +363,15 @@
     (twitter-rate-limit "trends")
     (let* ((results (read-json (trends-place #:id woeid)))
 	   (trends (vector->list (alist-ref 'trends (car (vector->list results)))))
-	   (metadata (car (vector->list (alist-ref 'locations (car (vector->list results)))))))
-      (write-json
-       (list->vector
-	(map (lambda (x)
-	       (cons `(timestamp . ,(time->string (seconds->local-time (current-seconds))))
-		     (cons `(woeid . ,(alist-ref 'woeid metadata))
-			   (cons `(location . ,(alist-ref 'name metadata)) x)))) trends)))
-      (newline)))
+	   (metadata (car (vector->list (alist-ref 'locations (car (vector->list results))))))
+	   (full-data
+	    (map (lambda (x)
+		   (cons `(timestamp . ,(time->string (seconds->local-time (current-seconds))))
+			 (cons `(woeid . ,(alist-ref 'woeid metadata))
+			       (cons `(location . ,(alist-ref 'name metadata)) x)))) trends)))
+      ;; Write each trend as it's own JSON line
+      (for-each (lambda (trend) (write-json trend) (newline))
+		full-data)))
 
   ;; Top-10 trends. Returns the current top-10 trends for a given
   ;; WOEID location. This method EXCLUDES hashtags
@@ -379,14 +380,15 @@
     (twitter-rate-limit "trends")
     (let* ((results (read-json (trends-place #:id woeid #:exclude "hashtags")))
 	   (trends (vector->list (alist-ref 'trends (car (vector->list results)))))
-	   (metadata (car (vector->list (alist-ref 'locations (car (vector->list results)))))))
-      (write-json
-       (list->vector
-	(map (lambda (x)
-	       (cons `(timestamp . ,(time->string (seconds->local-time (current-seconds))))
-		     (cons `(woeid . ,(alist-ref 'woeid metadata))
-			   (cons `(location . ,(alist-ref 'name metadata)) x)))) trends)))
-      (newline)))
+	   (metadata (car (vector->list (alist-ref 'locations (car (vector->list results))))))
+	   (full-data 
+	    (map (lambda (x)
+		   (cons `(timestamp . ,(time->string (seconds->local-time (current-seconds))))
+			 (cons `(woeid . ,(alist-ref 'woeid metadata))
+			       (cons `(location . ,(alist-ref 'name metadata)) x)))) trends)))
+      ;; Write each trend as it's own JSON line
+      (for-each (lambda (trend) (write-json trend) (newline))
+		full-data)))
 
   ;; Search the twitter REST API. This is a rate-limited API endpoint,
   ;; and MUST include a call to twitter-rate-limit, which keeps track
@@ -439,9 +441,16 @@
 		;; twitter returned nothing, we're done here
 		(unless (or (not results) (= (vector-length (alist-ref 'statuses results)) 0))
 		  ;;We have the current batch of tweets, with meta-data
-		  ;;in results. Write out the current tweets
-		  (write-json (alist-ref 'statuses results))
-		  (newline)
+		  ;;in results. Write out the current tweets. The old
+		  ;;method wrote the results as-is, which happens to
+		  ;;be a JSON array. For other API endpoints the
+		  ;;results are line-oriented JSON with one tweet per
+		  ;;line. We extract the tweet data from the array and
+		  ;;write it one line at a time for consistency
+		  (for-each
+		   (lambda (tweet) (write-json tweet) (newline))
+		   (vector->list (alist-ref 'statuses results)))
+
 		  ;; Now bookkeeping begins. We save the current max_id
 		  ;; param, substract to avoid getting the same tweet back
 		  ;; on our next call. 
@@ -505,8 +514,12 @@
 			    (unless (or (not results) (= (vector-length results) 0))
 			      ;;We have the current batch of tweets, with meta-data
 			      ;;in results. Write out the current tweets
-			      (write-json results)
-			      (newline)
+
+			      ;; Line-oriented method
+			      (for-each
+			       (lambda (tweet) (write-json tweet) (newline))
+			       (vector->list results))
+
 			      ;; Now bookkeeping begins. We save the current max_id
 			      ;; param, substract to avoid getting the same tweet back
 			      ;; on our next call. 

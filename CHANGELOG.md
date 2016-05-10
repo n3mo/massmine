@@ -6,6 +6,12 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 Forthcoming changes...
 
+### Changed
+- twitter-search no longer writes arrays of tweets. For consistency with other tasks, it now writes one tweet per line
+- twitter-user no longer writes arrays of tweets. For consistency with other tasks, it now writes one tweet per line
+- twitter-trends no longer writes arrays of tweets. For consistency with other tasks, it now writes one tweet per line
+- twitter-trends-nohash no longer writes arrays of tweets. For consistency with other tasks, it now writes one tweet per line
+
 ## [0.11.0] - 2016-03-11
 
 ### Added
