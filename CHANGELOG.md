@@ -6,12 +6,21 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 Forthcoming changes...
 
+## [1.0.0] - 2016-07-08
+
+### Added
+- Additional built-in help for undocumented command line options
+- References to online help in built-in help
+- Wikipedia-text now supports multiple languages. Use --lang to specify the Wikipedia language URL (e.g., --lang=es for the Spanish Wikipedia URL https://es.wikipedia.org
+- Wikipedia-views now supports multiple languages. Use --lang to specify the Wikipedia language URL (e.g., --lang=es for the Spanish Wikipedia URL https://es.wikipedia.org
+
 ### Changed
 - twitter-search no longer writes arrays of tweets. For consistency with other tasks, it now writes one tweet per line
 - twitter-user no longer writes arrays of tweets. For consistency with other tasks, it now writes one tweet per line
 - twitter-trends no longer writes arrays of tweets. For consistency with other tasks, it now writes one tweet per line
 - twitter-trends-nohash no longer writes arrays of tweets. For consistency with other tasks, it now writes one tweet per line
 - Updated documentation to reflect that Twitter now returns top 50 trends instead of top 10
+- Simplified command line option required arguments in help screen (i.e., made the required text generic, as it should be, given how different tasks expect differently-formatted options
 
 ## [0.11.0] - 2016-03-11
 
