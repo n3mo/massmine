@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 Forthcoming changes...
 
+### Added
+- Version info now prints http://www.massmine.org
+
 ## [1.0.0] - 2016-07-08
 
 ### Added
