@@ -80,10 +80,6 @@ Collect 200 tweets from Twitter in real time matching the keyword
 
     massmine -t twitter-stream -c 200 --query love -o my_data.json
 
-Same as above, but collect the maximum number of tweets for 10 seconds
-
-    massmine -t twitter-stream -d 10 -q love -o my_data.json
-
 Search for up to 100 previously existing tweets matching 'potato'
 or 'climbing'. Limit results to english tweets. Print results to
 standard output (not to file). Notice the single quotes around
@@ -99,7 +95,7 @@ Same as above, but hide the MassMine splash screen
 
     massmine -t twitter-trends -g 1 --no-splash
 
-Retrieve the current top-10 trends, excluding #hashtags, in
+Retrieve the current top-50 trends, excluding #hashtags, in
 New York, New York. Write results to the file NY_trends.json
 
     massmine -t twitter-trends-nohash -g 2459115 -o NY_trends.json
@@ -155,9 +151,11 @@ END
      (print "Retrieve and store data from web sources")
      (newline)
      (print "See 'massmine -h <option>' to read about a specific topic")
+     (print "    'massmine -h task' will, for example, display help about the 'task' option")
      (print "or  'massmine -h task-options' for options supported by each task ")
      (print "or  'massmine -h examples' for detailed examples")
      (newline)
+     (print "Full documentation can be found at http://www.massmine.org")
      (print "Report bugs to nemo1211 at gmail.")))
  (exit 1))
 
@@ -271,48 +269,104 @@ END
      [(equal? topic "output")
       (begin
 	(print "If included, output is written to file (otherwise, standard out)")
-	(print "Example(s): 'massmine --output=twitterdata.json'")
+	(print "\nExample(s): 'massmine --output=twitterdata.json'")
 	(print "            'massmine -o twitterdata.json'")
 	(newline))]
      [(equal? topic "query")
       (begin
-	(print "Keyword(s) strings to be applied to data searches")
-	(print "Example(s): 'massmine --query=buckeyes'")
+	(print "Keyword(s) strings to be applied to data searches. Keyword format")
+	(print "and operators depends on the data source. See www.massmine.org")
+	(print "for task-specific information")
+	(print "\nExample(s): 'massmine --query=buckeyes'")
 	(print "            'massmine -q buckeyes'")
 	(newline))]
      [(equal? topic "count")
       (begin
 	(print "Request a number of records for tasks that accept limits")
-	(print "Example(s): 'massmine --count=100'")
+	(print "\nExample(s): 'massmine --count=100'")
 	(print "            'massmine -c 100'")
 	(newline))]
      [(equal? topic "dur")
       (begin
-	(print "Stop collection of records after DUR seconds")
-	(print "Example(s): 'massmine --dur=3600'")
-	(print "            'massmine -d 3600'")
+	(print "Stop collection of records after DUR has elapsed.")
+	(print "The format of DUR depends on the task. See www.massmine.org")
+	(print "for task-specific information")
+	(print "\nExample(s): 'massmine --dur='2016-10-11 14:30:00''")
+	(print "            'massmine -d '2016-10-11 14:30:00''")
 	(newline))]
      [(equal? topic "geo")
       (begin
-	(print "Limit collection to geographic regions for tasks that allow it")
-	(print "Example(s): 'massmine --geo=-74,40,-73,41'")
+	(print "Limit collection to geographic regions for tasks that support it.")
+	(print "See www.massmine.org for task-specific information")
+	(print "\nExample(s): 'massmine --geo=-74,40,-73,41'")
 	(print "            'massmine -g -74,40,-73,41'")
 	(newline))]
      [(equal? topic "lang")
       (begin
-	(print "Limit collection to a given language for tasks that allow it")
-	(print "Example(s): 'massmine --lang=en'")
+	(print "Limit collection to a given language for tasks that support it.")
+	(print "See www.massmine.org for task-specific information")
+	(print "\nExample(s): 'massmine --lang=en'")
 	(print "            'massmine -l en'")
 	(newline))]
      [(equal? topic "user")
       (begin
-	(print "Limit collection to specific users for tasks that allow it")
-	(print "Example(s): 'massmine --user=ladygaga'")
+	(print "Limit collection to specific users for tasks that support it.")
+	(print "See www.massmine.org for task-specific information")
+	(print "\nExample(s): 'massmine --user=ladygaga'")
 	(print "            'massmine -u ladygaga'")
 	(newline))]
+     [(equal? topic "date")
+      (begin
+	(print "Limit collection to a specific date(s) for tasks that support it.")
+	(print "See www.massmine.org for task-specific information")
+	(print "\nExample(s): 'massmine --date=2015-10-11'"))]
+     [(equal? topic "config")
+      (begin
+	(print "Control massmine's behavior with a configuration file instead")
+	(print "of using command line options.")
+	(print "See http://www.massmine.org/docs/config.html#alternative-configuration-file")
+	(print "for more information")
+	(print "\nExample(s): 'massmine --config=my_config.txt'"))]
+     [(equal? topic "no-splash")
+      (begin
+	(print "Suppress massmine's startup banner")
+	(print "\nExample(s): 'massmine --no-splash'"))]
      [(equal? topic "examples")
       (begin
 	(print massmine-examples))]
+     [(equal? topic "version")
+      (begin
+	(print "Displays version information for the current MassMine installation")
+	(print "\nExample(s): 'massmine --version'")
+	(print "             'massmine -v'"))]
+     [(equal? topic "project")
+      (begin
+	(print "Creates a directory tree for managing a data")
+	(print "data collection and analysis project. Creates a")
+	(print "directory named by the supplied argument. The created")
+	(print "directory itself contains three sub-directories:")
+	(print "(1) 'data', (2) 'log', and (3) 'research' for managing")
+	(print "your project's data files, records/logs, and")
+	(print "research/analysis information, respectively.")
+	(print "\nExample(s): 'massmine --project=election'")
+	(print "             'massmine -p election'")
+	(print "\n(both commands will create a directory tree")
+	(print "called 'election' as described above)"))]
+     [(equal? topic "auth")
+      (begin
+	(print "Manually specifies an authorization file. MassMine automatically")
+	(print "manages login credentials for the user. If, for example, you")
+	(print "would like to use different credentials for different data")
+	(print "collection tasks, or would like to simply save the")
+	(print "information to a custom location, specify the path/file with")
+	(print "this option. This option can be used in conjunction with data")
+	(print "collection AND with authentification tasks (e.g., twitter-auth).")
+	(print "\nExample(s): 'massmine --auth=my_credentials'")
+	(print "            'massmine -a my_credentials'")
+	(print "\nA common workflow is to create an auth file for a new project")
+	(print "and then immediately use it for data collection:")
+	(print "            'massmine -a my_auth -t twitter-auth'")
+	(print "            'massmine -a my_auth -t twitter-locations'"))]
      [else (usage)])
     (exit 0)))
 
