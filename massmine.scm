@@ -162,6 +162,7 @@ END
 ;; Prints the current version of massmine, and useful info
 (define (print-version)
   (print "massmine " mm-version)
+  (print "http://www.massmine.org")
   (print "https://github.com/n3mo/massmine")
   (newline)
   (print "Copyright (C) 2014-2016 Nicholas M. Van Horn & Aaron Beveridge")
