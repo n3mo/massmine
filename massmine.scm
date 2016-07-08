@@ -46,6 +46,8 @@
 (define config-file             (make-parameter #f))
 (define output-file             (make-parameter #f))
 (define date                    (make-parameter "2100-01-01"))
+;; (define before                  (make-parameter ""))
+;; (define after                   (make-parameter ""))
 
 (include "./modules/twitter")
 (import massmine-twitter)
@@ -114,29 +116,29 @@ END
 			  (massmine-help options))
 	(args:make-option (v version)  #:none "Version information"
 			  (print-version))
-	(args:make-option (p project)  (required: "NAME")  "Create project"
+	(args:make-option (p project)  #:required  "Create project"
 			  (create-project-directory))
-	(args:make-option (a auth)  (required: "FILE") "Credentials file"
+	(args:make-option (a auth)  #:required "Credentials file"
 			  (custom-cred-path #t))	
-	(args:make-option (o output)  (required: "FILE")  "Write to file"
+	(args:make-option (o output)  #:required  "Write to file"
 			  (output-to-file? #t))
-	(args:make-option (t task)  (required: "TASK") "Task name"
+	(args:make-option (t task)  #:required "Task name"
 			  (task #f))
-	(args:make-option (q query)  (required: "QUERY") "Query string"
+	(args:make-option (q query)  #:required "Query string"
 			  (keywords #f))
-	(args:make-option (c count)  (required: "NUM") "Number of records"
+	(args:make-option (c count)  #:required "Number of records"
 			  (max-tweets #f))
-	(args:make-option (d dur)  (required: "SECOND") "Max runtime"
+	(args:make-option (d dur)  #:required "Max runtime"
 			  (global-max-seconds #f))
-	(args:make-option (g geo)  (required: "LOCATION") "Location"
+	(args:make-option (g geo)  #:required "Location"
 			  (locations #f))
-	(args:make-option (l lang)  (required: "LANG") "Language"
+	(args:make-option (l lang)  #:required "Language"
 			  (language #f))
-	(args:make-option (u user)  (required: "NAME") "Screen name"
+	(args:make-option (u user)  #:required "Screen name"
 			  (user-info #f))
-	(args:make-option (date)  (required: "YYYY-MM-DD") "Date (or date range)"
+	(args:make-option (date)  #:required "Date (or date range)"
 			  (date arg))
-	(args:make-option (config)  (required: "FILE") "Config file"
+	(args:make-option (config)  #:required "Config file"
 			  (config-file #t))
 	(args:make-option (no-splash)  #:none "Inhibit splash screen"
 			  (do-splash? #f))))
