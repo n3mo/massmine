@@ -56,8 +56,8 @@
   (define wikipedia-task-options
     '((wikipedia-page-links . "query* lang")
       (wikipedia-search . "query* lang")
-      (wikipedia-text   . "query* lang")
-      (wikipedia-views  . "query* date* (month as YYYY-MM-DD) lang")))
+      (wikipedia-text   . "query* lang*")
+      (wikipedia-views  . "query* lang* date* (month as YYYY-MM-DD)")))
 
   ;; HELPER PROCEDURES -----------------------------------------------
 
