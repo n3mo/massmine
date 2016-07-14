@@ -153,7 +153,6 @@
   ;; pagetitle is a comma-separated list of wiki pages, each page's
   ;; data is returned.
   (define (wikipedia-text pagetitle lang)
-    (print (string? lang))
     (if lang (wiki-language lang))
     (if (string-contains pagetitle ",")
 	(let ((titles (string-split pagetitle ",")))
