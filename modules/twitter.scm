@@ -28,7 +28,7 @@
        http-client pathname-expand)
 
   ;; user-agent header used in http-header of all calls
-  (client-software '(("MassMine" "1.0.0 (2016-07-08)" #f)))
+  (client-software '(("MassMine" "1.0.1 (2016-07-14)" #f)))
   ;; http-client retry policy for failed connections. We could set
   ;; this to #f to make it retry indefinitely, but this will lead to
   ;; http 420 rate limit responses from Twitter. Better to be
