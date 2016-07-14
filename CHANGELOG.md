@@ -6,8 +6,13 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 Forthcoming changes...
 
+## [1.0.1] - 2016-07-14
+
 ### Added
 - Version info now prints http://www.massmine.org
+
+### Fixed
+- Removed debug print statement that was causing the wikipedia-text task to output a boolean #t before writing the JSON result.
 
 ## [1.0.0] - 2016-07-08
 
