@@ -12,6 +12,10 @@ MassMine is a research tool designed to simplify the collection and use of data 
 
 For detailed information, including installation instructions, please see [www.massmine.org](http://www.massmine.org).
 
+You can support this project, or my other projects via [ChangeTip](http://n3mo.tip.me)
+
+[![Support via ChangeTip](http://www.nicholasvanhorn.com/images/changetip.png)](http://n3mo.tip.me)
+
 ## License
 
 Copyright (C) 2014-2016 Nicholas M. Van Horn & Aaron Beveridge
