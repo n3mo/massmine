@@ -23,5 +23,5 @@ MassMine is a research tool designed to simplify the collection and use of data 
 
 # References
 
--[Official Software Website.](http://www.massmine.org)
+-[Official Software Website.](http://www.massmine.org)  
 -[Software Repository](https://github.com/n3mo/massmine)
