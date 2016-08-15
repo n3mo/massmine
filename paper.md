@@ -11,6 +11,7 @@ authors:
    orcid: 0000-0002-0695-7765
    affiliation: Capital University
  - name: Aaron Beveridge
+   orcid: 0000-0002-5156-3044
    affiliation: University of Florida
 date: 15 August 2016
 bibliography: paper.bib
