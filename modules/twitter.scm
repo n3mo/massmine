@@ -189,8 +189,8 @@
 				   ,(cdr (fourth followers-rate))))
       (set! trends-rate-limit `(,(cdr (third trends-rate))
 				,(cdr (fourth trends-rate))))
-      (set! timeline-rate-limit `(,(cdr (second trends-rate))
-				  ,(cdr (third trends-rate))))))
+      (set! timeline-rate-limit `(,(cdr (second timeline-rate))
+				  ,(cdr (third timeline-rate))))))
 
   ;; Rate limit monitor. This has side effects and sets! variables
   ;; defined above. It does so because twitter's API rate limits are
