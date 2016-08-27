@@ -203,11 +203,13 @@
   ;; track of this info. (2) On subsequent calls to this procedure,
   ;; twitter's api is only queried when Unix (Epoch) time has expired,
   ;; and the rate limits have been refreshed. Otherwise, the local
-  ;; variables are consulted. Returns #t if it's ok to query the
-  ;; requested API resource, otherwise #f is returned. This procedure
-  ;; can only be called with oauth, so it should only be called by
-  ;; twitter tasks that have such bindings. "resource" can be either
-  ;; "search", "friends", "followers", "trends", or "timeline"
+  ;; variables are consulted. Returns control to the calling function
+  ;; when it's "safe" to query the API resource. Until it is "safe",
+  ;; the process is stalled with sleep until the resource is
+  ;; available. This procedure can only be called with oauth, so it
+  ;; should only be called by twitter tasks that have such
+  ;; bindings. "resource" can be either "search", "friends",
+  ;; "followers", "trends", or "timeline"
   (define (twitter-rate-limit resource)
     (cond
      ;; REST API: Search
