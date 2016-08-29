@@ -7,6 +7,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Bug fix for twitter-user task. Rate limits were not properly handled previously (they were ignored due to the nature of the bug).
 
+### Changed
+- Doubled the ssl shutdown timeout. Previously, occasional connections were taking too long to shutdown, leading to problems for data collections that queried an API many times over a long period of time. By increasing MassMine's tolerance of such connections from 2 to 4 minutes, we are more robust to the occasional timeout hiccup.
+
 ## [1.0.1] - 2016-07-14
 
 ### Added
