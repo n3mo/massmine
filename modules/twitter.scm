@@ -35,6 +35,13 @@
   ;; conservative
   (max-retry-attempts 5)
 
+  ;; Sometimes ssl shutdown operations take a little extra time to
+  ;; shutdown, leading to improperly closed connections (and
+  ;; crashes). The default timeout occurs at 2 minutes which can lead
+  ;; to problems. We increase it here. Times for this parameter are
+  ;; specified in msecs
+  (ssl-shutdown-timeout 240000)		; 4 minutes
+
   ;; Twitter module parameters
   (define twitter-cred-file
     (make-parameter (pathname-expand "~/.config/massmine/twitter_cred")))
