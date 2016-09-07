@@ -1,6 +1,6 @@
 # MassMine
 
-*Current Version: 1.0.1 (2016-07-14)*
+*Current Version: 1.0.2 (2016-09-07)*
 
 ![Splash Screen](https://github.com/n3mo/massmine/raw/master/img/splash.png)
 
