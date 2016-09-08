@@ -4,6 +4,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - [unreleased]
 
+## [1.0.2] - 2016-09-07
+
 ### Fixed
 - Bug fix for twitter-user task. Rate limits were not properly handled previously (they were ignored due to the nature of the bug).
 
