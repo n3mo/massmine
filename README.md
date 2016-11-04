@@ -16,6 +16,11 @@ You can support this project, or my other projects via [ChangeTip](http://n3mo.t
 
 [![Support via ChangeTip](http://www.nicholasvanhorn.com/images/changetip.png)](http://n3mo.tip.me)
 
+## Contributions, Issues, and Support
+Contributions are certainly welcome. If you have an idea, consider opening an issue [here on GitHub](https://github.com/n3mo/massmine/issues) for discussion before delving into the code. Pull requests for added features can then be submitted [in the usual way on GitHub](https://github.com/n3mo/massmine/pulls).
+
+If you have questions, please [open an issue](https://github.com/n3mo/massmine/issues).
+
 ## License
 
 Copyright (C) 2014-2016 Nicholas M. Van Horn & Aaron Beveridge
