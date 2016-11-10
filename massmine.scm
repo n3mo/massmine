@@ -46,8 +46,7 @@
 (define config-file             (make-parameter #f))
 (define output-file             (make-parameter #f))
 (define date                    (make-parameter "2100-01-01"))
-;; (define before                  (make-parameter ""))
-;; (define after                   (make-parameter ""))
+(define testing?                (make-parameter #f))
 
 (include "./modules/twitter")
 (import massmine-twitter)
@@ -137,7 +136,9 @@ END
 	(args:make-option (config)  #:required "Config file"
 			  (config-file #t))
 	(args:make-option (no-splash)  #:none "Inhibit splash screen"
-			  (do-splash? #f))))
+			  (do-splash? #f))
+	(args:make-option (test)  #:none "Test MassMine"
+			  (testing? #t))))
 
 ;;; This procedure is called whenever the user specifies the help
 ;;; option at runtime OR whenever an unexpected command line option or
@@ -370,6 +371,11 @@ END
 	(print "            'massmine -a my_auth -t twitter-locations'"))]
      [else (usage)])
     (exit 0)))
+
+;; Tests. These can be run with the --test flag by users to ensure
+;; that their installation is working properly, or by developers
+(define (run-tests)
+  (load "./tests/run.scm"))
 
 ;; Routine responsible for setting up massmine's configuration
 ;; settings, etc.
@@ -604,6 +610,10 @@ END
 
 ;;; Just what you think. This gets things started
 (define (main)
+
+  ;; If testing? is #t, then we run our tests and quit
+  (when (testing?)
+    (run-tests))
 
   ;; Install massmine's config file(s) if missing
   (install-massmine)
