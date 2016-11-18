@@ -70,7 +70,7 @@
     (string-append pads nstr)))
 
   ;; Date range finder. Returns number of months between two dates
-  ;; ("2014-01-01" "2015-04-01") --> 15
+  ;; ("2014-01-01" "2015-04-01") --> 16
   (define (total-months date)
     (let ((mindate (map string->number (string-split (car date) "-")))
 	  (maxdate (map string->number (string-split (cadr date) "-"))))
