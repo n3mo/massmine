@@ -137,7 +137,7 @@ END
 			  (config-file #t))
 	(args:make-option (no-splash)  #:none "Inhibit splash screen"
 			  (do-splash? #f))
-	(args:make-option (test)  #:none "Test MassMine"
+	(args:make-option (test)  #:required "Development tests"
 			  (testing? #t))))
 
 ;;; This procedure is called whenever the user specifies the help
@@ -240,6 +240,7 @@ END
 		    (newline))
 		  google-task-options)
 	(newline)
+
 	(for-each (lambda (task)
 		    (display (sprintf "~A~A~A -- ~A"
 				      "\033[92m"
@@ -374,8 +375,17 @@ END
 
 ;; Tests. These can be run with the --test flag by users to ensure
 ;; that their installation is working properly, or by developers
-(define (run-tests)
-  (load "./tests/run.scm"))
+(define (run-tests file)
+  (handle-exceptions exn
+      (begin
+	(display "This option is for development purposes.\n"
+		 (current-error-port))
+	(display "You must provide a valid test file\n"
+		 (current-error-port))
+	(display "Example: massmine.scm --test ./tests/run.scm\n"
+		 (current-error-port))
+	(exit 1))
+    (load file)))
 
 ;; Routine responsible for setting up massmine's configuration
 ;; settings, etc.
@@ -613,7 +623,17 @@ END
 
   ;; If testing? is #t, then we run our tests and quit
   (when (testing?)
-    (run-tests))
+    (let ((test-file (alist-ref 'test options)))
+      (if (file-exists? test-file)
+	  (run-tests test-file)
+	  (begin
+	    (display "This option is for development purposes.\n"
+		     (current-error-port))
+	    (display "You must provide a valid test file\n"
+		     (current-error-port))
+	    (display "Example: massmine.scm --test ./tests/run.scm\n"
+		     (current-error-port))
+	    (exit 1)))))
 
   ;; Install massmine's config file(s) if missing
   (install-massmine)
