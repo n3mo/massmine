@@ -59,6 +59,17 @@
 ;;;               Twitter Tests
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(test-begin "Twitter Module")
+
+(test-assert "Twitter task descriptions" (list? twitter-task-descriptions))
+(test-assert "Twitter task options" (list? twitter-task-options))
+(test-assert "Search rate limit" (list? search-rate-limit))
+(test-assert "Trends rate limit" (list? trends-rate-limit))
+(test-assert "Timeline rate limit" (list? timeline-rate-limit))
+(test-assert "Friends rate limit" (list? friends-rate-limit))
+(test-assert "Followers rate limit" (list? followers-rate-limit))
+
+(test-end "Twitter Module")
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;               Web tests
