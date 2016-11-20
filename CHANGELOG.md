@@ -4,6 +4,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - [unreleased]
 
+### Added
+- Unit tests! MassMine can now run tests for each module. Tests are included in the tests directory. Example: ./massmine.scm --test ./tests/run.scm
+
 ## [1.0.2] - 2016-09-07
 
 ### Fixed
