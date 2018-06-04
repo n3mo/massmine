@@ -609,7 +609,7 @@ END
     (cond
      [(equal? curr-task "wikipedia-search") (wikipedia-search (keywords) (language))]
      [(equal? curr-task "wikipedia-text") (wikipedia-text (keywords) (language))]
-     [(equal? curr-task "wikipedia-views") (wikipedia-views (keywords) (date) (language))]
+     [(equal? curr-task "wikipedia-views") (wikipedia-views (keywords) (date))]
      [(equal? curr-task "wikipedia-page-links") (wikipedia-page-links (keywords) (language))])]
    [(s-starts-with? "google" curr-task)
     (cond
