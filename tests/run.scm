@@ -120,8 +120,7 @@
 (test-assert "Wikipedia views"
   (string? (with-output-to-string
 	     (lambda () (wikipedia-views "Veganism"
-					 "2016-01-01:2016-02-01"
-					 "en")))))
+					 "2018-01-01:2018-01-02")))))
 
 (test-end "Wikipedia Module")
 
