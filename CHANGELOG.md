@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased] - [unreleased]
 
 ### Added
+- With bug fix for wikipedia-views (see below), there is now better support for daily page view statistics from wikipedia. This includes day-by-day and even hour-by-hour support thanks to wikimedia's API. This changes the call syntax for wikipedia-views (changes are reflected in `massmine -h task-options`)
+
+### Fixed
+- wikipedia-views task updated to fix broken functionality. Now fetches data from the wikimedia API. 
+
+### Added
 - Unit tests! MassMine can now run tests for each module. Tests are included in the tests directory. Example: ./massmine.scm --test ./tests/run.scm
 
 ## [1.0.2] - 2016-09-07

@@ -26,7 +26,7 @@
 
   (import scheme chicken)
   (use extras data-structures srfi-1 srfi-13)
-  (use rest-bind uri-common medea http-client)
+  (use rest-bind uri-common medea http-client irregex)
 
   ;; user-agent header used in http-header of all calls
   (client-software '(("MassMine" "1.0.2 (2016-09-07)" #f)))
@@ -50,14 +50,14 @@
     '((wikipedia-page-links . "Retrieve links embedded in a given wiki page")
       (wikipedia-search . "Search wikipedia by keyword(s)")
       (wikipedia-text   . "Retrieve full text of wiki page")
-      (wikipedia-views  . "Retrieve daily page views for a given month")))
+      (wikipedia-views  . "Retrieve daily page views for a range of dates")))
 
   ;; Command line arguments supported by each task
   (define wikipedia-task-options
     '((wikipedia-page-links . "query* lang")
       (wikipedia-search . "query* lang")
       (wikipedia-text   . "query* lang*")
-      (wikipedia-views  . "query* lang* date* (month as YYYY-MM-DD)")))
+      (wikipedia-views  . "query* date* (as YYYY-MM-DD:YYYY-MM-DD or \n\t\t\t\t\tYYYY-MM-DD-HH:YYYY-MM-DD-HH)")))
 
   ;; HELPER PROCEDURES -----------------------------------------------
 
@@ -93,6 +93,12 @@
 	   (string-append (number->string (+ minyear num-years))
 			  (left-pad (+ minmonth month-num) 2))))
        (iota months))))
+
+  ;; URI encoder. Same as uri-encode-string from uri-common, but
+  ;; converts spaces to underscores first, according to the
+  ;; requirements of wikimedia's API
+  (define (wiki-uri-encode str)
+    (uri-encode-string (irregex-replace/all (irregex-quote " ") str "_")))
   
   ;; EXAMPLES ------------------------------------------------------------
 
@@ -136,10 +142,17 @@
 			      titles)))
       (call-with-input-request url #f read-line)))
 
-  ;; Page view statistics, courtesy of stats.grok.se
-  (define (wiki-page-views #!key date title (lang "en"))
-    (let ((url (string-append "http://stats.grok.se/json/" lang "/" date "/" title)))
+  ;; Daily page view statistics. title should be properly URI encoded
+  ;; using wiki-uri-encode. Dates should be in the format
+  ;; YYYYMMDDHH or YYYYMMDD
+  (define (wiki-page-views #!key title from-date to-date)
+    (let ((url (string-append
+  		"https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/all-agents/"
+  		title "/daily/"
+  		from-date "/"
+		to-date)))
       (call-with-input-request url #f read-json)))
+
 
   ;; Extract links from a wiki page
   (define-method (wiki-page-links #!key titles plnamespace pllimit
@@ -202,32 +215,24 @@
 	(if continue?
 	    (loop page-title (alist-ref 'plcontinue (alist-ref 'continue results)) #f)))))
 
-  ;; Page views for a given page title and month, where the day is
-  ;; ignored (YYYY-MM-DD). This does the heavy lifting, but you should
-  ;; call wikipedia-views instead of this procedure
-  (define (find-wiki-page-views title date lang)
-    (let ((result (wiki-page-views #:title title #:date date #:lang lang)))
-      (let ((mytitle (alist-ref 'title result))
-	    (lang (alist-ref 'project result)))
+  ;; Retrieve wikipedia page views for each day of a given range of
+  ;; dates (specified by YYYY-MM-DD:YYYY-MM-DD or
+  ;; YYYY-MM-DD-HH:YYYY-MM-DD-HH). Title should be a valid wikipedia
+  ;; article name (although spaces will be handled for the user if
+  ;; they include them)
+  (define (wikipedia-views title date)
+    (let ((date-range (string-split (irregex-replace/all "-" date "") ":")))
+      (let ((result (wiki-page-views
+		     #:title (wiki-uri-encode title)
+		     #:from-date (first date-range)
+		     #:to-date (second date-range))))
 	(for-each
 	 (lambda (day)
-	   (write-json `((title . ,mytitle)
-			 (date  . ,(symbol->string (car day)))
-			 (views . ,(cdr day))))
+	   (write-json `((title . ,(alist-ref 'article day))
+			 (date . ,(alist-ref 'timestamp day))
+			 (views . ,(alist-ref 'views day))))
 	   (newline))
-	 (alist-ref 'daily_views result)))))
-
-  ;; Retrieve wikipedia page views for each day of a given month or
-  ;; months (specified by a date range YYYY-MM-DD:YYYY-MM-DD)
-  (define (wikipedia-views title date lang)
-    (let* ((date-range
-	   (if (string-contains date ":")
-	       date
-	       (string-append date ":" date)))
-	   (months (date-span->months date-range)))
-      (for-each (lambda (x)
-		  (find-wiki-page-views title x lang))
-		months)))
+	 (vector->list (alist-ref 'items result))))))
 
   ) ;; end of module massmine-wikipedia
 
