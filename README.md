@@ -12,10 +12,6 @@ MassMine is a research tool designed to simplify the collection and use of data 
 
 For detailed information, including installation instructions, please see [www.massmine.org](http://www.massmine.org).
 
-You can support this project, or my other projects via [ChangeTip](http://n3mo.tip.me)
-
-[![Support via ChangeTip](http://www.nicholasvanhorn.com/images/changetip.png)](http://n3mo.tip.me)
-
 ## Contributions, Issues, and Support
 Contributions are certainly welcome. If you have an idea, consider opening an issue [here on GitHub](https://github.com/n3mo/massmine/issues) for discussion before delving into the code. Pull requests for added features can then be submitted [in the usual way on GitHub](https://github.com/n3mo/massmine/pulls).
 
