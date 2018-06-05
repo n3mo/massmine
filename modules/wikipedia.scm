@@ -50,14 +50,16 @@
     '((wikipedia-page-links . "Retrieve links embedded in a given wiki page")
       (wikipedia-search . "Search wikipedia by keyword(s)")
       (wikipedia-text   . "Retrieve full text of wiki page")
-      (wikipedia-views  . "Retrieve daily page views for a range of dates")))
+      (wikipedia-views  . "Retrieve daily page views for a range of dates")
+      (wikipedia-trends . "Retrieve 1000 most viewed pages for a month or day")))
 
   ;; Command line arguments supported by each task
   (define wikipedia-task-options
     '((wikipedia-page-links . "query* lang")
       (wikipedia-search . "query* lang")
       (wikipedia-text   . "query* lang*")
-      (wikipedia-views  . "query* date* (as YYYY-MM-DD:YYYY-MM-DD or \n\t\t\t\t\tYYYY-MM-DD-HH:YYYY-MM-DD-HH)")))
+      (wikipedia-views  . "query* date* (as YYYY-MM-DD:YYYY-MM-DD or \n\t\t\t\t\tYYYY-MM-DD-HH:YYYY-MM-DD-HH)")
+      (wikipedia-trends . "date* (as YYYY-MM or YYYY-MM-DD)")))
 
   ;; HELPER PROCEDURES -----------------------------------------------
 
@@ -160,6 +162,16 @@
     (string-append (wikipedia-url) "/w/api.php?action=query&prop=links&format=json")
     #f read-line #f)
 
+  ;; Find the 1000 most viewed articles on wikipedia for a given month
+  ;; or day
+  (define (wiki-trends #!key year month day)
+    (let ((url (string-append
+		"https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia/all-access/"
+		year "/"
+		month "/"
+		day)))
+      (call-with-input-request url #f read-json)))
+
   ;; WIKIPEDIA TASKS -------------------------------------------------
 
   ;; Returns the full text of a wikipedia page given its title. If
@@ -233,6 +245,34 @@
 			 (views . ,(alist-ref 'views day))))
 	   (newline))
 	 (vector->list (alist-ref 'items result))))))
+
+  ;; Retrieve the 1000 most trending articles on wikipedia for a given
+  ;; month or day. date, a string, should be either a month as YYYY-MM
+  ;; or a day as YYYY-MM-DD
+  (define (wikipedia-trends date)
+    ;; Helper function for date output
+    (define (date-me year month day)
+      (if (string=? day "all-days")
+	  (string-append year "-" month)
+	  (string-append year "-" month "-" day)))
+    ;; This gets things done
+    (let* ((tmp (string-split date "-"))
+	   (year (first tmp))
+	   (month (second tmp))
+	   (day (if (= (length tmp) 3)
+		    (third tmp)
+		    "all-days"))
+	   (out-date (date-me year month day))
+	   (result (wiki-trends #:year year #:month month #:day day)))
+      (for-each
+       (lambda (entry)
+	 (write-json `((date . ,out-date)
+		       (title . ,(alist-ref 'article entry))
+		       (rank . ,(alist-ref 'rank entry))
+		       (views . ,(alist-ref 'views entry))))
+	 (newline))
+       (vector->list
+	(alist-ref 'articles (first (vector->list (alist-ref 'items result))))))))
 
   ) ;; end of module massmine-wikipedia
 

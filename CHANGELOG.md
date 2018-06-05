@@ -5,6 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased] - [unreleased]
 
 ### Added
+- Wikipedia's 1000 most viewed articles for any given month or day now accessible via the `wikipedia-trends` task!
 - With bug fix for wikipedia-views (see below), there is now better support for daily page view statistics from wikipedia. This includes day-by-day and even hour-by-hour support thanks to wikimedia's API. This changes the call syntax for wikipedia-views (changes are reflected in `massmine -h task-options`)
 
 ### Fixed
