@@ -2,7 +2,7 @@
 ;; ##################################################################
 ;;
 ;; MassMine: Your Access To Data
-;; Copyright (C) 2014-2016  Nicholas M. Van Horn & Aaron Beveridge
+;; Copyright (C) 2014-2018  Nicholas M. Van Horn & Aaron Beveridge
 ;; Author: Nicholas M. Van Horn
 ;; 
 ;;  This program is free software: you can redistribute it and/or modify
@@ -27,7 +27,7 @@
 (require-extension args clucker openssl posix oauth-client extras srfi-19 pathname-expand)
 
 ;; Current version of software
-(define mm-version "1.0.2 (2016-09-07)")
+(define mm-version "1.1.0 (2018-06-06)")
 
 ;; For future command line arguments and options
 (define options)
