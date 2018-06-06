@@ -614,7 +614,7 @@ END
      [(equal? curr-task "wikipedia-trends") (wikipedia-trends (date))])]
    [(s-starts-with? "google" curr-task)
     (cond
-     [(equal? curr-task "google-trends") (google-trends (date))]
+     ;; [(equal? curr-task "google-trends") (google-trends (date))]
      [(equal? curr-task "google-country-trends") (google-country-trends)])]
    [else (display "MassMine: Unknown task\n" (current-error-port)) (usage)])
   (exit 0))

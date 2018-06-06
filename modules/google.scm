@@ -32,12 +32,14 @@
   ;; Available tasks and brief descriptions
   (define google-task-descriptions
     '((google-country-trends . "Trending phrases by country")
-      (google-trends . "Trending US search phrases")))
+      ;; (google-trends . "Trending US search phrases")
+      ))
 
   ;; Command line arguments supported by each task
   (define google-task-options
     '((google-country-trends . "<none>")
-      (google-trends . "date* (YYYY-MM-DD)")))
+      ;; (google-trends . "date* (YYYY-MM-DD)")
+      ))
 
 
   ;; HELPER PROCEDURES -----------------------------------------------
@@ -111,30 +113,31 @@
 			      (vector->list (cdr country)))))
   		trend-data)))
 
+  ;; TODO: Google has pivoted, so trends will need to accessed another way
   ;; Strategies gleaned from http://techslides.com/hacking-the-google-trends-api
 
   ;; Get the top-20 trends for the US
-  (define (get-google-trends date-stamp)
-    ;; Set browser-like user-agent
-    (client-software '(("Mozilla/5.0" "(Windows NT 6.2; Win64; x64; rv:16.0.1) Gecko/20121011 Firefox/16.0.1" #f)))
-    (call-with-input-request
-      "http://www.google.com/trends/hottrends/hotItems"
-      `((ajax . "1")
-	(htd . ,(string-delete (lambda (x) (equal? x #\-)) date-stamp))
-	(pn . "p1")
-	(htv . "l"))
-      read-json))
+  ;; (define (get-google-trends date-stamp)
+  ;;   ;; Set browser-like user-agent
+  ;;   (client-software '(("Mozilla/5.0" "(Windows NT 6.2; Win64; x64; rv:16.0.1) Gecko/20121011 Firefox/16.0.1" #f)))
+  ;;   (call-with-input-request
+  ;;     "http://www.google.com/trends/hottrends/hotItems"
+  ;;     `((ajax . "1")
+  ;; 	(htd . ,(string-delete (lambda (x) (equal? x #\-)) date-stamp))
+  ;; 	(pn . "p1")
+  ;; 	(htv . "l"))
+  ;;     read-json))
 
-  ;; Provides richer information about the current top-20 trends in
-  ;; the US
-  (define (google-trends date-stamp)
-    (let* ((trend-data (get-google-trends date-stamp))
-	   (trend-list (vector->list
-			(alist-ref
-			 'trendsList
-			 (car (vector->list (alist-ref 'trendsByDateList trend-data)))))))
-      (for-each (lambda (trend) (write-json trend) (newline))
-		trend-list)))
+  ;; ;; Provides richer information about the current top-20 trends in
+  ;; ;; the US
+  ;; (define (google-trends date-stamp)
+  ;;   (let* ((trend-data (get-google-trends date-stamp))
+  ;; 	   (trend-list (vector->list
+  ;; 			(alist-ref
+  ;; 			 'trendsList
+  ;; 			 (car (vector->list (alist-ref 'trendsByDateList trend-data)))))))
+  ;;     (for-each (lambda (trend) (write-json trend) (newline))
+  ;; 		trend-list)))
 
   ) ;; end of module massmine-google
 

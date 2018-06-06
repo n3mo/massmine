@@ -33,8 +33,8 @@
 ;;; Tasks
 (test-assert "Google country trends"
   (string? (with-output-to-string (lambda () (google-country-trends)))))
-(test-assert "Google trends"
-  (string? (with-output-to-string (lambda () (google-trends "2016-01-01")))))
+;; (test-assert "Google trends"
+;;   (string? (with-output-to-string (lambda () (google-trends "2016-01-01")))))
 
 (test-end "Google Module")
 
