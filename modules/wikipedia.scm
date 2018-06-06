@@ -50,16 +50,16 @@
     '((wikipedia-page-links . "Retrieve links embedded in a given wiki page")
       (wikipedia-search . "Search wikipedia by keyword(s)")
       (wikipedia-text   . "Retrieve full text of wiki page")
-      (wikipedia-views  . "Retrieve daily page views for a range of dates")
-      (wikipedia-trends . "Retrieve 1000 most viewed pages for a month or day")))
+      (wikipedia-trends . "Retrieve 1000 most viewed pages for a month or day")
+      (wikipedia-views  . "Retrieve daily page views for a range of dates")))
 
   ;; Command line arguments supported by each task
   (define wikipedia-task-options
     '((wikipedia-page-links . "query* lang")
       (wikipedia-search . "query* lang")
       (wikipedia-text   . "query* lang*")
-      (wikipedia-views  . "query* date* (as YYYY-MM-DD:YYYY-MM-DD or \n\t\t\t\t\tYYYY-MM-DD-HH:YYYY-MM-DD-HH)")
-      (wikipedia-trends . "date* (as YYYY-MM or YYYY-MM-DD)")))
+      (wikipedia-trends . "date* (as YYYY-MM or YYYY-MM-DD)")
+      (wikipedia-views  . "query* date* (as YYYY-MM-DD:YYYY-MM-DD or \n\t\t\t\t\tYYYY-MM-DD-HH:YYYY-MM-DD-HH)")))
 
   ;; HELPER PROCEDURES -----------------------------------------------
 
