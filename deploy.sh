@@ -53,7 +53,7 @@ then
     chicken-install -i massmine
 
     # Install clucker and additional eggs
-    chicken-install -deploy -p ./massmine clucker args openssl medea srfi-19 pathname-expand html-parser
+    chicken-install -deploy -p ./massmine clucker args openssl medea srfi-19 pathname-expand html-parser irregex
 
     # Package everything up with the current version number (zip and tarball)
     zip massmine-`./massmine/massmine -v | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+'`-linux-x86_64.zip -r ./massmine/
