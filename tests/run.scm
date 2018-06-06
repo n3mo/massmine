@@ -117,6 +117,9 @@
 (test-assert "Wikipedia text"
   (string? (with-output-to-string
 	     (lambda () (wikipedia-text "Veganism" "en")))))
+(test-assert "Wikipedia trends"
+  (string? (with-output-to-string
+	     (lambda () (wikipedia-trends "2018-04")))))
 (test-assert "Wikipedia views"
   (string? (with-output-to-string
 	     (lambda () (wikipedia-views "Veganism"
