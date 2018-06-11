@@ -26,7 +26,7 @@ then
     cd ../../massmine/
     
     # Install clucker and additional eggs
-    sudo chicken-install -deploy -p ./massmine clucker args medea openssl srfi-19 pathname-expand html-parser
+    sudo chicken-install -deploy -p ./massmine clucker args medea openssl srfi-19 pathname-expand html-parser irregex
 
     # Package everything up with the current version number (zip and tarball)
     zip massmine-`./massmine/massmine -v | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+'`-OSX-10.11.zip -r ./massmine/
