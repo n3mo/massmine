@@ -4,6 +4,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - [unreleased]
 
+### Added
+- You can now "rehydrate" tweets using Twitter's statuses-lookup API endopoint using the `twitter-rehydrate` task. This is the preferred method for retrieving older tweets, and Twitter's only allowed method for sharing tweets with other researchers. Now you can share tweet IDs (up to Twitter's allowed limits, and subject to their terms and conditions), and your recipient and "rehydrate" the tweets from the IDs that you have shared.
+
 ## [1.1.0] - 2018-06-06
 
 ### Added

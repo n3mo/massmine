@@ -570,6 +570,8 @@ END
 	     (twitter-followers-list (user-info))]
 	    [(equal? curr-task "twitter-search")
 	     (twitter-search (max-tweets) (keywords) (locations) (language))]
+	    [(equal? curr-task "twitter-rehydrate")
+	     (twitter-rehydrate (keywords))]
 	    [else (display "MassMine: Unknown task\n" (current-error-port))])))))]
 
    ;; Tumblr tasks must be signed with oauth

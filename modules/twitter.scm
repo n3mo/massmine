@@ -56,6 +56,7 @@
       (twitter-followers .      "Get followers list for a specific user")
       (twitter-friends .        "Get friends list for a specific user")
       (twitter-locations .	"Available geo locations (WOEIDS)")
+      (twitter-rehydrate .      "Rehydrate tweet(s) by ID number")
       (twitter-sample .		"Get random sample of tweets in real time")
       (twitter-search .		"Search existing tweets by keyword(s)")
       (twitter-stream .		"Get tweets by keyword in real time")
@@ -69,6 +70,7 @@
       (twitter-followers .      "user*")
       (twitter-friends .        "user*")
       (twitter-locations .	"<none>")
+      (twitter-rehydrate .      "query*")
       (twitter-sample .		"count dur ('YYYY-MM-DD HH:MM:SS')")
       (twitter-search .		"query* count geo lang")
       (twitter-stream .		"query+ user+ geo+ lang count dur ('YYYY-MM-DD HH:MM:SS')")
@@ -79,6 +81,7 @@
   ;; Available tasks and their corresponding procedure calls
   (define twitter-tasks
     '((twitter-auth . (twitter-setup-auth P))
+      (twitter-rehydrate . (twitter-rehydrate (keywords)))
       (twitter-stream . (twitter-stream (keywords) (locations) (language) (user-info)))
       (twitter-sample . (twitter-sample))
       (twitter-locations . (twitter-locations))
@@ -169,16 +172,18 @@
   ;; variables. Each limit variable contains a pair: (1) the number of
   ;; remaining API calls, and (2) Unix (Epoch) time until the
   ;; available calls are refreshed
-  (define search-rate-limit `(0 0))
-  (define trends-rate-limit `(0 0))
-  (define timeline-rate-limit `(0 0))
-  (define friends-rate-limit `(0 0))
   (define followers-rate-limit `(0 0))
+  (define friends-rate-limit `(0 0))
+  (define search-rate-limit `(0 0))
+  (define statuses-rate-limit `(0 0))
+  (define timeline-rate-limit `(0 0))
+  (define trends-rate-limit `(0 0))
   
   ;; These values are reset with this procedure
   (define (twitter-update-rate-limits!)
     (let* ((result (application-rate-limit-status #:resources "search,trends,statuses,friends,followers"))
 	   (search-rate (flatten (alist-ref 'search (alist-ref 'resources result))))
+	   (statuses-rate (flatten (alist-ref 'statuses (alist-ref 'resources result))))
 	   (friends-rate
 	    (cons '/friends/list
 		  (alist-ref '/friends/list (alist-ref 'friends (alist-ref 'resources result)))))
@@ -190,6 +195,8 @@
 	    (alist-ref '/statuses/user_timeline (alist-ref 'statuses (alist-ref 'resources result)))))
       (set! search-rate-limit `(,(cdr (third search-rate))
 				,(cdr (fourth search-rate))))
+      (set! statuses-rate-limit `(,(cdr (third statuses-rate))
+				,(cdr (fourth statuses-rate))))
       (set! friends-rate-limit `(,(cdr (third friends-rate))
 				 ,(cdr (fourth friends-rate))))
       (set! followers-rate-limit `(,(cdr (third followers-rate))
@@ -215,8 +222,8 @@
   ;; the process is stalled with sleep until the resource is
   ;; available. This procedure can only be called with oauth, so it
   ;; should only be called by twitter tasks that have such
-  ;; bindings. "resource" can be either "search", "friends",
-  ;; "followers", "trends", or "timeline"
+  ;; bindings. "resource" can be either "search", "statuses",
+  ;; "friends", "followers", "trends", or "timeline"
   (define (twitter-rate-limit resource)
     (cond
      ;; REST API: Search
@@ -242,6 +249,29 @@
 	  ;; return to sender
 	  (set! search-rate-limit `(,(- (first search-rate-limit) 1)
 				    ,(second search-rate-limit))))]
+     ;; REST API: Statuses
+     [(equal? resource "statuses")
+      (if (<= (first statuses-rate-limit) 0)
+	  ;; We have run out of api calls (or this is the first time
+	  ;; we've called this procedure, in which case the delay
+	  ;; below will be zero seconds). Wait until the our rate
+	  ;; limit is reset by twitter, and then continue.
+	  (begin
+	    ;; Update our rate limits
+	    (twitter-update-rate-limits!)
+	    ;; Begin waiting (if necessary)
+	    (if (<= (first statuses-rate-limit) 0)
+		(begin
+		  (sleep (inexact->exact (max (- (second statuses-rate-limit) (current-seconds)))))
+		  ;; We're done waiting. Query twitter to ensure that our API
+		  ;; limits have been reset. Set! our rate limit variables accordingly
+		  (twitter-update-rate-limits!)))
+	    ;; Try again
+	    (twitter-rate-limit resource))
+	  ;; We have api calls available. Decrement our counter and
+	  ;; return to sender
+	  (set! statuses-rate-limit `(,(- (first statuses-rate-limit) 1)
+				    ,(second statuses-rate-limit))))]
      ;; REST API: Trends
      [(equal? resource "trends")
       (if (<= (first trends-rate-limit) 0)
@@ -574,6 +604,43 @@
 		  (vector->list (alist-ref 'users results)))
 	(unless (= (alist-ref 'next_cursor results) 0)
 	  (loop (alist-ref 'next_cursor results))))))
+
+  ;; Rehydrate tweets. This endpoint is known as "statuses lookup" on
+  ;; Twitter's API. It is more commonly referred to as "rehydrating"
+  ;; with researchers, so we adopt that terminology here. Twitter
+  ;; allows for 100 tweet ids to be rehydrated per call to the API,
+  ;; hence the use of 100 below.
+  (define (twitter-rehydrate ids)
+    ;; Helper function: Splits a list into groups of length n, with
+    ;; remainder list items (< n) falling into the last group. Order
+    ;; is retained. A list of lists is returned
+    (define (split-and-group lst n)
+      (if (<= (length lst) n)
+	  (cons lst '())
+	  (let-values (([beg end] (split-at lst n)))
+	    (cons beg (split-and-group end n)))))
+    ;; Begin processing ids
+    (let* ([raw-ids (map string-trim-both (string-split ids ","))]
+	   [ids-list (map (lambda (x) (string-join x ","))
+			  (split-and-group raw-ids 100))])
+      ;; Now we get down to business. ids-list, created above is a
+      ;; list of tweet ids. Each element in id-lists is a string of up
+      ;; to 100 tweet ids separated by commas. Each of these strings
+      ;; must be passed to statuses-lookup. Each batch of ids is read
+      ;; and converted to line-oriented JSON, then written to
+      ;; current-output-port
+      (for-each
+       (lambda (id-string)
+	 ;; Put the brakes on if necessary
+	 (twitter-rate-limit "statuses")
+	 (let ([results (read-json (statuses-lookup #:id id-string
+						    #:include_entities #t))])
+	   (for-each (lambda (tweet)
+		       (write-json tweet)
+		       (newline))
+		     (vector->list results))))
+       ids-list)))
+  
 
 ) ;; end of module massmine-twitter
 
