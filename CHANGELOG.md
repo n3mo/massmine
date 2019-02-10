@@ -6,6 +6,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 - You can now "rehydrate" tweets using Twitter's statuses-lookup API endopoint using the `twitter-rehydrate` task. This is the preferred method for retrieving older tweets, and Twitter's only allowed method for sharing tweets with other researchers. Now you can share tweet IDs (up to Twitter's allowed limits, and subject to their terms and conditions), and your recipient can "rehydrate" the tweets from the IDs that you have shared.
+- Explicit utf8 support added. This likely has little effect on massmine's behavior to date, as it engaged in little-to-no processing of text data. This is more of a forward-facing addition to ensure future work behaves appropriately when working with utf8 text.
 
 ## [1.1.0] - 2018-06-06
 

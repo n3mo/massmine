@@ -23,9 +23,10 @@
 (module massmine-twitter *
 
   (import scheme chicken)
-  (use extras irregex data-structures posix utils srfi-1 srfi-13)
+  (use extras irregex data-structures posix utils srfi-1)
   (use openssl oauth-client uri-common rest-bind medea clucker
        http-client pathname-expand)
+  (require-extension utf8 utf8-srfi-13)
 
   ;; user-agent header used in http-header of all calls
   (client-software '(("MassMine" "1.1.0 (2018-06-06)" #f)))

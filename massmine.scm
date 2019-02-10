@@ -24,7 +24,8 @@
 ;; Extensions. We need to import clucker here just so we can set! the
 ;; global variables used to sever the https connection with Twitter's
 ;; streaming API (which are defined in clucker)
-(require-extension args clucker openssl posix oauth-client extras srfi-19 pathname-expand)
+(require-extension args clucker openssl posix oauth-client extras
+		   srfi-19 pathname-expand utf8)
 
 ;; Current version of software
 (define mm-version "1.1.0 (2018-06-06)")
@@ -47,6 +48,7 @@
 (define output-file             (make-parameter #f))
 (define date                    (make-parameter "2100-01-01"))
 (define testing?                (make-parameter #f))
+(define server                  (make-parameter #f))
 
 (include "./modules/twitter")
 (import massmine-twitter)
@@ -58,6 +60,7 @@
 (import massmine-tumblr)
 (include "./modules/web")
 (import massmine-web)
+(include "./modules/server")
 
 ;; Useful examples, displayed when 'massmine -h examples' is ran
 (define massmine-examples #<<END
@@ -137,6 +140,8 @@ END
 			  (config-file #t))
 	(args:make-option (no-splash)  #:none "Inhibit splash screen"
 			  (do-splash? #f))
+	(args:make-option (server)  #:required "Start in server mode"
+			  (server #f))
 	(args:make-option (test)  #:required "Development tests"
 			  (testing? #t))))
 
@@ -618,8 +623,7 @@ END
     (cond
      ;; [(equal? curr-task "google-trends") (google-trends (date))]
      [(equal? curr-task "google-country-trends") (google-country-trends)])]
-   [else (display "MassMine: Unknown task\n" (current-error-port)) (usage)])
-  (exit 0))
+   [else (display "MassMine: Unknown task\n" (current-error-port)) (usage)]))
 
 ;;; Just what you think. This gets things started
 (define (main)
@@ -642,7 +646,7 @@ END
   (install-massmine)
 
   ;; If the user has supplied configuration file path, we load it
-  ;; last. This way, the config file's behavior is trumped by any
+  ;; first. This way, the config file's behavior is trumped by any
   ;; command line arguments
   (if (config-file)
       (begin
@@ -670,8 +674,16 @@ END
       (user-info (alist-ref 'user options)))
   (if (not (task))
       (task (alist-ref 'task options)))
+  (if (not (server))
+      (server (alist-ref 'server options)))
   (if (custom-cred-path)
       (custom-cred-path (alist-ref 'auth options)))
+
+  ;; Run in server mode? If so, intercept control now. Nothing below
+  ;; this will run
+  (when (server)
+    (massmine-server #:port (string->number (server)))
+    (exit 1))
 
   ;; Greet the user
   (if (and (do-splash?) (output-to-file?)) (splash-screen))
@@ -695,7 +707,8 @@ END
 			   (current-error-port))
 		  (display "\n" (current-error-port)))
 	      (with-output-to-file out-file
-		(lambda () (task-dispatch (task)))))))
+		(lambda () (task-dispatch (task))
+			(exit 0))))))
       ;; This call does the heavy lifting
       (handle-exceptions exn
 	  (begin
@@ -703,7 +716,8 @@ END
 	    (display ((condition-property-accessor 'exn 'message) exn)
 		     (current-error-port))
 	    (display "\n" (current-error-port)))
-	  (task-dispatch (task))))
+	(task-dispatch (task))
+	(exit 0)))
   (if (output-to-file?) (print "MassMine done!"))
   
   (exit 1))
