@@ -1,7 +1,7 @@
 ;; ##################################################################
 ;;
 ;; MassMine: Your Access To Data
-;; Copyright (C) 2014-2018  Nicholas M. Van Horn & Aaron Beveridge
+;; Copyright (C) 2014-2020  Nicholas M. Van Horn & Aaron Beveridge
 ;; Author: Nicholas M. Van Horn
 ;; 
 ;;  This program is free software: you can redistribute it and/or modify
@@ -24,9 +24,10 @@
 
 (module massmine-wikipedia *
 
-  (import scheme chicken)
-  (use extras data-structures srfi-1 srfi-13)
-  (use rest-bind uri-common medea http-client irregex)
+  (import scheme)
+  (import (chicken base) (chicken io) (chicken string) (chicken irregex))
+  (import srfi-1 srfi-13)
+  (import rest-bind uri-common medea http-client)
 
   ;; user-agent header used in http-header of all calls
   (client-software '(("MassMine" "1.1.0 (2018-06-06)" #f)))

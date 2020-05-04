@@ -1,7 +1,7 @@
 ;; ##################################################################
 ;;
 ;; MassMine: Your Access To Data
-;; Copyright (C) 2014-2018  Nicholas M. Van Horn & Aaron Beveridge
+;; Copyright (C) 2014-2020  Nicholas M. Van Horn & Aaron Beveridge
 ;; Author: Nicholas M. Van Horn
 ;; 
 ;;  This program is free software: you can redistribute it and/or modify
@@ -26,9 +26,11 @@
 
 (module massmine-tumblr *
 
-  (import scheme chicken)
-  (use srfi-13 data-structures extras utils)
-  (use medea openssl oauth-client uri-common http-client pathname-expand)
+  (import scheme)
+  (import (chicken base) (chicken file) (chicken condition)
+	  (chicken io) (chicken string) (chicken time))
+  (import srfi-13)
+  (import medea openssl oauth-client uri-common http-client pathname-expand)
 
   (form-urlencoded-separator "&;")
 
@@ -110,8 +112,19 @@
 		     (current-error-port))
 	    (exit 1)))))
 
+  ;; Helper function: get confirmation from user
+  (define (yes-or-no? msg #!key default)
+    (print (string-append msg " (yes/no)"))
+    (let ((resp (string-trim-both (read-line))))
+      (cond ((string-ci=? "yes" resp) #t)
+	    (else #f))))
+
   ;; This walks the user through setting up their Tumblr credentials
   ;; for MassMine
+  (define c-key (make-parameter ""))
+  (define c-secret (make-parameter ""))
+  (define a-token (make-parameter ""))
+  (define a-secret (make-parameter ""))
   (define (tumblr-setup-auth cred-file)
     (let ((cred-path (if cred-file cred-file (tumblr-cred-file))))
       (print "Would you like to setup your Tumblr credentials?")
@@ -125,13 +138,13 @@
 	    (print "to generate your token and token secret. Supply each")
 	    (print "below")
 	    (display "Consumer key: ")
-	    (define c-key (string-trim-both (read-line)))
+	    (c-key (string-trim-both (read-line)))
 	    (display "Consumer secret: ")
-	    (define c-secret (string-trim-both (read-line)))
+	    (c-secret (string-trim-both (read-line)))
 	    (display "Token: ")
-	    (define a-token (string-trim-both (read-line)))
+	    (a-token (string-trim-both (read-line)))
 	    (display "Token secret: ")
-	    (define a-secret (string-trim-both (read-line)))
+	    (a-secret (string-trim-both (read-line)))
 
 	    ;; Prepare a proper alist and write to disk
 	    (with-output-to-file cred-path

@@ -1,7 +1,7 @@
 ;; ##################################################################
 ;;
 ;; MassMine: Your Access To Data
-;; Copyright (C) 2014-2018  Nicholas M. Van Horn & Aaron Beveridge
+;; Copyright (C) 2014-2020  Nicholas M. Van Horn & Aaron Beveridge
 ;; Author: Nicholas M. Van Horn
 ;; 
 ;;  This program is free software: you can redistribute it and/or modify
@@ -22,9 +22,11 @@
 
 (module massmine-web *
 
-  (import scheme chicken)
-  (use extras posix data-structures ports)
-  (use medea http-client html-parser)
+  (import scheme)
+  (import (chicken base) (chicken io) (chicken condition)
+	  (chicken time) (chicken time posix) (chicken port)
+	  (chicken string))
+  (import medea http-client html-parser)
 
   ;; user-agent header used in http-header of all calls
   (client-software '(("MassMine" "1.1.0 (2018-06-06)" #f)))

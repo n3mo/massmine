@@ -1,7 +1,7 @@
 ;; ##################################################################
 ;;
 ;; MassMine: Your Access To Data
-;; Copyright (C) 2014-2018  Nicholas M. Van Horn & Aaron Beveridge
+;; Copyright (C) 2014-2020  Nicholas M. Van Horn & Aaron Beveridge
 ;; Author: Nicholas M. Van Horn
 ;; 
 ;;  This program is free software: you can redistribute it and/or modify
@@ -22,9 +22,9 @@
 
 (module massmine-google *
 
-  (import scheme chicken)
-  (use extras srfi-13 data-structures)
-  (use http-client medea)
+  (import scheme)
+  (import srfi-13)
+  (import http-client medea)
 
   ;; user-agent header used in http-header of all calls
   (client-software '(("MassMine" "1.1.0 (2018-06-06)" #f)))

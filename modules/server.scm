@@ -1,7 +1,7 @@
 ;; ##################################################################
 ;;
 ;; MassMine: Your Access To Data
-;; Copyright (C) 2014-2019 Nicholas M. Van Horn & Aaron Beveridge
+;; Copyright (C) 2014-2020 Nicholas M. Van Horn & Aaron Beveridge
 ;; Author: Nicholas M. Van Horn
 ;; 
 ;;  This program is free software: you can redistribute it and/or modify
@@ -59,7 +59,7 @@
 ;;; massmine can be closed with the special command:
 ;;; {"task":"stop"}
 
-(use tcp6 medea)
+(import tcp6 medea)
 
 ;;; Server port parameters. There are no timeouts. massmine will
 ;;; listen until you send the command {"task":"stop"} or Ctrl+c
@@ -81,7 +81,14 @@
   (date (alist-ref 'date cmd))
   (config-file (alist-ref 'config cmd)))
 
+;;; Special error handling
+;; (define (socket-error-handler out)
+;;   )
+
 (define (massmine-server #!key [port 4242])
+  ;; Error handling. We accept massmine's normal error responses, and
+  ;; package them into a JSON response
+  
   ;; Prepare massmine server by listening to port
   (define listener (tcp-listen port))
   (define-values (i o) (tcp-accept listener))

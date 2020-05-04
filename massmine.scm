@@ -1,8 +1,8 @@
-#! /usr/local/bin/csi -s
+#! /usr/bin/chicken-csi -s
 ;; ##################################################################
 ;;
 ;; MassMine: Your Access To Data
-;; Copyright (C) 2014-2019  Nicholas M. Van Horn & Aaron Beveridge
+;; Copyright (C) 2014-2020  Nicholas M. Van Horn & Aaron Beveridge
 ;; Author: Nicholas M. Van Horn
 ;; 
 ;;  This program is free software: you can redistribute it and/or modify
@@ -24,8 +24,10 @@
 ;; Extensions. We need to import clucker here just so we can set! the
 ;; global variables used to sever the https connection with Twitter's
 ;; streaming API (which are defined in clucker)
-(require-extension args clucker openssl posix oauth-client extras
-		   srfi-19 pathname-expand utf8)
+(import (chicken file) (chicken process-context) (chicken condition)
+	(chicken port) (chicken format))
+(import args clucker openssl oauth-client
+	srfi-19 pathname-expand utf8)
 
 ;; Current version of software
 (define mm-version "1.2.0 (2019-02-15)")

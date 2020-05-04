@@ -1,7 +1,7 @@
 ;; ##################################################################
 ;;
 ;; MassMine: Your Access To Data
-;; Copyright (C) 2014-2018  Nicholas M. Van Horn & Aaron Beveridge
+;; Copyright (C) 2014-2020  Nicholas M. Van Horn & Aaron Beveridge
 ;; Author: Nicholas M. Van Horn
 ;; 
 ;;  This program is free software: you can redistribute it and/or modify
@@ -22,11 +22,13 @@
 
 (module massmine-twitter *
 
-  (import scheme chicken)
-  (use extras irregex data-structures posix utils srfi-1)
-  (use openssl oauth-client uri-common rest-bind medea clucker
-       http-client pathname-expand)
-  (require-extension utf8 utf8-srfi-13)
+  (import scheme)
+  (import (chicken base) (chicken file) (chicken condition)
+	  (chicken io) (chicken irregex) (chicken time)
+	  (chicken time posix))
+  (import openssl oauth-client uri-common rest-bind medea clucker
+	  http-client pathname-expand)
+  (import srfi-1 utf8 utf8-srfi-13)
 
   ;; user-agent header used in http-header of all calls
   (client-software '(("MassMine" "1.1.0 (2018-06-06)" #f)))
@@ -96,14 +98,14 @@
   ;; reported 
   (define (twitter-auth cred-path)
     (let ((cred-file (if cred-path cred-path (twitter-cred-file))))
-	(if (file-exists? cred-file)
-	    ;; Return twitter credential information
-	    (with-input-from-file cred-file read)
-	    ;; Else the user needs set up their credentials
-	    (begin
-	      (display "Authenticate before using Twitter.\nRun --> 'massmine --task=twitter-auth'\n"
-		       (current-error-port))
-	      (exit 1)))))
+      (if (file-exists? cred-file)
+	  ;; Return twitter credential information
+	  (with-input-from-file cred-file read)
+	  ;; Else the user needs set up their credentials
+	  (begin
+	    (display "Authenticate before using Twitter.\nRun --> 'massmine --task=twitter-auth'\n"
+		     (current-error-port))
+	    (exit 1)))))
 
   ;; Use this to verify the credentials supplied by the user. If this
   ;; returns, then the credentials were valid. If not, an exception is
@@ -129,25 +131,36 @@
 	       (exit 1))
 	   (account-verify-credentials))))))
 
+  ;; Helper function: get confirmation from user
+  (define (yes-or-no? msg #!key default)
+    (print (string-append msg " (yes/no)"))
+    (let ((resp (string-trim-both (read-line))))
+      (cond ((string-ci=? "yes" resp) #t)
+	    (else #f))))
+
   ;; This walks the user through setting up their Twitter credentials
   ;; for MassMine
+  (define c-key (make-parameter ""))
+  (define c-secret (make-parameter ""))
+  (define a-token (make-parameter ""))
+  (define a-secret (make-parameter ""))
   (define (twitter-setup-auth cred-file)
     (let ((cred-path (if cred-file cred-file (twitter-cred-file))))
       (print "Would you like to setup your Twitter credentials?")
       (print "Warning: continuing will over-write any previous credentials")
-      (if (yes-or-no? "Continue?" #:default "No" #:abort #f)
+      (if (yes-or-no? "Continue? " #:default "No" #:abort #f)
 	  ;; Walk the user through setting up their credentials
 	  (begin
 	    (print "Please visit https://apps.twitter.com to collect")
 	    (print "the following information:")
 	    (display "Consumer key: ")
-	    (define c-key (string-trim-both (read-line)))
+	    (c-key (string-trim-both (read-line)))
 	    (display "Consumer secret: ")
-	    (define c-secret (string-trim-both (read-line)))
+	    (c-secret (string-trim-both (read-line)))
 	    (display "Access token: ")
-	    (define a-token (string-trim-both (read-line)))
+	    (a-token (string-trim-both (read-line)))
 	    (display "Access token secret: ")
-	    (define a-secret (string-trim-both (read-line)))
+	    (a-secret (string-trim-both (read-line)))
 
 	    ;; Verify the user's supplied credentials. This will return
 	    ;; if the credentials are successfully verified, otherwise
@@ -197,7 +210,7 @@
       (set! search-rate-limit `(,(cdr (third search-rate))
 				,(cdr (fourth search-rate))))
       (set! statuses-rate-limit `(,(cdr (third statuses-rate))
-				,(cdr (fourth statuses-rate))))
+				  ,(cdr (fourth statuses-rate))))
       (set! friends-rate-limit `(,(cdr (third friends-rate))
 				 ,(cdr (fourth friends-rate))))
       (set! followers-rate-limit `(,(cdr (third followers-rate))
@@ -272,7 +285,7 @@
 	  ;; We have api calls available. Decrement our counter and
 	  ;; return to sender
 	  (set! statuses-rate-limit `(,(- (first statuses-rate-limit) 1)
-				    ,(second statuses-rate-limit))))]
+				      ,(second statuses-rate-limit))))]
      ;; REST API: Trends
      [(equal? resource "trends")
       (if (<= (first trends-rate-limit) 0)
@@ -377,10 +390,10 @@
 	    #t (abort exn))
       ;; This does the real work (using clucker)
       (statuses-filter #:delimited "length"
-			      #:track pattern
-			      #:locations geo-locations
-			      #:language lang-code
-			      #:follow user-ids)))
+		       #:track pattern
+		       #:locations geo-locations
+		       #:language lang-code
+		       #:follow user-ids)))
 
   ;; Returns a random sample of 1% of all tweets from the streaming
   ;; endpoint. No keywords required
@@ -437,7 +450,7 @@
   (define (twitter-search num-tweets pattern geo-locations lang-code)
     (let* ((num-counts (inexact->exact (floor (/ num-tweets 100))))
 	   (raw-counts (reverse (cons (- num-tweets (* num-counts 100))
-				  (take (circular-list '100) num-counts))))
+				      (take (circular-list '100) num-counts))))
 	   (counts (filter (lambda (x) (not (= x 0))) raw-counts)))
       ;; counts is a list of numbers. The length of the list
       ;; corresponds to the number of times we have to query the api
@@ -585,7 +598,7 @@
 		    (newline))
 		  (vector->list (alist-ref 'users results)))
 	(unless (= (alist-ref 'next_cursor results) 0)
-	    (loop (alist-ref 'next_cursor results))))))
+	  (loop (alist-ref 'next_cursor results))))))
 
   ;; Retrieves the entire list of users that a specified user is
   ;; following 
@@ -635,7 +648,8 @@
 	 ;; Put the brakes on if necessary
 	 (twitter-rate-limit "statuses")
 	 (let ([results (read-json (statuses-lookup #:id id-string
-						    #:include_entities #t))])
+						    #:include_entities #t
+						    #:tweet_mode "extended"))])
 	   (for-each (lambda (tweet)
 		       (write-json tweet)
 		       (newline))
@@ -643,6 +657,6 @@
        ids-list)))
   
 
-) ;; end of module massmine-twitter
+  ) ;; end of module massmine-twitter
 
 ;; twitter.scm ends here
