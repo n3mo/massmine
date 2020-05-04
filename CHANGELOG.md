@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Server mode added. MassMine can now to be remotely controlled over tcp sockets. See documentation in the file modules/server.scm
 - Explicit utf8 support added. This likely has little effect on massmine's behavior to date, as it engaged in little-to-no processing of text data. This is more of a forward-facing addition to ensure future work behaves appropriately when working with utf8 text.
 
+### Changed
+- The entire codebase has been upgraded to work with Chicken Scheme v5.x. This mostly reflects changes in how Chicken 5.x handles modules. While important for the project, this change should have no effect on the user.
+
+
 ## [1.1.0] - 2018-06-06
 
 ### Added
