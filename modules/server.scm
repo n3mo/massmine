@@ -59,6 +59,22 @@
 ;;; massmine can be closed with the special command:
 ;;; {"task":"stop"}
 
+;;; ------- Minimal working example
+
+;;; To test MassMine's server mode, a quick solution entails the
+;;; netcat command line tool:
+
+;;; Step 1: start massmine: massmine --server=4242
+;;; Step 2: start netcat: netcat localhost 4242
+;;; Step 3: type/paste json commands and press enter
+;;; Step 4: massmine will return results
+;;; Step 5: massmine returns "-1" when finished
+;;; Step 6: Repeat steps 3-5 for each test command
+;;; Step 7: End with json command {"task":"stop"}
+
+;;; ------- Minimal working example <END>
+
+(import (chicken io) (chicken port))
 (import tcp6 medea)
 
 ;;; Server port parameters. There are no timeouts. massmine will
