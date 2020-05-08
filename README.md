@@ -19,7 +19,7 @@ If you have questions, please [open an issue](https://github.com/n3mo/massmine/i
 
 ## License
 
-Copyright (C) 2014-2018 Nicholas M. Van Horn & Aaron Beveridge
+Copyright (C) 2014-2020 Nicholas M. Van Horn & Aaron Beveridge
 
 Author: Nicholas M. Van Horn <nvanhorn@capital.edu>
 
