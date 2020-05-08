@@ -1,5 +1,5 @@
 
-(require-extension test)
+(import test)
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;               MassMine Core Tests
