@@ -32,17 +32,22 @@
 ;;; (3) Run the internal command
 ;;; (4) Write the results, in line-oriented JSON, to the specified
 ;;;     port
-;;; (5) Write the string "-1" to the specified port to signal the end
-;;;     of the data stream
-;;; (6) Repeat
+;;; (5) Write the string "0" (indicating success) or "1" (indicating
+;;;     failure) to the specified port to signal the end of the data
+;;;     stream. If "1" is returned, the previous JSON array will
+;;;     contain an element called "error" which contains the error
+;;;     information 
+;;; (6) Repeat until the "stop" task is requested, at which time
+;;;     the massmine process itself will terminate (after closing
+;;;     ports, etc.)
 
 ;;; Clients set to read from the massmine port should be prepared for
 ;;; potentially very long timeouts (e.g., 15 minutes) in the middle of
 ;;; a data transmission. This is because massmine will pause to comply
 ;;; with rate limits set by upstream data sources. Clients should
-;;; check for the "end of data stream" signal by monitoring for the
-;;; "-1" signal issued in step 5 above. After the signal has been
-;;; caught, additional commands can be issued to massmine.
+;;; check for the "end of data stream" signals by monitoring for the
+;;; "0" or "1" signals issued in step 5 above. After the signal has
+;;; been caught, additional commands can be issued to massmine.
 
 ;;; Commands should be sent as JSON structures containing name:value
 ;;; pairs that match the command line arguments issued to
@@ -68,7 +73,7 @@
 ;;; Step 2: start netcat: netcat localhost 4242
 ;;; Step 3: type/paste json commands and press enter
 ;;; Step 4: massmine will return results
-;;; Step 5: massmine returns "-1" when finished
+;;; Step 5: massmine returns "0" or "1" when finished
 ;;; Step 6: Repeat steps 3-5 for each test command
 ;;; Step 7: End with json command {"task":"stop"}
 
@@ -97,32 +102,37 @@
   (date (alist-ref 'date cmd))
   (config-file (alist-ref 'config cmd)))
 
-;;; Special error handling
-;; (define (socket-error-handler out)
-;;   )
-
+;;; This is called by massmine core and does the heavy lifting
 (define (massmine-server #!key [port 4242])
-  ;; Error handling. We accept massmine's normal error responses, and
-  ;; package them into a JSON response
-  
   ;; Prepare massmine server by listening to port
   (define listener (tcp-listen port))
   (define-values (i o) (tcp-accept listener))
   ;; Start server
   (let listen ([cmd (read-line i)])
-    (if (eof-object? cmd)
-	(listen (read-line i))
-	(let ((json-cmd (read-json cmd)))
-	  (server-task json-cmd)
-	  (if (string-ci=? (task) "stop")
-	      (begin
-		(write-line "Stopping Server...\n")
-		(close-input-port i)
-		(close-output-port o))
-	      (begin
-		;;; (write-line (string-append "Completing action: " (task)) o)
-		(with-output-to-port o (lambda () (task-dispatch (task))))
-		(write-line "-1" o)
-		(listen (read-line i))))))))
+    (handle-exceptions
+	exn
+	;; Error handling
+	(begin (write-json
+		`((error . ,((condition-property-accessor
+			      'exn 'message) exn))) o)
+	       (newline o)
+	       (write-line "1" o)
+	       (listen (read-line i)))
+      ;; Run unless error
+      (if (eof-object? cmd)
+	  (listen (read-line i))
+	  (let ((json-cmd (read-json cmd)))
+	    (server-task json-cmd)
+	    (if (string-ci=? (task) "stop")
+		(begin
+		  (write-line "Stopping Server...\n")
+		  (close-input-port i)
+		  (close-output-port o))
+		(begin
+		  (with-output-to-port o
+		    (lambda ()
+		      (task-dispatch (task))
+		      (write-line "0" o)
+		      (listen (read-line i)))))))))))
 
 ;;; End of file server.scm

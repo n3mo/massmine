@@ -25,7 +25,7 @@
 ;; global variables used to sever the https connection with Twitter's
 ;; streaming API (which are defined in clucker)
 (import (chicken file) (chicken process-context) (chicken condition)
-	(chicken port) (chicken format))
+	(chicken port) (chicken format) (chicken time))
 (import args clucker openssl oauth-client
 	srfi-19 pathname-expand utf8)
 
@@ -173,7 +173,7 @@ END
   (print "http://www.massmine.org")
   (print "https://github.com/n3mo/massmine")
   (newline)
-  (print "Copyright (C) 2014-2019 Nicholas M. Van Horn & Aaron Beveridge")
+  (print "Copyright (C) 2014-2020 Nicholas M. Van Horn & Aaron Beveridge")
   (print "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.")
   (print "This is free software: you are free to change and redistribute it.")
   (print "There is NO WARRANTY, to the extent permitted by law.")
@@ -579,7 +579,8 @@ END
 	     (twitter-search (max-tweets) (keywords) (locations) (language))]
 	    [(equal? curr-task "twitter-rehydrate")
 	     (twitter-rehydrate (keywords))]
-	    [else (display "MassMine: Unknown task\n" (current-error-port))])))))]
+	    ;; [else (display "MassMine: Unknown task\n" (current-error-port))])))))]
+	    [else (abort (make-property-condition 'exn 'message "Unknown task requested"))])))))]
 
    ;; Tumblr tasks must be signed with oauth
    [(s-starts-with? "tumblr" curr-task)
@@ -608,7 +609,8 @@ END
 	     (tumblr-posts (keywords) (max-tweets) (alist-ref 'consumer-key creds))]
 	    [(equal? curr-task "tumblr-tag")
 	     (tumblr-tag (keywords) (max-tweets) (alist-ref 'consumer-key creds))]
-	    [else (display "MassMine: Unknown task\n" (current-error-port))])))))]
+	    ;; [else (display "MassMine: Unknown task\n" (current-error-port))])))))]
+	    [else (abort (make-property-condition 'exn 'message "Unknown task requested"))])))))]
 
    [(s-starts-with? "web" curr-task)
     (cond
@@ -620,12 +622,15 @@ END
      [(equal? curr-task "wikipedia-text") (wikipedia-text (keywords) (language))]
      [(equal? curr-task "wikipedia-views") (wikipedia-views (keywords) (date))]
      [(equal? curr-task "wikipedia-page-links") (wikipedia-page-links (keywords) (language))]
-     [(equal? curr-task "wikipedia-trends") (wikipedia-trends (date))])]
+     [(equal? curr-task "wikipedia-trends") (wikipedia-trends (date))]
+     [else (abort (make-property-condition 'exn 'message "Unknown task requested"))])]
    [(s-starts-with? "google" curr-task)
     (cond
      ;; [(equal? curr-task "google-trends") (google-trends (date))]
-     [(equal? curr-task "google-country-trends") (google-country-trends)])]
-   [else (display "MassMine: Unknown task\n" (current-error-port)) (usage)]))
+     [(equal? curr-task "google-country-trends") (google-country-trends)]
+     [else (abort (make-property-condition 'exn 'message "Unknown task requested"))])]
+   ;; [else (display "MassMine: Unknown task\n" (current-error-port)) (usage)]))
+   [else (abort (make-property-condition 'exn 'message "Unknown task requested"))]))
 
 ;;; Just what you think. This gets things started
 (define (main)
@@ -685,7 +690,7 @@ END
   ;; this will run
   (when (server)
     (massmine-server #:port (string->number (server)))
-    (exit 1))
+    (exit 0))
 
   ;; Greet the user
   (if (and (do-splash?) (output-to-file?)) (splash-screen))
@@ -704,7 +709,7 @@ END
   	    ;; Else, get down to business
   	    (handle-exceptions exn
 		(begin
-		  (display "MassMine: The following error occurred:\n" (current-error-port))
+		  (display "MassMine: The following error occurred: " (current-error-port))
 		  (display ((condition-property-accessor 'exn 'message) exn)
 			   (current-error-port))
 		  (display "\n" (current-error-port)))
@@ -714,7 +719,7 @@ END
       ;; This call does the heavy lifting
       (handle-exceptions exn
 	  (begin
-	    (display "MassMine: The following error occurred:\n" (current-error-port))
+	    (display "MassMine: The following error occurred: " (current-error-port))
 	    (display ((condition-property-accessor 'exn 'message) exn)
 		     (current-error-port))
 	    (display "\n" (current-error-port)))
