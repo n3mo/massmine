@@ -56,8 +56,8 @@
 (import massmine-twitter)
 (include "./modules/wikipedia")
 (import massmine-wikipedia)
-(include "./modules/google")
-(import massmine-google)
+;; (include "./modules/google")
+;; (import massmine-google)
 (include "./modules/tumblr")
 (import massmine-tumblr)
 (include "./modules/web")
@@ -198,13 +198,13 @@ END
 	(newline)
 	(print "Available tasks:")
 	(print "----------------")
-	(for-each (lambda (task)
-		    (display (sprintf "~A~A~A -- ~A"
-				      "\033[94m"
-				      (car task) "\033[0m" (cdr task)))
-		    (newline))
-		  google-task-descriptions)
-	(newline)
+	;; (for-each (lambda (task)
+	;; 	    (display (sprintf "~A~A~A -- ~A"
+	;; 			      "\033[94m"
+	;; 			      (car task) "\033[0m" (cdr task)))
+	;; 	    (newline))
+	;; 	  google-task-descriptions)
+	;; (newline)
 	(for-each (lambda (task)
 		    (display (sprintf "~A~A~A -- ~A"
 				      "\033[92m"
@@ -240,13 +240,13 @@ END
 	(print "marked with a * are required. For options marked")
 	(print "with a + choose only one")
 	(newline)
-	(for-each (lambda (task)
-		    (display (sprintf "~A~A~A -- ~A"
-				      "\033[94m"
-				      (car task) "\033[0m" (cdr task)))
-		    (newline))
-		  google-task-options)
-	(newline)
+	;; (for-each (lambda (task)
+	;; 	    (display (sprintf "~A~A~A -- ~A"
+	;; 			      "\033[94m"
+	;; 			      (car task) "\033[0m" (cdr task)))
+	;; 	    (newline))
+	;; 	  google-task-options)
+	;; (newline)
 
 	(for-each (lambda (task)
 		    (display (sprintf "~A~A~A -- ~A"
@@ -624,11 +624,11 @@ END
      [(equal? curr-task "wikipedia-page-links") (wikipedia-page-links (keywords) (language))]
      [(equal? curr-task "wikipedia-trends") (wikipedia-trends (date))]
      [else (abort (make-property-condition 'exn 'message "Unknown task requested"))])]
-   [(s-starts-with? "google" curr-task)
-    (cond
-     ;; [(equal? curr-task "google-trends") (google-trends (date))]
-     [(equal? curr-task "google-country-trends") (google-country-trends)]
-     [else (abort (make-property-condition 'exn 'message "Unknown task requested"))])]
+   ;; [(s-starts-with? "google" curr-task)
+   ;;  (cond
+   ;;   ;; [(equal? curr-task "google-trends") (google-trends (date))]
+   ;;   [(equal? curr-task "google-country-trends") (google-country-trends)]
+   ;;   [else (abort (make-property-condition 'exn 'message "Unknown task requested"))])]
    ;; [else (display "MassMine: Unknown task\n" (current-error-port)) (usage)]))
    [else (abort (make-property-condition 'exn 'message "Unknown task requested"))]))
 

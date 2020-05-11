@@ -22,21 +22,21 @@
 ;;;               Google Tests
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(test-begin "Google Module")
+;; (test-begin "Google Module")
 
-;;; Helper functions
-(test-assert "Google task descriptions" (list? google-task-descriptions))
-(test-assert "Google task options" (list? google-task-options))
-(test "Country Code Identification"
-      "Romania" (gcode->location '|39|))
+;; ;;; Helper functions
+;; (test-assert "Google task descriptions" (list? google-task-descriptions))
+;; (test-assert "Google task options" (list? google-task-options))
+;; (test "Country Code Identification"
+;;       "Romania" (gcode->location '|39|))
 
-;;; Tasks
-(test-assert "Google country trends"
-  (string? (with-output-to-string (lambda () (google-country-trends)))))
-;; (test-assert "Google trends"
-;;   (string? (with-output-to-string (lambda () (google-trends "2016-01-01")))))
+;; ;;; Tasks
+;; (test-assert "Google country trends"
+;;   (string? (with-output-to-string (lambda () (google-country-trends)))))
+;; ;; (test-assert "Google trends"
+;; ;;   (string? (with-output-to-string (lambda () (google-trends "2016-01-01")))))
 
-(test-end "Google Module")
+;; (test-end "Google Module")
 
 ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;               Tumblr Tests
