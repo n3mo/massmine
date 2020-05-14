@@ -30,7 +30,8 @@
   (import (chicken base) (chicken file) (chicken condition)
 	  (chicken io) (chicken string) (chicken time))
   (import srfi-13)
-  (import medea openssl oauth-client uri-common http-client pathname-expand)
+  (import openssl)
+  (import medea oauth-client uri-common http-client pathname-expand)
 
   (form-urlencoded-separator "&;")
 

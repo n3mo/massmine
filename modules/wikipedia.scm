@@ -27,6 +27,7 @@
   (import scheme)
   (import (chicken base) (chicken io) (chicken string) (chicken irregex))
   (import srfi-1 srfi-13)
+  (import openssl)
   (import rest-bind uri-common medea http-client)
 
   ;; user-agent header used in http-header of all calls

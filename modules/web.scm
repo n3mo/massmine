@@ -26,6 +26,7 @@
   (import (chicken base) (chicken io) (chicken condition)
 	  (chicken time) (chicken time posix) (chicken port)
 	  (chicken string))
+  (import openssl)
   (import medea http-client html-parser)
 
   ;; user-agent header used in http-header of all calls

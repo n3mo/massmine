@@ -26,7 +26,8 @@
   (import (chicken base) (chicken file) (chicken condition)
 	  (chicken io) (chicken irregex) (chicken time)
 	  (chicken time posix))
-  (import openssl oauth-client uri-common rest-bind medea clucker
+  (import openssl)
+  (import oauth-client uri-common rest-bind medea clucker
 	  http-client pathname-expand)
   (import srfi-1 utf8 utf8-srfi-13)
 

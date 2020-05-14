@@ -26,7 +26,8 @@
 ;; streaming API (which are defined in clucker)
 (import (chicken file) (chicken process-context) (chicken condition)
 	(chicken port) (chicken format) (chicken time))
-(import args clucker openssl oauth-client
+(import openssl)
+(import args clucker oauth-client
 	srfi-19 pathname-expand utf8)
 
 ;; Current version of software
