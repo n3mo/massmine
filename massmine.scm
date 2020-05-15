@@ -31,7 +31,7 @@
 	srfi-19 pathname-expand utf8)
 
 ;; Current version of software
-(define mm-version "1.2.0 (2019-02-15)")
+(define mm-version "1.3.0 (2020-05-15)")
 
 ;; For future command line arguments and options
 (define options)
@@ -165,7 +165,7 @@ END
      (print "or  'massmine -h examples' for detailed examples")
      (newline)
      (print "Full documentation can be found at http://www.massmine.org")
-     (print "Report bugs to nemo1211 at gmail.")))
+     (print "Report bugs at https://github.com/n3mo/massmine")))
  (exit 1))
 
 ;; Prints the current version of massmine, and useful info
