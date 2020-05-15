@@ -42,18 +42,13 @@ then
 
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]
 then
+
+    # Create build directory
+    mkdir ./massmine
+
     # Do something under Linux platform
     # The executable and linked library
-    csc -deploy massmine.scm
-
-    # This step is currently required because of a bug in chicken/openssl
-    # that prevents openssl from being loaded in `eval`. This command
-    # copies CHICKEN's core libraries into the deployment directory. The
-    # bug is reported at https://bugs.call-cc.org/ticket/1191
-    chicken-install -i massmine
-
-    # Install clucker and additional eggs
-    chicken-install -deploy -p ./massmine clucker args openssl medea srfi-19 pathname-expand html-parser irregex
+    csc -static massmine.scm -L -lssl -L -lcrypto -o ./massmine/massmine
 
     # Package everything up with the current version number (zip and tarball)
     zip massmine-`./massmine/massmine -v | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+'`-linux-x86_64.zip -r ./massmine/
