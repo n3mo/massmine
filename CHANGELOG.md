@@ -4,14 +4,17 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - [unreleased]
 
+## [1.2.0] - 2020-05-15
+
 ### Added
 - You can now "rehydrate" tweets using Twitter's statuses-lookup API endopoint using the `twitter-rehydrate` task. This is the preferred method for retrieving older tweets, and Twitter's only allowed method for sharing tweets with other researchers. Now you can share tweet IDs (up to Twitter's allowed limits, and subject to their terms and conditions), and your recipient can "rehydrate" the tweets from the IDs that you have shared.
-- Server mode added. MassMine can now to be remotely controlled over tcp sockets. See documentation in the file modules/server.scm
+- Server mode added. MassMine can now to be remotely controlled over tcp sockets. See documentation at https://www.massmine.org/docs/server.html
 - Explicit utf8 support added. This likely has little effect on massmine's behavior to date, as it engaged in little-to-no processing of text data. This is more of a forward-facing addition to ensure future work behaves appropriately when working with utf8 text.
 
 ### Changed
 - The entire codebase has been upgraded to work with Chicken Scheme v5.x. This mostly reflects changes in how Chicken 5.x handles modules. While important for the project, this change should have no effect on the user.
-
+- All google tasks disabled until suitable access points are discovered.
+- Pre-compiled massmine binaries are now statically linked thanks to bump to Chicken version 5.
 
 ## [1.1.0] - 2018-06-06
 
@@ -21,7 +24,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Unit tests! MassMine can now run tests for each module. Tests are included in the tests directory. Example: ./massmine.scm --test ./tests/run.scm
 
 ### Changed
-- `google-trends` task removed until a new suitable access point is discovered
+- `google-trends` task removed until a new suitable access point is discovered.
 
 ### Fixed
 - wikipedia-views task updated to fix broken functionality. Now fetches data from the wikimedia API. 

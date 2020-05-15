@@ -36,7 +36,7 @@
   (form-urlencoded-separator "&;")
 
   ;; user-agent header used in http-header of all calls
-  (client-software '(("MassMine" "1.3.0 (2020-05-15)" #f)))
+  (client-software '(("MassMine" "1.2.0 (2020-05-15)" #f)))
 
   ;; http-client retry policy for failed connections. We could set
   ;; this to #f to make it retry indefinitely, but better to be
