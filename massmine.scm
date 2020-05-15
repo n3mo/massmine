@@ -518,7 +518,7 @@ END
 	 "\n\n"
 	 "MassMine version " mm-version "\n"
 	 "https://github.com/n3mo/massmine\n\n"
-	 "Copyright (C) 2014-2019 Nicholas M. Van Horn & Aaron Beveridge\n"
+	 "Copyright (C) 2014-2020 Nicholas M. Van Horn & Aaron Beveridge\n"
 	 "This program comes with ABSOLUTELY NO WARRANTY.\n"
 	 "This is free software, and you are welcome to redistribute it\n"
 	 "under certain conditions. Please see the included LICENSE file\n"
