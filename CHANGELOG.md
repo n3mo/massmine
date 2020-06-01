@@ -4,6 +4,12 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - [unreleased]
 
+## [1.2.1] - 2020-06-01
+
+### Changed
+- Twitter authentication setup bug fix
+- Tumblr authentication setup bug fix
+
 ## [1.2.0] - 2020-05-15
 
 ### Added
