@@ -167,19 +167,19 @@
 	    ;; if the credentials are successfully verified, otherwise
 	    ;; an exception (with an explanation to the user) will be
 	    ;; raised.
-	    (twitter-verify-credentials #:consumer-key c-key
-					#:consumer-secret c-secret
-					#:access-token a-token
-					#:access-token-secret a-secret)
+	    (twitter-verify-credentials #:consumer-key (c-key)
+					#:consumer-secret (c-secret)
+					#:access-token (a-token)
+					#:access-token-secret (a-secret))
 
 	    ;; If we've made it here, the user's credentials check out.
 	    ;; Prepare a proper alist and write to disk
 	    (with-output-to-file cred-path
 	      (lambda ()
-		(write `((consumer-key . ,c-key)
-			 (consumer-secret . ,c-secret)
-			 (access-token . ,a-token)
-			 (access-token-secret . ,a-secret)))))
+		(write `((consumer-key . ,(c-key))
+			 (consumer-secret . ,(c-secret))
+			 (access-token . ,(a-token))
+			 (access-token-secret . ,(a-secret))))))
 	    (print "\nAuthentication setup finished!"))
 	  (print "Stopping!"))))
 
