@@ -63,6 +63,7 @@
       (twitter-rehydrate .      "Rehydrate tweet(s) by ID number")
       (twitter-sample .		"Get random sample of tweets in real time")
       (twitter-search .		"Search existing tweets by keyword(s)")
+      (twitter-search-fullarchive . "Search existing PREMIUM tweets by keyword(s)")
       (twitter-stream .		"Get tweets by keyword in real time")
       (twitter-trends .		"Top-50 trends for a given location")
       (twitter-trends-nohash .	"Top-50 trends (no #hashtags)")
@@ -77,6 +78,7 @@
       (twitter-rehydrate .      "query*")
       (twitter-sample .		"count dur ('YYYY-MM-DD HH:MM:SS')")
       (twitter-search .		"query* count geo lang")
+      (twitter-search-fullarchive . "query* date* ('YYYY-MM-DD-HH-MM:YYYY-MM-DD-HH-MM') count")
       (twitter-stream .		"query+ user+ geo+ lang count dur ('YYYY-MM-DD HH:MM:SS')")
       (twitter-trends .		"geo* (as WOEID returned by twitter-locations)")
       (twitter-trends-nohash .	"geo* (as WOEID returned by twitter-locations)")
@@ -162,6 +164,26 @@
 	    (a-token (string-trim-both (read-line)))
 	    (display "Access token secret: ")
 	    (a-secret (string-trim-both (read-line)))
+	    ;; If the user plans to use fullarchive premium search, we
+	    ;; need to set the appropriate clucker parameter
+	    (display "Will you access Twitter's premium 'fullarchive'(paid) API ")
+	    (if (yes-or-no? "using massmine? " #:default "No" #:abort #f)
+		(begin
+		  (display "Vist https://developer.twitter.com/en/account/environments ")
+		  (display "and create a fullarchive developer 'label'")
+		  (newline)
+		  (display "Enter fullarchive label: ")
+		  (fullarchive-label (string-trim-both (read-line)))))
+	    ;; If the user plans to use 30day premium search, we
+	    ;; need to set the appropriate clucker parameter
+	    (display "Will you access Twitter's premium '30day' (paid) API ")
+	    (if (yes-or-no? "using massmine? " #:default "No" #:abort #f)
+		(begin
+		  (display "Vist https://developer.twitter.com/en/account/environments ")
+		  (display "and create a 30day developer 'label'")
+		  (newline)
+		  (display "Enter 30day label: ")
+		  (30day-label (string-trim-both (read-line)))))
 
 	    ;; Verify the user's supplied credentials. This will return
 	    ;; if the credentials are successfully verified, otherwise
@@ -179,7 +201,9 @@
 		(write `((consumer-key . ,(c-key))
 			 (consumer-secret . ,(c-secret))
 			 (access-token . ,(a-token))
-			 (access-token-secret . ,(a-secret))))))
+			 (access-token-secret . ,(a-secret))
+			 (fullarchive-label . ,(fullarchive-label))
+			 (30day-label . ,(30day-label))))))
 	    (print "\nAuthentication setup finished!"))
 	  (print "Stopping!"))))
 
@@ -656,7 +680,104 @@
 		       (newline))
 		     (vector->list results))))
        ids-list)))
-  
+
+  ;; Helper date function. Takes human readable dates as input and
+  ;; returns a list of UTC timestamps as expected by the premium API
+  ;; fromDate and toDate parameters. For instance, the date range
+  ;; "2015-12-22-00-00:2017-12-22-00-00"
+  ;; (YYYY-MM-DD-HH-MM:YYYY-MM-DD-HH-MM) gets returned as
+  ;; ("201512220000" "201712220000") 
+  (define (twitter-premium-dates date)
+    (let ((dates (string-split date ":")))
+      (map (lambda (x) (string-join (string-split x "-") "")) dates)))
+
+
+  ;; Search the twitter premium fullarchive API endpoint. Note this
+  ;; task requires a paid account with twitter. It also behaves
+  ;; according to a separate set of rate limit rules that differ from
+  ;; the standard (free) API endpoints. Full details are available
+  ;; here:
+  ;; https://developer.twitter.com/en/docs/tweets/search/api-reference/premium-search  
+  ;; TODO: Change the default of 100 tweets per call to 500
+  (define (twitter-search-fullarchive num-tweets pattern date)
+    (let ((counts (take (circular-list '100) (ceiling (/ num-tweets 100))))
+	  (date-stamps (twitter-premium-dates date)))
+      ;; counts is a list of numbers. The length of the list
+      ;; corresponds to the number of times we have to query the api
+      ;; (500 tweets can be returned max per query). Each individual
+      ;; number corresponds to the number of requested tweets on a
+      ;; given query. Given how pagination works (with the 'next' id)
+      ;; on premium API endpoints, the max tweets per query must
+      ;; remain the same (i.e., it seems we cannot ask for 500 tweets,
+      ;; followed by 27 tweets using a next id). This means, for now
+      ;; at least, that we must take the ceiling of what a user
+      ;; requests (e.g., they ask for 2250 tweets, we give them 2500
+      ;; tweets (500, 500, 500, 500, 500). This costs them no more API
+      ;; calls than if we actually gave them 2250 tweets, but gives
+      ;; them more than they ask for. The method used here is more
+      ;; convoluted than it needs to be (we could just have a single
+      ;; number that shows how many more calls to make, subtracting 1
+      ;; on each API call)... but I'm keeping it this way because it
+      ;; matches twitter-search, and could be used to return an exact
+      ;; amount of tweets (say, by intentionally ignoring any extra
+      ;; tweets) 
+
+      ;; Twitter provides a mechanism for paginating results through
+      ;; the parameter "next". On the first call we supply no "next"
+      ;; param. On subsequent calls, we must update and manage this
+      ;; parameter to ensure that different tweets are returned on
+      ;; each call
+      (let query-api ((how-many counts) (next-id ""))
+	(begin
+	  ;; Put the brakes on if necessary
+	  ;; TODO: Add proper rate limits
+	  ;; (twitter-rate-limit "search")
+	  ;; We've passed the rate limit check, continue if there are
+	  ;; more results to request and more results to obtain
+	  ;; (next-id will be false if twitter indicates that no
+	  ;; additional pages of results are available)
+	  (if (and (not (null? how-many))
+		   next-id)
+	      (let ((results
+		     (if (equal? next-id "")
+			 ;; On the first query, you cannot supply a
+			 ;; next-id, even the empty string ""
+			 (read-json
+			  (search-fullarchive #:query pattern
+					      #:fromDate (car date-stamps)
+					      #:toDate (cadr date-stamps)
+					      #:maxResults (car how-many)))
+			 ;; Subsequent queries we supply the max_id to
+			 ;; handle pagination of results
+			 (read-json
+			  (search-fullarchive #:query pattern
+					      #:fromDate (car date-stamps)
+					      #:toDate (cadr date-stamps)
+					      #:maxResults (car how-many)
+					      #:next next-id)))))
+
+		;; The remaining code should only run if we
+		;; successfully received tweets on the last query. If
+		;; twitter returned nothing, we're done here
+		(unless (or (not results) (= (vector-length (alist-ref 'results results)) 0))
+		  ;;We have the current batch of tweets, with meta-data
+		  ;;in results. Write out the current tweets. The old
+		  ;;method wrote the results as-is, which happens to
+		  ;;be a JSON array. For other API endpoints the
+		  ;;results are line-oriented JSON with one tweet per
+		  ;;line. We extract the tweet data from the array and
+		  ;;write it one line at a time for consistency
+		  (for-each
+		   (lambda (tweet) (write-json tweet) (newline))
+		   (vector->list (alist-ref 'results results)))
+
+		  ;; Now bookkeeping begins. We save the current next-id
+		  ;; param if available and request the next page of
+		  ;; results. 
+		  (query-api
+		   (cdr how-many)
+		   (alist-ref 'next results)))))))))
+
 
   ) ;; end of module massmine-twitter
 

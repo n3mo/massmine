@@ -540,6 +540,13 @@ END
       ;; Twitter related tasks require the same blanket authentication
       ;; prior to running
       (let* ((creds (twitter-auth (custom-cred-path)))
+	     ;; Premium API developer labels must be set for clucker
+	     ;; parameters (these might be default values set by
+	     ;; clucker if the user has never provided these during
+	     ;; authentication setup
+	     (fullarchive-label (alist-ref 'fullarchive-label creds))
+	     (30day-label (alist-ref '30day-label creds))
+	     ;; Oauth values for all twitter API calls
 	     (twitter-app
 	      (twitter-service
 	       #:consumer-key (alist-ref 'consumer-key creds)
@@ -580,6 +587,8 @@ END
 	     (twitter-search (max-tweets) (keywords) (locations) (language))]
 	    [(equal? curr-task "twitter-rehydrate")
 	     (twitter-rehydrate (keywords))]
+	    [(equal? curr-task "twitter-search-fullarchive")
+	     (twitter-search-fullarchive (max-tweets) (keywords) (date))]
 	    ;; [else (display "MassMine: Unknown task\n" (current-error-port))])))))]
 	    [else (abort (make-property-condition 'exn 'message "Unknown task requested"))])))))]
 
