@@ -31,7 +31,7 @@
 	srfi-13 srfi-19 pathname-expand utf8)
 
 ;; Current version of software
-(define mm-version "1.3.1 (2020-07-21)")
+(define mm-version "1.2.2 (2020-10-19)")
 
 ;; For future command line arguments and options
 (define options)

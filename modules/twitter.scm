@@ -32,7 +32,7 @@
   (import srfi-1 utf8 utf8-srfi-13)
 
   ;; user-agent header used in http-header of all calls
-  (client-software '(("MassMine" "1.2.1 (2020-06-01)" #f)))
+  (client-software '(("MassMine" "1.2.2 (2020-10-19)" #f)))
   ;; http-client retry policy for failed connections. We could set
   ;; this to #f to make it retry indefinitely, but this will lead to
   ;; http 420 rate limit responses from Twitter. Better to be
@@ -698,9 +698,8 @@
   ;; the standard (free) API endpoints. Full details are available
   ;; here:
   ;; https://developer.twitter.com/en/docs/tweets/search/api-reference/premium-search  
-  ;; TODO: Change the default of 100 tweets per call to 500
   (define (twitter-search-fullarchive num-tweets pattern date)
-    (let ((counts (take (circular-list '100) (ceiling (/ num-tweets 100))))
+    (let ((counts (take (circular-list '500) (ceiling (/ num-tweets 500))))
 	  (date-stamps (twitter-premium-dates date)))
       ;; counts is a list of numbers. The length of the list
       ;; corresponds to the number of times we have to query the api
