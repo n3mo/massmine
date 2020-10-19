@@ -1,4 +1,4 @@
-#! /usr/bin/chicken-csi -s
+#! /usr/bin/env csi -s
 ;; ##################################################################
 ;;
 ;; MassMine: Your Access To Data
@@ -25,13 +25,13 @@
 ;; global variables used to sever the https connection with Twitter's
 ;; streaming API (which are defined in clucker)
 (import (chicken file) (chicken process-context) (chicken condition)
-	(chicken port) (chicken format) (chicken time))
+	(chicken port) (chicken format) (chicken time) (chicken string))
 (import openssl)
 (import args clucker oauth-client
-	srfi-19 pathname-expand utf8)
+	srfi-13 srfi-19 pathname-expand utf8)
 
 ;; Current version of software
-(define mm-version "1.2.1 (2020-06-01)")
+(define mm-version "1.3.1 (2020-07-21)")
 
 ;; For future command line arguments and options
 (define options)
