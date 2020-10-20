@@ -57,6 +57,7 @@
   ;; Available tasks and brief descriptions
   (define twitter-task-descriptions
     '((twitter-auth .           "Authenticate with Twitter")
+      (twitter-dehydrate .      "Export tweet IDs for dataset sharing")
       (twitter-followers .      "Get followers list for a specific user")
       (twitter-friends .        "Get friends list for a specific user")
       (twitter-locations .	"Available geo locations (WOEIDS)")
@@ -72,6 +73,7 @@
   ;; Command line arguments supported by each task
   (define twitter-task-options
     '((twitter-auth .           "auth")
+      (twitter-dehydrate .      "input*")
       (twitter-followers .      "user*")
       (twitter-friends .        "user*")
       (twitter-locations .	"<none>")
@@ -87,6 +89,7 @@
   ;; Available tasks and their corresponding procedure calls
   (define twitter-tasks
     '((twitter-auth . (twitter-setup-auth P))
+      (twitter-dehydrate . (twitter-dehydrate (input-file)))
       (twitter-rehydrate . (twitter-rehydrate (keywords)))
       (twitter-stream . (twitter-stream (keywords) (locations) (language) (user-info)))
       (twitter-sample . (twitter-sample))
@@ -777,6 +780,21 @@
 		   (cdr how-many)
 		   (alist-ref 'next results)))))))))
 
+  ;; Dehydrate task. This task takes an existing massmine Twitter
+  ;; dataset (in JSON) and returns only the tweet IDs, one per
+  ;; line. This ID list can be shared, within Twitter's constraints,
+  ;; with other researchers. This list can be rehydrated with
+  ;; twitter-rehydrate
+  (define (twitter-dehydrate infile)
+    (with-input-from-file infile
+      (lambda () 
+	(let loop ((line (read-line)))
+	  (unless (eof-object? line)
+	    (let ((id-value (alist-ref 'id (read-json line))))
+	      (if id-value
+		  (begin (display id-value)
+			 (newline))))
+	    (loop (read-line)))))))
 
   ) ;; end of module massmine-twitter
 

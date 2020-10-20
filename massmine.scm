@@ -48,6 +48,7 @@
 (define install-path		(make-parameter (pathname-expand "~/.config/massmine")))
 (define custom-cred-path	(make-parameter #f))
 (define config-file             (make-parameter #f))
+(define input-file              (make-parameter #f))
 (define output-file             (make-parameter #f))
 (define date                    (make-parameter "2100-01-01"))
 (define testing?                (make-parameter #f))
@@ -123,6 +124,8 @@ END
 			  (custom-cred-path #t))	
 	(args:make-option (o output)  #:required  "Write to file"
 			  (output-to-file? #t))
+	(args:make-option (i input)  #:required  "Load input file"
+			  (input-file #t))
 	(args:make-option (t task)  #:required "Task name"
 			  (task #f))
 	(args:make-option (q query)  #:required "Query string"
@@ -469,6 +472,8 @@ END
 	  (begin
 	    (output-to-file? #t)
 	    (output-file optval)))
+      (if (equal? opt "input")
+	  (input-file optval))
       (if (equal? opt "task")
 	  (task optval))
       (if (equal? opt "query")
@@ -534,7 +539,9 @@ END
     (twitter-setup-auth (custom-cred-path))]
    [(equal? curr-task "tumblr-auth")
     (tumblr-setup-auth (custom-cred-path))]
-   ;; Twitter tasks must be signed with oauth
+   [(equal? curr-task "twitter-dehydrate")
+    (twitter-dehydrate (input-file))]
+   ;; Most Twitter tasks must be signed with oauth
    [(s-starts-with? "twitter" curr-task)
     (begin
       ;; Twitter related tasks require the same blanket authentication
@@ -681,6 +688,8 @@ END
       (max-tweets (string->number (alist-ref 'count options))))
   (if (not (keywords))
       (keywords (alist-ref 'query options)))
+  (if (input-file)
+      (input-file (alist-ref 'input options)))
   (if (not (global-max-seconds))
       (global-max-seconds (date-string->seconds (alist-ref 'dur options))))
   (if (not (locations))
