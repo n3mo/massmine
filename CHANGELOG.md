@@ -7,8 +7,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Users with paid access to Twitter's premium APIs can now perform full historical searches using the "fullarchive" premium endpoint. This is made available through the new twitter-search-fullarchive task. Users wishing to use this new task will need to re-run the twitter-auth task in massmine after purchasing access and setting up an account at Twitter.
 
-## [1.2.2] - [unreleased]
-- Config file module bug fix
+## [1.2.2] - 2020-10-19
+
+### Changed
+- Fixes bug that prevented massmine from parsing config files used through the --config option.
 
 ## [1.2.1] - 2020-06-01
 
