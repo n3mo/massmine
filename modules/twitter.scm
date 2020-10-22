@@ -695,7 +695,7 @@
       (map (lambda (x) (string-join (string-split x "-") "")) dates)))
 
 
-  ;; Search the twitter premium fullarchive API endpoint. Note this
+  ;; Search the twitter premium fullarchive API endpoint. Note: this
   ;; task requires a paid account with twitter. It also behaves
   ;; according to a separate set of rate limit rules that differ from
   ;; the standard (free) API endpoints. Full details are available

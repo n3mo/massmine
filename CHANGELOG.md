@@ -8,9 +8,12 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Users with paid access to Twitter's premium APIs can now perform full historical searches using the "fullarchive" premium endpoint. This is made available through the new twitter-search-fullarchive task. Users wishing to use this new task will need to re-run the twitter-auth task in massmine after purchasing access and setting up an account at Twitter.
 - You can now dehydrate an existing massmine Twitter dataset with the `twitter-dehydrate` task. This task takes a massmine JSON file using the --input option, and returns a list of tweet IDs, one per line. These IDs can be shared with fellow researchers in a limited capacity as a way to share datasets. These IDs can be "rehydrated" back to full tweet objects with the `twitter-rehydrate` task.
 
+### Fixed
+- Fixed memory heap bug when `count` command line option is omitted
+
 ## [1.2.2] - 2020-10-19
 
-### Changed
+### Fixed
 - Fixes bug that prevented massmine from parsing config files used through the --config option.
 
 ## [1.2.1] - 2020-06-01

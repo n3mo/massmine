@@ -684,7 +684,8 @@ END
 	    (configure-from-file))))
 
   ;; Adjust for command line options. Update the master parameter alist
-  (if (not (max-tweets))
+  (if (max-tweets)
+      (max-tweets 999999999)
       (max-tweets (string->number (alist-ref 'count options))))
   (if (not (keywords))
       (keywords (alist-ref 'query options)))
