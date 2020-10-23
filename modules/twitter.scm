@@ -49,6 +49,11 @@
   ;; Twitter module parameters
   (define twitter-cred-file
     (make-parameter (pathname-expand "~/.config/massmine/twitter_cred")))
+  ;; Premium API rate limits
+  (define twitter-premium-per-minute-remaining (make-parameter 60))
+  (define twitter-premium-per-second-remaining (make-parameter 10))
+  (define twitter-premium-seconds-sleep 10)
+  (define twitter-premium-minutes-sleep 60)
 
   ;; Clucker parameters that need setting to our needs here
   (application-rate-limit-status-reader read-json)
@@ -56,48 +61,54 @@
 
   ;; Available tasks and brief descriptions
   (define twitter-task-descriptions
-    '((twitter-auth .           "Authenticate with Twitter")
-      (twitter-dehydrate .      "Export tweet IDs for dataset sharing")
-      (twitter-followers .      "Get followers list for a specific user")
-      (twitter-friends .        "Get friends list for a specific user")
-      (twitter-locations .	"Available geo locations (WOEIDS)")
-      (twitter-rehydrate .      "Rehydrate tweet(s) by ID number")
-      (twitter-sample .		"Get random sample of tweets in real time")
-      (twitter-search .		"Search existing tweets by keyword(s)")
-      (twitter-search-fullarchive . "Search existing PREMIUM tweets by keyword(s)")
-      (twitter-stream .		"Get tweets by keyword in real time")
-      (twitter-trends .		"Top-50 trends for a given location")
-      (twitter-trends-nohash .	"Top-50 trends (no #hashtags)")
-      (twitter-user .		"Fetch a user's timeline of tweets")))
+    '((twitter-auth			.       "Authenticate with Twitter")
+      (twitter-dehydrate		.	"Export tweet IDs for dataset sharing")
+      (twitter-followers		.	"Get followers list for a specific user")
+      (twitter-friends			.       "Get friends list for a specific user")
+      (twitter-locations		.	"Available geo locations (WOEIDS)")
+      (twitter-rehydrate		.	"Rehydrate tweet(s) by ID number")
+      (twitter-sample			.	"Get random sample of tweets in real time")
+      (twitter-search			.	"Search existing tweets by keyword(s)")
+      (twitter-search-30day		.	"Search existing 30-day PREMIUM tweets by keyword(s)")
+      ;; (twitter-search-fullarchive	.	"Search existing full-archive PREMIUM tweets by keyword(s)")
+      (twitter-stream			.	"Get tweets by keyword in real time")
+      (twitter-trends			.	"Top-50 trends for a given location")
+      (twitter-trends-nohash		.	"Top-50 trends (no #hashtags)")
+      (twitter-user			.	"Fetch a user's timeline of tweets")))
 
   ;; Command line arguments supported by each task
   (define twitter-task-options
-    '((twitter-auth .           "auth")
-      (twitter-dehydrate .      "input*")
-      (twitter-followers .      "user*")
-      (twitter-friends .        "user*")
-      (twitter-locations .	"<none>")
-      (twitter-rehydrate .      "query*")
-      (twitter-sample .		"count dur ('YYYY-MM-DD HH:MM:SS')")
-      (twitter-search .		"query* count geo lang")
-      (twitter-search-fullarchive . "query* date* ('YYYY-MM-DD-HH-MM:YYYY-MM-DD-HH-MM') count")
-      (twitter-stream .		"query+ user+ geo+ lang count dur ('YYYY-MM-DD HH:MM:SS')")
-      (twitter-trends .		"geo* (as WOEID returned by twitter-locations)")
-      (twitter-trends-nohash .	"geo* (as WOEID returned by twitter-locations)")
-      (twitter-user .		"user* count")))
+    '((twitter-auth			.       "auth")
+      (twitter-dehydrate		.	"input*")
+      (twitter-followers		.	"user*")
+      (twitter-friends			.       "user*")
+      (twitter-locations		.	"<none>")
+      (twitter-rehydrate		.	"query*")
+      (twitter-sample			.	"count dur ('YYYY-MM-DD HH:MM:SS')")
+      (twitter-search			.	"query* count geo lang")
+      (twitter-search-30day		.	"query* date* ('YYYY-MM-DD-HH-MM:YYYY-MM-DD-HH-MM') count")
+      ;; (twitter-search-fullarchive	.	"query* date* ('YYYY-MM-DD-HH-MM:YYYY-MM-DD-HH-MM') count")
+      (twitter-stream			.	"query+ user+ geo+ lang count dur ('YYYY-MM-DD HH:MM:SS')")
+      (twitter-trends			.	"geo* (as WOEID returned by twitter-locations)")
+      (twitter-trends-nohash		.	"geo* (as WOEID returned by twitter-locations)")
+      (twitter-user			.	"user* count")))
 
   ;; Available tasks and their corresponding procedure calls
   (define twitter-tasks
-    '((twitter-auth . (twitter-setup-auth P))
-      (twitter-dehydrate . (twitter-dehydrate (input-file)))
-      (twitter-rehydrate . (twitter-rehydrate (keywords)))
-      (twitter-stream . (twitter-stream (keywords) (locations) (language) (user-info)))
-      (twitter-sample . (twitter-sample))
-      (twitter-locations . (twitter-locations))
-      (twitter-trends . (twitter-trends (locations)))
-      (twitter-trends-nohash . (twitter-trends-nohash (locations)))
-      (twitter-user . (twitter-timeline (max-tweets) (user-info)))
-      (twitter-search . (twitter-search (max-tweets) (keywords) (locations) (language)))))
+    '((twitter-auth			.	(twitter-setup-auth P))
+      (twitter-dehydrate		.	(twitter-dehydrate (input-file)))
+      (twitter-followers		.	(twitter-followers-list (user-info)))
+      (twitter-friends			.	(twitter-friends-list (user-info)))
+      (twitter-locations		.	(twitter-locations))
+      (twitter-rehydrate		.	(twitter-rehydrate (keywords)))
+      (twitter-sample			.	(twitter-sample))
+      (twitter-search			.	(twitter-search (max-tweets) (keywords) (locations) (language)))
+      (twitter-search-30day		.	(twitter-search-30day (max-tweets) (keywords) (date)))
+      ;; (twitter-search-fullarchive	.	(twitter-search-30day (max-tweets) (keywords) (date)))
+      (twitter-stream			.	(twitter-stream (keywords) (locations) (language) (user-info)))
+      (twitter-trends			.	(twitter-trends (locations)))
+      (twitter-trends-nohash		.	(twitter-trends-nohash (locations)))
+      (twitter-user			.	(twitter-timeline (max-tweets) (user-info)))))
   
   ;; This returns the user's twitter credentials, if available. If the
   ;; user has not provided this information previously, an error is
@@ -406,6 +417,30 @@
 	  ;; return to sender
 	  (set! timeline-rate-limit `(,(- (first timeline-rate-limit) 1)
 				      ,(second timeline-rate-limit))))]))
+
+  ;; Rate limit controlled for premium Twitter API endpoints (30day
+  ;; and fullarchive). Before making any request to premium endpoint,
+  ;; call this function. It controls for Twitter's per-second and
+  ;; per-minute rate limits.
+  (define (twitter-premium-rate-limit)
+    ;; First we apply the per-second rate limit
+    (twitter-premium-per-second-remaining (- (twitter-premium-per-second-remaining) 1))
+    (if (<= (twitter-premium-per-second-remaining) 0)
+	(begin
+	  (sleep twitter-premium-seconds-sleep)
+	  (twitter-premium-per-second-remaining 10)))
+
+    ;; Next, we apply the per-minute rate limit
+    (twitter-premium-per-minute-remaining (- (twitter-premium-per-minute-remaining) 1))
+    (if (<= (twitter-premium-per-minute-remaining) 0)
+	;; We've run out of requests in the current rate limits
+	(begin
+	  ;; Put the brakes on. We need to wait until our rate limit
+	  ;; refreshes
+	  (sleep twitter-premium-minutes-sleep)
+	  ;; We're done waiting. Reset our counters and allowing more
+	  ;; data requests. 
+	  (twitter-premium-per-minute-remaining 60))))
 
   ;; Search the twitter streaming endpoint by keyword
   (define (twitter-stream pattern geo-locations lang-code user-ids)
@@ -732,8 +767,8 @@
       (let query-api ((how-many counts) (next-id ""))
 	(begin
 	  ;; Put the brakes on if necessary
-	  ;; TODO: Add proper rate limits
-	  ;; (twitter-rate-limit "search")
+	  (twitter-premium-rate-limit)
+	  
 	  ;; We've passed the rate limit check, continue if there are
 	  ;; more results to request and more results to obtain
 	  ;; (next-id will be false if twitter indicates that no
@@ -753,6 +788,91 @@
 			 ;; handle pagination of results
 			 (read-json
 			  (search-fullarchive #:query pattern
+					      #:fromDate (car date-stamps)
+					      #:toDate (cadr date-stamps)
+					      #:maxResults (car how-many)
+					      #:next next-id)))))
+
+		;; The remaining code should only run if we
+		;; successfully received tweets on the last query. If
+		;; twitter returned nothing, we're done here
+		(unless (or (not results) (= (vector-length (alist-ref 'results results)) 0))
+		  ;;We have the current batch of tweets, with meta-data
+		  ;;in results. Write out the current tweets. The old
+		  ;;method wrote the results as-is, which happens to
+		  ;;be a JSON array. For other API endpoints the
+		  ;;results are line-oriented JSON with one tweet per
+		  ;;line. We extract the tweet data from the array and
+		  ;;write it one line at a time for consistency
+		  (for-each
+		   (lambda (tweet) (write-json tweet) (newline))
+		   (vector->list (alist-ref 'results results)))
+
+		  ;; Now bookkeeping begins. We save the current next-id
+		  ;; param if available and request the next page of
+		  ;; results. 
+		  (query-api
+		   (cdr how-many)
+		   (alist-ref 'next results)))))))))
+
+  ;; Search the twitter premium 30day API endpoint. Note: this
+  ;; task requires a paid account with twitter. It also behaves
+  ;; according to a separate set of rate limit rules that differ from
+  ;; the standard (free) API endpoints. Full details are available
+  ;; here:
+  ;; https://developer.twitter.com/en/docs/tweets/search/api-reference/premium-search  
+  (define (twitter-search-30day num-tweets pattern date)
+    (let ((counts (take (circular-list '500) (ceiling (/ num-tweets 500))))
+	  (date-stamps (twitter-premium-dates date)))
+      ;; counts is a list of numbers. The length of the list
+      ;; corresponds to the number of times we have to query the api
+      ;; (500 tweets can be returned max per query). Each individual
+      ;; number corresponds to the number of requested tweets on a
+      ;; given query. Given how pagination works (with the 'next' id)
+      ;; on premium API endpoints, the max tweets per query must
+      ;; remain the same (i.e., it seems we cannot ask for 500 tweets,
+      ;; followed by 27 tweets using a next id). This means, for now
+      ;; at least, that we must take the ceiling of what a user
+      ;; requests (e.g., they ask for 2250 tweets, we give them 2500
+      ;; tweets (500, 500, 500, 500, 500). This costs them no more API
+      ;; calls than if we actually gave them 2250 tweets, but gives
+      ;; them more than they ask for. The method used here is more
+      ;; convoluted than it needs to be (we could just have a single
+      ;; number that shows how many more calls to make, subtracting 1
+      ;; on each API call)... but I'm keeping it this way because it
+      ;; matches twitter-search, and could be used to return an exact
+      ;; amount of tweets (say, by intentionally ignoring any extra
+      ;; tweets) 
+
+      ;; Twitter provides a mechanism for paginating results through
+      ;; the parameter "next". On the first call we supply no "next"
+      ;; param. On subsequent calls, we must update and manage this
+      ;; parameter to ensure that different tweets are returned on
+      ;; each call
+      (let query-api ((how-many counts) (next-id ""))
+	(begin
+	  ;; Put the brakes on if necessary
+	  (twitter-premium-rate-limit)
+	  
+	  ;; We've passed the rate limit check, continue if there are
+	  ;; more results to request and more results to obtain
+	  ;; (next-id will be false if twitter indicates that no
+	  ;; additional pages of results are available)
+	  (if (and (not (null? how-many))
+		   next-id)
+	      (let ((results
+		     (if (equal? next-id "")
+			 ;; On the first query, you cannot supply a
+			 ;; next-id, even the empty string ""
+			 (read-json
+			  (search-30day       #:query pattern
+					      #:fromDate (car date-stamps)
+					      #:toDate (cadr date-stamps)
+					      #:maxResults (car how-many)))
+			 ;; Subsequent queries we supply the max_id to
+			 ;; handle pagination of results
+			 (read-json
+			  (search-30day       #:query pattern
 					      #:fromDate (car date-stamps)
 					      #:toDate (cadr date-stamps)
 					      #:maxResults (car how-many)

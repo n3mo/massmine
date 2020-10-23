@@ -594,8 +594,10 @@ END
 	     (twitter-search (max-tweets) (keywords) (locations) (language))]
 	    [(equal? curr-task "twitter-rehydrate")
 	     (twitter-rehydrate (keywords))]
-	    [(equal? curr-task "twitter-search-fullarchive")
-	     (twitter-search-fullarchive (max-tweets) (keywords) (date))]
+	    ;; [(equal? curr-task "twitter-search-fullarchive")
+	    ;;  (twitter-search-fullarchive (max-tweets) (keywords) (date))]
+	    [(equal? curr-task "twitter-search-30day")
+	     (twitter-search-30day (max-tweets) (keywords) (date))]
 	    ;; [else (display "MassMine: Unknown task\n" (current-error-port))])))))]
 	    [else (abort (make-property-condition 'exn 'message "Unknown task requested"))])))))]
 
