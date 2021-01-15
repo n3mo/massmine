@@ -62,6 +62,8 @@
 ;; (import massmine-google)
 (include "./modules/tumblr")
 (import massmine-tumblr)
+(include "./modules/jsan")
+(import massmine-jsan)
 (include "./modules/web")
 (import massmine-web)
 (include "./modules/server")
@@ -631,9 +633,15 @@ END
 	    ;; [else (display "MassMine: Unknown task\n" (current-error-port))])))))]
 	    [else (abort (make-property-condition 'exn 'message "Unknown task requested"))])))))]
 
+   ;; Html scraping task
    [(s-starts-with? "web" curr-task)
     (cond
      [(equal? curr-task "web-text") (web-text (keywords))])]
+
+   ;; Data manipulation tasks
+   [(s-starts-with? "data" curr-task)
+    (cond
+     [(equal? curr-task "data-export-csv") (data-export-csv (keywords) (input-file) (output-file))])]
 
    [(s-starts-with? "wikipedia" curr-task)
     (cond
@@ -739,12 +747,15 @@ END
 		(lambda () (task-dispatch (task))
 			(exit 0))))))
       ;; This call does the heavy lifting
-      (handle-exceptions exn
-	  (begin
-	    (display "MassMine: The following error occurred: " (current-error-port))
-	    (display ((condition-property-accessor 'exn 'message) exn)
-		     (current-error-port))
-	    (display "\n" (current-error-port)))
+      ;; (handle-exceptions exn
+      ;; 	  (begin
+      ;; 	    (display "MassMine: The following error occurred: " (current-error-port))
+      ;; 	    (display ((condition-property-accessor 'exn 'message) exn)
+      ;; 		     (current-error-port))
+      ;; 	    (display "\n" (current-error-port)))
+      ;; 	(task-dispatch (task))
+      ;; 	(exit 0)))
+      (begin
 	(task-dispatch (task))
 	(exit 0)))
   (if (output-to-file?) (print "MassMine done!"))
