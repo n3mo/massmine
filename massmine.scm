@@ -2,7 +2,7 @@
 ;; ##################################################################
 ;;
 ;; MassMine: Your Access To Data
-;; Copyright (C) 2014-2020  Nicholas M. Van Horn & Aaron Beveridge
+;; Copyright (C) 2014-2021  Nicholas M. Van Horn & Aaron Beveridge
 ;; Author: Nicholas M. Van Horn
 ;; 
 ;;  This program is free software: you can redistribute it and/or modify
@@ -31,7 +31,7 @@
 	srfi-13 srfi-19 pathname-expand utf8)
 
 ;; Current version of software
-(define mm-version "1.2.2 (2020-10-19)")
+(define mm-version "1.3.0 (2021-01-15)")
 
 ;; For future command line arguments and options
 (define options)
@@ -179,7 +179,7 @@ END
   (print "http://www.massmine.org")
   (print "https://github.com/n3mo/massmine")
   (newline)
-  (print "Copyright (C) 2014-2020 Nicholas M. Van Horn & Aaron Beveridge")
+  (print "Copyright (C) 2014-2021 Nicholas M. Van Horn & Aaron Beveridge")
   (print "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.")
   (print "This is free software: you are free to change and redistribute it.")
   (print "There is NO WARRANTY, to the extent permitted by law.")
@@ -525,7 +525,7 @@ END
 	 "\n\n"
 	 "MassMine version " mm-version "\n"
 	 "https://github.com/n3mo/massmine\n\n"
-	 "Copyright (C) 2014-2020 Nicholas M. Van Horn & Aaron Beveridge\n"
+	 "Copyright (C) 2014-2021 Nicholas M. Van Horn & Aaron Beveridge\n"
 	 "This program comes with ABSOLUTELY NO WARRANTY.\n"
 	 "This is free software, and you are welcome to redistribute it\n"
 	 "under certain conditions. Please see the included LICENSE file\n"

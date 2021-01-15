@@ -1,7 +1,7 @@
 ;; ##################################################################
 ;;
 ;; MassMine: Your Access To Data
-;; Copyright (C) 2014-2020  Nicholas M. Van Horn & Aaron Beveridge
+;; Copyright (C) 2014-2021  Nicholas M. Van Horn & Aaron Beveridge
 ;; Author: Nicholas M. Van Horn
 ;; 
 ;;  This program is free software: you can redistribute it and/or modify
@@ -31,7 +31,7 @@
   (import rest-bind uri-common medea http-client)
 
   ;; user-agent header used in http-header of all calls
-  (client-software '(("MassMine" "1.2.2 (2020-10-19)" #f)))
+  (client-software '(("MassMine" "1.3.0 (2021-01-15)" #f)))
 
   ;; Lots of web services, including Twitter, don't accept ';' separated
   ;; query strings so use '&' for encoding by default but support both
