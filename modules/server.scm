@@ -93,13 +93,19 @@
 (define (server-task cmd)
   ;; Set parameters
   (task (alist-ref 'task cmd))
-  (keywords (alist-ref 'query cmd))
-  (locations (alist-ref 'geo cmd))
-  (language (alist-ref 'lang cmd))
-  (user-info (alist-ref 'user cmd))
-  (max-tweets (alist-ref 'count cmd))
-  (global-max-seconds (alist-ref 'dur cmd))
-  (date (alist-ref 'date cmd))
+  (keywords (alist-ref 'query cmd eqv? ""))
+  (locations (alist-ref 'geo cmd eqv? ""))
+  (language (alist-ref 'lang cmd eqv? ""))
+  (user-info (alist-ref 'user cmd eqv? ""))
+  (if (alist-ref 'count cmd)
+      (max-tweets (alist-ref 'count cmd))
+      (max-tweets 999999999))
+  ;; Double-check data type in case user supplies numeric value as
+  ;; string
+  (if (not (number? (max-tweets))) (max-tweets (string->number (max-tweets))))
+  (if (alist-ref 'dur cmd)
+      (global-max-seconds (date-string->seconds (alist-ref 'dur cmd))))
+  (date (alist-ref 'date cmd eqv? "2100-01-01"))
   (config-file (alist-ref 'config cmd)))
 
 ;;; This is called by massmine core and does the heavy lifting
