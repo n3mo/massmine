@@ -9,7 +9,7 @@
 if [ "$(uname)" == "Darwin" ]
 then
     # The executable and linked library
-    csc -deploy massmine.scm
+    # csc -deploy massmine.scm
 
     # This step is currently required because of a bug in chicken/openssl
     # that prevents openssl from being loaded in `eval`. This command
@@ -21,24 +21,29 @@ then
     # the beginning of the egg. Installing it manually from its
     # directory (using `sudo chicken-install` from its directory)
     # makes everything work as expected on OS X
-    cd ../chicken/http-client/
-    sudo chicken-install -deploy -p ../../massmine/massmine
-    cd ../../massmine/
+    # cd ../chicken/http-client/
+    # sudo chicken-install -deploy -p ../../massmine/massmine
+    # cd ../../massmine/
     
-    # Install clucker and additional eggs
-    sudo chicken-install -deploy -p ./massmine clucker args medea openssl srfi-19 pathname-expand html-parser irregex
+    # Create build directory
+    mkdir ./massmine
+
+    # Do something under Linux platform
+    # The executable and linked library
+    csc -static massmine.scm -L -lssl -L -lcrypto -o ./massmine/massmine
 
     # Package everything up with the current version number (zip and tarball)
-    zip massmine-`./massmine/massmine -v | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+'`-OSX-10.11.zip -r ./massmine/
+    zip massmine-`./massmine/massmine -v | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+'`-OSX-11.zip -r ./massmine/
 
-    tar czf massmine-`./massmine/massmine -v | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+'`-OSX-10.11.tar.gz ./massmine/
+    tar czf massmine-`./massmine/massmine -v | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+'`-OSX-11.tar.gz ./massmine/
 
     # Clean up by moving the results out of the development directory
-    mv massmine-`./massmine/massmine -v | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+'`-OSX-10.11.zip ~/deploy
-    mv massmine-`./massmine/massmine -v | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+'`-OSX-10.11.tar.gz ~/deploy
+    mv massmine-`./massmine/massmine -v | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+'`-OSX-11.zip ~/deploy
+    mv massmine-`./massmine/massmine -v | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+'`-OSX-11.tar.gz ~/deploy
 
     # Remove the build directory
     rm -rf massmine/
+
 
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]
 then
