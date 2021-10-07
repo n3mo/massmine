@@ -8,23 +8,15 @@
 
 if [ "$(uname)" == "Darwin" ]
 then
-    # The executable and linked library
-    # csc -deploy massmine.scm
 
-    # This step is currently required because of a bug in chicken/openssl
-    # that prevents openssl from being loaded in `eval`. This command
-    # copies CHICKEN's core libraries into the deployment directory. The
-    # bug is reported at https://bugs.call-cc.org/ticket/1191
-    
-    # To solve the above problem, I have built a local version of the
-    # http-client egg that simply adds openssl to the use statement at
-    # the beginning of the egg. Installing it manually from its
-    # directory (using `sudo chicken-install` from its directory)
-    # makes everything work as expected on OS X
-    # cd ../chicken/http-client/
-    # sudo chicken-install -deploy -p ../../massmine/massmine
-    # cd ../../massmine/
-    
+    # Note that building on MacOS requires some care involving
+    # openssl, given that Mac no longer supports it. We must let csc
+    # know where to find things (installed via homebrew)
+    export LDFLAGS="-L/usr/local/opt/openssl@3/lib"
+    export CPPFLAGS="-I/usr/local/opt/openssl@3/include"
+    export PKG_CONFIG_PATH="/usr/local/opt/openssl@3/lib/pkgconfig"
+    export CSC_OPTIONS="-I/usr/local/opt/openssl@3/include -L/usr/local/opt/openssl@3/lib"
+
     # Create build directory
     mkdir ./massmine
 
