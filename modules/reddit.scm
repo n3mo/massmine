@@ -24,12 +24,15 @@
 
   (import (chicken io)
 	  (chicken time)
+	  (chicken file)
 	  uri-common
 	  http-client
 	  intarweb
 	  base64
 	  srfi-1
-	  medea)
+	  srfi-13
+	  medea
+	  pathname-expand)
   
   ;; user-agent header used in http-header of all calls
   (client-software '(("MassMine" "1.3.0 (2021-01-15)" #f)))
@@ -39,18 +42,28 @@
   ;; conservative
   (max-retry-attempts 5)
 
-  ;; Sometimes ssl shutdown operations take a little extra time to
-  ;; shutdown, leading to improperly closed connections (and
-  ;; crashes). The default timeout occurs at 2 minutes which can lead
-  ;; to problems. We increase it here. Times for this parameter are
-  ;; specified in msecs
-  (ssl-shutdown-timeout 240000)		; 4 minutes
-
   ;; Module parameters
   ;; --------------------------------------------------
 
+  ;; Reddit API credentials file
+  (define reddit-cred-file
+    (make-parameter (pathname-expand "~/.config/massmine/reddit_cred")))
+
   ;; Bearer token for signing requests with Oauth2
   (define bearer-token (make-parameter #f))
+
+  ;; API credential params (used only during authorization task
+  (define app-id (make-parameter ""))
+  (define app-secret (make-parameter ""))
+  (define account-user (make-parameter ""))
+  (define account-pass (make-parameter "")) 
+
+  ;; Rate limit stuff. Reddit allows up to 60 requests per minute.
+  (define reddit-requests-remaining (make-parameter 60))
+  (define reddit-time-reset (make-parameter (+ 60 (current-seconds))))
+  
+  ;; Oauth management procedures
+  ;; --------------------------------------------------
 
   ;; This unparser is needed by intarweb to add support for "bearer"
   ;; authentication
@@ -60,27 +73,92 @@
   ;; We have to add an option for bearer tokens to intarweb
   (authorization-param-subunparsers (alist-cons 'bearer bearer-auth-param-subunparser (authorization-param-subunparsers)))
   
+  ;; This returns the user's reddit credentials, if available. If the
+  ;; user has not provided this information previously, an error is
+  ;; reported. 
+  (define (reddit-auth cred-path)
+    (let ((cred-file (if cred-path cred-path (reddit-cred-file))))
+      (if (file-exists? cred-file)
+	  ;; Return reddit credential information
+	  (with-input-from-file cred-file read)
+	  ;; Else the user needs set up their credentials
+	  (begin
+	    (display "Authenticate before using Reddit.\nRun --> 'massmine --task=reddit-auth'\n"
+		     (current-error-port))
+	    (exit 1)))))
+
+
   ;; This requests a bearer token from Reddit's API. Bearer
   ;; tokens expire in 1 hour (3600 seconds). This procedure
   ;; calculates the expiration date (in seconds) and adds it to
-  ;; the bearer-token alist under the key expires_on
+  ;; the bearer-token alist under the key expires_on. You shouldn't
+  ;; need to call this directly. Instead, you likely want to call
+  ;; update-bearer-token, which handles things for you (such as
+  ;; checking if the bearer-token has expired)
   (define (generate-bearer-token)
+    (define reddit-cred (reddit-auth (reddit-cred-file)))
     (let ((result
 	   (read-json
 	    (let* ((uri (uri-reference "https://www.reddit.com/api/v1/access_token"))
 		   (req (make-request method: 'POST
 				      uri: uri
-				      headers: (headers '((authorization #(basic
-									   ((username . "tUCIuSMLU5uUYQ") 
-									    (password . "1DnPNmo_M_2jfJ2Gr5LRhewkFe0")))))))))
+				      headers: (headers `((authorization #(basic
+									   ((username . ,(alist-ref 'application-id reddit-cred)) 
+									    (password . ,(alist-ref 'application-secret reddit-cred))))))))))
 	      (with-input-from-request req
-				       '((grant_type . "password")
-					 (username . "massmine_dev")
-					 (password . "I<bR=B5,b)g^swb?F{K29S2Q("))
+				       `((grant_type . "client_credentials") ; grant type "password" also works
+					 (username . ,(alist-ref 'account-username reddit-cred))
+					 (password . ,(alist-ref 'account-password reddit-cred)))
 				       read-string)))))
       ;; Taken the expiration seconds and convert to an actual
       ;; time in the future at which the bearer token expires
       (alist-cons 'expires_on (+ (current-seconds) (alist-ref 'expires_in result)) result)))
+
+  ;; Call this before running any Reddit API data request. It modifies
+  ;; the module-wide parameter bearer-token to ensure that a
+  ;; non-expired bearer token is available for accessing OAuth
+  ;; protected API resources
+  (define (update-bearer-token)
+    ;; If this is the first time this is called, the parameter
+    ;; `bearer-token` will be #f. In that case, request a new bearer
+    ;; token. If this has already been called 1+ time prior, then an
+    ;; existing bearer token will be contained in the parameter. In
+    ;; that case, this procedure should check if the token has
+    ;; expired. If so, request a new token. If not, this procedure
+    ;; should simply return with no side effects. We actually ensure
+    ;; that there are at least 5 seconds remaining before expiration,
+    ;; just to be safe
+    (if (bearer-token)
+	(let ((seconds-remaining (- (alist-ref 'expires_on (bearer-token))
+				    (current-seconds))))
+	  (if (< seconds-remaining 5)
+	      (bearer-token (generate-bearer-token))))
+	;; There is no bearer-token yet... get one!
+	(bearer-token (generate-bearer-token))))
+
+  ;; Call this at the start of any API requests to ensure that
+  ;; MassMine doesn't exceed the limits set by Reddit. Reddit allows
+  ;; for up to 60 reqesuts per minute. So this procedure monitors how
+  ;; many requests have been made, and well as when the first request
+  ;; was made. If the maximum number of requests have been made, this
+  ;; procedure will sleep until the original 60 seconds has
+  ;; expired. Then it will reset the limits and return to the calling
+  ;; procedure 
+  (define (reddit-rate-limit)
+    (if (<= (reddit-requests-remaining) 0)
+	;; We reached our rate limits. Wait for a bit to reset things
+	(let ((sleep-seconds (- (reddit-time-reset)
+				(current-seconds))))
+	  ;; Put the brakes on for a bit
+	  (sleep sleep-seconds)
+	  ;; Rate limits have recovered... continue on after resetting
+	  ;; limit counters
+	  (reddit-requests-remaining 59)
+	  (reddit-time-reset (+ 60 (current-seconds))))
+	;; We still have requets available. Increment counter and
+	;; continue on
+	(reddit-requests-remaining (- (reddit-requests-remaining)
+				      1))))
 
   ;; This is how to use the bearer token to request data from the
   ;; API. This mimics the example script example from Reddit's
@@ -97,6 +175,18 @@
   ;;   (with-input-from-request req
   ;; 			   #f
   ;; 			   read-string))
+
+
+  ;; --------------------------------------------------
+  ;; Module general procedures
+  ;; --------------------------------------------------
+
+  ;; Helper function: get confirmation from user
+  (define (yes-or-no? msg #!key default)
+    (print (string-append msg " (yes/no)"))
+    (let ((resp (string-trim-both (read-line))))
+      (cond ((string-ci=? "yes" resp) #t)
+	    (else #f))))
 
   ;; --------------------------------------------------
   ;; API procedures
@@ -134,6 +224,8 @@
 			      headers: (headers `((authorization
 						   #(bearer
 						     ((token . ,(alist-ref 'access_token (bearer-token)))))))))))
+      
+      ;; Return the substantive data results
       (with-input-from-request req
 			       #f
 			       read-string)))
@@ -177,6 +269,46 @@
   ;; These are massmine task functions, called when users select a
   ;; particular task.
 
+  ;; Reddit authentication task. This need only be used once whenever
+  ;; a user needs to add new Reddit API credentials to MassMine
+  (define (reddit-setup-auth cred-file)
+    (let ((cred-path (if cred-file cred-file (reddit-cred-file))))
+      (print "Would you like to setup your Reddit credentials?")
+      (print "Warning: continuing will over-write any previous credentials")
+      (if (yes-or-no? "Continue? " #:default "No" #:abort #f)
+	  ;; Walk the user through setting up their credentials
+	  (begin
+	    (print "Please visit https://www.reddit.com/prefs/apps/ to collect")
+	    (print "the following information:")
+	    (display "Application id: ")
+	    (app-id (string-trim-both (read-line)))
+	    (display "Application secret: ")
+	    (app-secret (string-trim-both (read-line)))
+	    (display "Reddit account user name: ")
+	    (account-user (string-trim-both (read-line)))
+	    (display "Reddit account password: ")
+	    (account-pass (string-trim-both (read-line)))
+
+	    ;; TODO: Verify the user's supplied credentials. This will return
+	    ;; if the credentials are successfully verified, otherwise
+	    ;; an exception (with an explanation to the user) will be
+	    ;; raised.
+	    ;; (reddit-verify-credentials #:app-id (app-id)
+	    ;; 			       #:app-secret (app-secret)
+	    ;; 			       #:account-user (account-user)
+	    ;; 			       #:account-pass (account-pass))
+
+	    ;; If we've made it here, the user's credentials check out.
+	    ;; Prepare a proper alist and write to disk
+	    (with-output-to-file cred-path
+	      (lambda ()
+		(write `((application-id . ,(app-id))
+			 (application-secret . ,(app-secret))
+			 (account-username . ,(account-user))
+			 (account-password . ,(account-pass))))))
+	    (print "\nAuthentication setup finished!"))
+	  (print "Stopping!"))))
+
   ;; Search a subreddit.
   ;; Example usage: (reddit-search 250 "love" "news" "hot" "month")
   (define (reddit-search num-posts pattern subreddit type timebin)
@@ -201,13 +333,12 @@
 
       (let query-api ((how-many counts) (after ""))
 	(begin
+
+	  ;; Get proper API access
+	  (update-bearer-token)
+	  
 	  ;; Put the brakes on if necessary
-
-	  ;; TODO: check the status of our bearer-token to see if we
-	  ;; need to request a new one
-
-	  ;; TODO: check rate limits to see if we're within the 60 API
-	  ;; requests per minute allowed
+	  (reddit-rate-limit)
 	  
 	  ;; We've passed the rate limit check, continue
 	  (if (not (null? how-many))
