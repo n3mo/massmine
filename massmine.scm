@@ -554,6 +554,7 @@ END
    [(s-starts-with? "reddit" curr-task)
     (cond
      [(equal? curr-task "reddit-auth") (reddit-setup-auth (custom-cred-path))]
+     [(equal? curr-task "reddit-best") (reddit-best (max-tweets))]
      [(equal? curr-task "reddit-hot") (reddit-hot (max-tweets) (keywords) (locations))]
      [(equal? curr-task "reddit-search-comments") (reddit-search-comments (max-tweets) (keywords) (date))]
      [(equal? curr-task "reddit-search-hot") (reddit-search-hot (max-tweets) (keywords) (date))]

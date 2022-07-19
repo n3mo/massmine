@@ -41,7 +41,7 @@
   (client-software '(("MassMine" "1.3.0 (2021-01-15)" #f)))
   ;; http-client retry policy for failed connections. We could set
   ;; this to #f to make it retry indefinitely, but this will lead to
-  ;; http 420 rate limit responses from Twitter. Better to be
+  ;; http 420 rate limit responses from the server. Better to be
   ;; conservative
   (max-retry-attempts 5)
 
@@ -70,7 +70,8 @@
   ;; Available tasks and brief descriptions
   (define reddit-task-descriptions
     '((reddit-auth		.       "Authenticate with Reddit")
-      (reddit-hot		.       "Get listing of front page hot posts")
+      (reddit-best		.       "Get listing of best front page posts")
+      (reddit-hot		.       "Get listing of front page hot posts")      
       (reddit-search-comments	.	"Search existing comments by keyword(s)")
       (reddit-search-hot	.	"Search existing posts by keyword(s), sorted by hot")
       (reddit-search-new	.	"Search existing posts by keyword(s), sorted by new")
@@ -81,6 +82,7 @@
   ;; TODO: Update this
   (define reddit-task-options
     '((reddit-auth		.       "auth")
+      (reddit-best		.       "count*")
       (reddit-hot		.       "query* count* geo*")
       (reddit-search-comments	.	"query* count* date*")
       (reddit-search-hot	.	"query* count* date*")
@@ -90,8 +92,9 @@
 
   ;; Available tasks and their corresponding procedure calls
   ;; TODO: Update the correct calling method for these
-  (define twitter-tasks
+  (define reddit-tasks
     '((reddit-auth		.	(reddit-setup-auth P))
+      (reddit-best		.       (reddit-best (max-tweets)))
       (reddit-hot		.       (reddit-hot (max-tweets) (keywords) (locations)))
       (reddit-search-comments	.       (reddit-search-comments (max-tweets) (keywords) (date)))
       (reddit-search-hot	.       (reddit-search-hot (max-tweets) (keywords) (date)))
@@ -277,6 +280,30 @@
 				(string-append "https://oauth.reddit.com/r/" subreddit "/hot?")
 				(form-urlencode `((g . ,g)
 						  (after . ,after)
+						  (before . ,before)
+						  (count . ,count)
+						  (limit . ,limit)
+						  (show . ,show)
+						  (sr_detail . ,sr_detail))))))
+	   (req (make-request method: 'GET
+			      uri: uri
+			      headers: (headers `((authorization
+						   #(bearer
+						     ((token . ,(alist-ref 'access_token (bearer-token)))))))))))
+      
+      ;; Return the substantive data results
+      (with-input-from-request req
+			       #f
+			       read-string)))
+
+  ;; Query best api. This function requires a valid and non-expired
+  ;; bearer-token to be parameterized in bearer-token. Keyword options
+  ;; match those described on Reddit's API docs at:
+  ;; https://www.reddit.com/dev/api#GET_best
+  (define (reddit-best-api #!key after before count limit show sr_detail)
+    (let* ((uri (uri-reference (string-append
+				"https://oauth.reddit.com/hot?"
+				(form-urlencode `((after . ,after)
 						  (before . ,before)
 						  (count . ,count)
 						  (limit . ,limit)
@@ -542,6 +569,72 @@
 							     #:g location
 							     #:limit (car how-many)
 							     #:after after)))))))
+
+		;; The remaining code should only run if we
+		;; successfully received posts on the last query. If
+		;; reddit returned nothing, we're done here
+		(unless (or (not results) (= (vector-length (alist-ref 'children results)) 0))
+		  ;; We have the current batch of results, with meta-data
+		  ;; in results. Write out the current posts. 
+		  ;; For other API endpoints the
+		  ;; results are line-oriented JSON with one record per
+		  ;; line. We extract the post data from the array and
+		  ;; write it one line at a time for consistency
+		  (for-each
+		   (lambda (post) (write-json post) (newline))
+		   (vector->list (alist-ref 'children results)))
+
+		  ;; Now bookkeeping begins. We save the current "after"
+		  ;; param for use in our next API call
+		  (query-api
+		   (cdr how-many)
+		   (alist-ref 'after results)))))))))
+
+  ;; Reddit best task. Returns reddit best listings
+  (define (reddit-best num-posts)
+    (let* ((num-counts (inexact->exact (floor (/ num-posts 100))))
+	   (raw-counts (reverse (cons (- num-posts (* num-counts 100))
+				      (take (circular-list '100) num-counts))))
+	   (counts (filter (lambda (x) (not (= x 0))) raw-counts)))
+
+      ;; counts is a list of numbers. The length of the list
+      ;; corresponds to the number of times we have to query the api
+      ;; (100 results can be returned max per query). Each individual
+      ;; number corresponds to the number of requested results on a
+      ;; given query. The sum of the list equals the requested number
+      ;; of results from the user. E.g., if the user asked for 250
+      ;; posts, counts will be (100 100 50)
+
+      ;; Reddit provides a mechanism for paginating results through
+      ;; the parameter "after". On the first call we supply no "after"
+      ;; param. On subsequent calls, we must update and manage this
+      ;; parameter to ensure that different posts are returned on
+      ;; each call
+
+      (let query-api ((how-many counts) (after ""))
+	(begin
+
+	  ;; Get proper API access
+	  (update-bearer-token)
+	  
+	  ;; Put the brakes on if necessary
+	  (reddit-rate-limit)
+	  
+	  ;; We've passed the rate limit check, continue
+	  (if (not (null? how-many))
+	      (let ((results
+		     (if (equal? after "")
+			 ;; On the first query, you cannot supply an
+			 ;; after "fullname"
+			 (alist-ref 'data
+				    (cdr (read-json
+					  (reddit-best-api #:limit (car how-many)))))
+			 ;; Subsequent queries we supply the "after" parameter to
+			 ;; handle pagination of results
+			 (alist-ref 'data
+				    (cdr (read-json
+					  (reddit-best-api #:limit (car how-many)
+							   #:after after)))))))
 
 		;; The remaining code should only run if we
 		;; successfully received posts on the last query. If
