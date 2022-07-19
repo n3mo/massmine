@@ -22,9 +22,12 @@
 
 (module massmine-reddit *
 
-  (import (chicken io)
+  (import (chicken base)
+	  (chicken io)
 	  (chicken time)
 	  (chicken file)
+	  (chicken string)
+	  scheme
 	  uri-common
 	  http-client
 	  intarweb
@@ -62,6 +65,33 @@
   (define reddit-requests-remaining (make-parameter 60))
   (define reddit-time-reset (make-parameter (+ 60 (current-seconds))))
   
+
+  ;; Module information
+  ;; Available tasks and brief descriptions
+  (define reddit-task-descriptions
+    '((reddit-auth		.       "Authenticate with Reddit")
+      (reddit-search-comments	.	"Search existing comments by keyword(s)")
+      (reddit-search-hot	.	"Search existing posts by keyword(s), sorted by hot")
+      (reddit-search-new	.	"Search existing posts by keyword(s), sorted by new")
+      (reddit-search-top	.	"Search existing posts by keyword(s), sorted by top")
+      (reddit-search-relevance	.	"Search existing posts by keyword(s), sorted by relevance")))
+
+  ;; Command line arguments supported by each task
+  ;; TODO: Update this
+  (define reddit-task-options
+    '((reddit-auth		.       "auth")
+      (reddit-search-comments	.	"query* count* date*")
+      (reddit-search-hot	.	"query* count* date*")
+      (reddit-search-new	.	"query* count* date*")
+      (reddit-search-top	.	"query* count* date*")
+      (reddit-search-relevance	.	"query* count* date*")))
+
+  ;; Available tasks and their corresponding procedure calls
+  ;; TODO: Update the correct calling method for these
+  (define twitter-tasks
+    '((reddit-auth		.	(reddit-setup-auth P))
+      (reddit-search-hot	.       (reddit-search-hot (max-tweets) (keywords) (date)))))
+
   ;; Oauth management procedures
   ;; --------------------------------------------------
 
@@ -309,8 +339,13 @@
 	    (print "\nAuthentication setup finished!"))
 	  (print "Stopping!"))))
 
-  ;; Search a subreddit.
-  ;; Example usage: (reddit-search 250 "love" "news" "hot" "month")
+  ;; Search a subreddit. This is used for all reddit search tasks,
+  ;; except for searching comments. However, it is not a task
+  ;; procedure itself. It is used by:
+  ;; reddit-search-hot, reddit-search-new, reddit-search-top, and
+  ;; reddit-search-relevance
+  ;; 
+  ;; Example usage: (reddit-search-hot 250 "love" "news" "hot" "month")
   (define (reddit-search num-posts pattern subreddit type timebin)
     (let* ((num-counts (inexact->exact (floor (/ num-posts 100))))
 	   (raw-counts (reverse (cons (- num-posts (* num-counts 100))
@@ -383,5 +418,13 @@
 		  (query-api
 		   (cdr how-many)
 		   (alist-ref 'after results)))))))))
+
+  ;; Search reddit hot task. 'pattern' should be 'subreddit:query'
+  (define (reddit-search-hot num-posts pattern timebin)
+    (let* ((tmp (string-split pattern ":"))
+	   (subreddit (first tmp))
+	   (query (second tmp)))
+      ;; Run the task
+      (reddit-search num-posts query subreddit "hot" timebin)))
   
   ) ;; End of reddit module			       

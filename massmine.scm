@@ -54,6 +54,8 @@
 (define testing?                (make-parameter #f))
 (define server                  (make-parameter #f))
 
+(include "./modules/reddit")
+(import massmine-reddit)
 (include "./modules/twitter")
 (import massmine-twitter)
 (include "./modules/wikipedia")
@@ -536,6 +538,11 @@ END
 ;; arguments) 
 (define (task-dispatch curr-task)
   (cond
+   [(s-starts-with? "reddit" curr-task)
+    (cond
+     [(equal? curr-task "reddit-auth") (reddit-setup-auth (custom-cred-path))]
+     [(equal? curr-task "reddit-search-hot") (reddit-search-hot (max-tweets) (keywords) (date))])]
+   
    ;; Authentication is a special case
    [(equal? curr-task "twitter-auth")
     (twitter-setup-auth (custom-cred-path))]
