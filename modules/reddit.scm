@@ -426,5 +426,29 @@
 	   (query (second tmp)))
       ;; Run the task
       (reddit-search num-posts query subreddit "hot" timebin)))
+
+  ;; Search reddit new task. 'pattern' should be 'subreddit:query'
+  (define (reddit-search-new num-posts pattern timebin)
+    (let* ((tmp (string-split pattern ":"))
+	   (subreddit (first tmp))
+	   (query (second tmp)))
+      ;; Run the task
+      (reddit-search num-posts query subreddit "new" timebin)))
+
+  ;; Search reddit top task. 'pattern' should be 'subreddit:query'
+  (define (reddit-search-top num-posts pattern timebin)
+    (let* ((tmp (string-split pattern ":"))
+	   (subreddit (first tmp))
+	   (query (second tmp)))
+      ;; Run the task
+      (reddit-search num-posts query subreddit "top" timebin)))
+
+  ;; Search reddit relevance task. 'pattern' should be 'subreddit:query'
+  (define (reddit-search-relevance num-posts pattern timebin)
+    (let* ((tmp (string-split pattern ":"))
+	   (subreddit (first tmp))
+	   (query (second tmp)))
+      ;; Run the task
+      (reddit-search num-posts query subreddit "relevance" timebin)))
   
   ) ;; End of reddit module			       
