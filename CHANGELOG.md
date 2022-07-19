@@ -4,6 +4,14 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - [unreleased]
 
+### Added
+- Reddit tasks added
+  - reddit-auth: authenticate with the Reddit API to allow MassMine to request data 
+  - reddit-search-comments: search Reddit comments
+  - reddit-search-hot, reddit-search-new, reddit-search-top, reddit-search-relevance: search specified /r/subreddits by keywords, sorted by hot, new, top, and relevance
+  - reddit-hot: Retrieves listings of top posts on Reddit's front page, sorted by hot
+  - reddit-best: Retrieves listings of best posts across all of Reddit
+
 ## [1.3.0] - 2021-01-15
 
 ### Added
