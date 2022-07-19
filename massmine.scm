@@ -215,6 +215,13 @@ END
 	;; (newline)
 	(for-each (lambda (task)
 		    (display (sprintf "~A~A~A -- ~A"
+				      "\033[94m"
+				      (car task) "\033[0m" (cdr task)))
+		    (newline))
+		  reddit-task-descriptions)
+	(newline)
+	(for-each (lambda (task)
+		    (display (sprintf "~A~A~A -- ~A"
 				      "\033[92m"
 				      (car task) "\033[0m" (cdr task)))
 		    (newline))
@@ -255,7 +262,13 @@ END
 	;; 	    (newline))
 	;; 	  google-task-options)
 	;; (newline)
-
+	(for-each (lambda (task)
+		    (display (sprintf "~A~A~A -- ~A"
+				      "\033[94m"
+				      (car task) "\033[0m" (cdr task)))
+		    (newline))
+		  reddit-task-options)
+	(newline)
 	(for-each (lambda (task)
 		    (display (sprintf "~A~A~A -- ~A"
 				      "\033[92m"
