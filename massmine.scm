@@ -554,10 +554,12 @@ END
    [(s-starts-with? "reddit" curr-task)
     (cond
      [(equal? curr-task "reddit-auth") (reddit-setup-auth (custom-cred-path))]
+     [(equal? curr-task "reddit-search-comments") (reddit-search-comments (max-tweets) (keywords) (date))]
      [(equal? curr-task "reddit-search-hot") (reddit-search-hot (max-tweets) (keywords) (date))]
      [(equal? curr-task "reddit-search-new") (reddit-search-new (max-tweets) (keywords) (date))]
      [(equal? curr-task "reddit-search-top") (reddit-search-top (max-tweets) (keywords) (date))]
-     [(equal? curr-task "reddit-search-relevance") (reddit-search-relevance (max-tweets) (keywords) (date))])]
+     [(equal? curr-task "reddit-search-relevance") (reddit-search-relevance (max-tweets) (keywords) (date))]
+     [else (abort (make-property-condition 'exn 'message "Unknown task requested"))])]
    
    ;; Authentication is a special case
    [(equal? curr-task "twitter-auth")

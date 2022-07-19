@@ -419,6 +419,14 @@
 		   (cdr how-many)
 		   (alist-ref 'after results)))))))))
 
+  ;; Search reddit comments task. 'pattern' should be 'subreddit:query'
+  (define (reddit-search-comments num-posts pattern timebin)
+    (let* ((tmp (string-split pattern ":"))
+	   (subreddit (first tmp))
+	   (query (second tmp)))
+      ;; Run the task
+      (reddit-search num-posts query subreddit "comments" timebin)))
+
   ;; Search reddit hot task. 'pattern' should be 'subreddit:query'
   (define (reddit-search-hot num-posts pattern timebin)
     (let* ((tmp (string-split pattern ":"))
