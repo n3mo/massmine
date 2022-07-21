@@ -20,7 +20,7 @@
 ;; Instructions: See www.massmine.org for complete documentation and
 ;; instructions for how to use massmine
 
-(module youtube-reddit *
+(module massmine-youtube *
 
   (import (chicken base)
 	  (chicken io)
