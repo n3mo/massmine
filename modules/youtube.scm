@@ -145,8 +145,6 @@
   ;; these to make individual calls. These functions all end in -api
   ;; to make this clear
 
-  ;; Grizzly Bear video example with comments---video ID: atZqRbpb5gg
-
   ;; Request comment threads for a specified YouTube video ID from the
   ;; YouTube API. This uses the "CommentThreads: list" endpoint:
   ;; https://developers.google.com/youtube/v3/docs/commentThreads/list
@@ -218,7 +216,7 @@
 	  (print "Stopping!"))))
 
   ;; Youtube video comments. Returns youtube video comments thread for
-  ;; a specified video ID
+  ;; a specified video ID. Example video ID: atZqRbpb5gg
   (define (youtube-video-comments num-posts videoID)
     (let* ((num-counts (inexact->exact (floor (/ num-posts 100))))
 	   (raw-counts (reverse (cons (- num-posts (* num-counts 100))
