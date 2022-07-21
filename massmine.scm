@@ -68,6 +68,8 @@
 ;; (import massmine-jsan)
 (include "./modules/web")
 (import massmine-web)
+(include "./modules/youtube")
+(import massmine-youtube)
 (include "./modules/server")
 
 ;; Useful examples, displayed when 'massmine -h examples' is ran
@@ -247,6 +249,13 @@ END
 				      (car task) "\033[0m" (cdr task)))
 		    (newline))
 		  wikipedia-task-descriptions)
+	(newline)
+	(for-each (lambda (task)
+		    (display (sprintf "~A~A~A -- ~A"
+				      "\033[92m"
+				      (car task) "\033[0m" (cdr task)))
+		    (newline))
+		  youtube-task-descriptions)
 	(newline))]
 
      [(equal? topic "task-options")
@@ -296,6 +305,13 @@ END
 				      (car task) "\033[0m" (cdr task)))
 		    (newline))
 		  wikipedia-task-options)
+	(newline)
+	(for-each (lambda (task)
+		    (display (sprintf "~A~A~A -- ~A"
+				      "\033[92m"
+				      (car task) "\033[0m" (cdr task)))
+		    (newline))
+		  youtube-task-options)
 	(newline))]
      [(equal? topic "output")
       (begin
@@ -677,6 +693,13 @@ END
      [(equal? curr-task "wikipedia-views") (wikipedia-views (keywords) (date))]
      [(equal? curr-task "wikipedia-page-links") (wikipedia-page-links (keywords) (language))]
      [(equal? curr-task "wikipedia-trends") (wikipedia-trends (date))]
+     [else (abort (make-property-condition 'exn 'message "Unknown task requested"))])]
+
+   [(s-starts-with? "youtube" curr-task)
+    (cond
+     [(equal? curr-task "youtube-auth") (youtube-setup-auth (custom-cred-path))]
+     [(equal? curr-task "youtube-video-comments") (youtube-video-comments (max-tweets) (keywords))]
+     [(equal? curr-task "youtube-channel-comments") (youtube-channel-comments (max-tweets) (keywords))]
      [else (abort (make-property-condition 'exn 'message "Unknown task requested"))])]
    ;; [(s-starts-with? "google" curr-task)
    ;;  (cond
