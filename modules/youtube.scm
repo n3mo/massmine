@@ -1,7 +1,7 @@
 ;; ##################################################################
 ;;
 ;; MassMine: Your Access To Data
-;; Copyright (C) 2014-2021  Nicholas M. Van Horn & Aaron Beveridge
+;; Copyright (C) 2014-2022  Nicholas M. Van Horn & Aaron Beveridge
 ;; Author: Nicholas M. Van Horn
 ;; 
 ;;  This program is free software: you can redistribute it and/or modify
@@ -38,7 +38,7 @@
 	  pathname-expand)
   
   ;; user-agent header used in http-header of all calls
-  (client-software '(("MassMine" "1.3.0 (2021-01-15)" #f)))
+  (client-software '(("MassMine" "1.4.0 (2022-07-22)" #f)))
   ;; http-client retry policy for failed connections. We could set
   ;; this to #f to make it retry indefinitely, but this will lead to
   ;; http 420 rate limit responses from the server. Better to be
